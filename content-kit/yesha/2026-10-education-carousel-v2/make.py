@@ -87,6 +87,7 @@ PHOTO_COVER = UP + '9dadb569-image.jpg'
 PHOTO_EFRAT = UP + '6168c27e-image.jpg'
 PHOTO_SHOMRON = UP + '76ebff00-image.jpg'
 PHOTO_ELKANA = UP + '177480c4-image.jpg'
+PHOTO_ARMY = UP + 'ac7bf51a-image.jpg'
 
 
 def bg_at(y):
@@ -304,13 +305,17 @@ def year_badge(d, x_right, y, dark):
 
 # 6 — IDF enlistment, men (2022 cohort data)
 def s6():
-    img = canvas(False); d = chrome(img, 6, False, SRC_SERVICE)
-    tag(d, 250, 'גיוס לצה״ל · בנים', 42)
-    text(d, (W - M, 335), 'בחזית השירות', 104, NAVY)
-    text(d, (W - M, 465), 'שיעור הגיוס לצה״ל — בנים', 48, BLUE, bold=False)
-    year_badge(d, W - M - tw(d, 'שיעור הגיוס לצה״ל — בנים', 48, False) - 24, 462, False)
-    for i, (nm, pct, rk) in enumerate([('אריאל', 98.7, 'מקום 2'), ('אלקנה', 95.8, 'מקום 9'), ('אפרת', 94.2, 'מקום 17')]):
-        bar_row(d, 600 + i * 205, nm, pct, rk, strong=(i == 0))
+    img = canvas(False)
+    photo(img, PHOTO_ARMY, 625, 0.0, ICE, fade_from=0.90, top_dark=175)
+    d = chrome(img, 6, False, SRC_SERVICE, on_photo=True)
+    tag(d, 640, 'גיוס לצה״ל · בנים', 38)
+    text(d, (W - M, 698), 'בחזית השירות', 84, NAVY)
+    sub = 'שיעור הגיוס לצה״ל — בנים'
+    text(d, (W - M, 798), sub, 42, BLUE, bold=False)
+    year_badge(d, W - M - tw(d, sub, 42, False) - 24, 792, False)
+    rows = [('אריאל', 98.7, 'מקום 2'), ('אלקנה', 95.8, 'מקום 9'), ('אפרת', 94.2, 'מקום 17')]
+    for i, (nm, pct, rk) in enumerate(rows):
+        bar_row(d, 875 + i * 118, nm, pct, rk, strong=(i == 0), k=0.78)
     save(img, 6)
 
 
