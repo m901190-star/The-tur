@@ -72,14 +72,52 @@ def logo(img, w, x_right, y, plate):
     return h
 
 
-def chrome(img, n, dark, source=None):
+def chrome(img, n, dark, source=None, on_photo=False):
     d = ImageDraw.Draw(img)
-    logo(img, 150 if dark else 170, W - M, 62, plate=dark)
-    text(d, (M, 72), f'{n}/{TOTAL}', 36, LB if dark else MID, anchor='la', rtl=False)
+    logo(img, 150 if (dark or on_photo) else 170, W - M, 62, plate=dark or on_photo)
+    text(d, (M, 72), f'{n}/{TOTAL}', 36, WHITE if on_photo else (LB if dark else MID), anchor='la', rtl=False)
     if source:
         d.rectangle(P(M, H - 104, W - M, H - 102), fill=(0x4A, 0x6E, 0x94) if dark else (0xC9, 0xDB, 0xE8))
         text(d, (W - M, H - 84), source, 30, SOFT if dark else BLUE, bold=False)
     return d
+
+
+UP = '/root/.claude/uploads/1a5819ee-0cc0-5045-b086-4a8a80216453/'
+PHOTO_COVER = UP + '9dadb569-image.jpg'
+PHOTO_EFRAT = UP + '6168c27e-image.jpg'
+PHOTO_SHOMRON = UP + '76ebff00-image.jpg'
+
+
+def bg_at(y):
+    """Colour of the dark slide gradient at height y, so photos fade into it seamlessly."""
+    t = y / H
+    return tuple(int(DEEP[i] + (BLUE[i] - DEEP[i]) * t) for i in range(3))
+
+
+def photo(img, path, h, focus_y, fade_to, fade_from=0.55, caption=None, top_dark=150):
+    """Cover-crop a photo into the top band (W x h) and fade its bottom into the slide colour."""
+    ph = Image.open(path).convert('RGB')
+    sc = max(W * S / ph.width, h * S / ph.height)
+    ph = ph.resize((round(ph.width * sc), round(ph.height * sc)), Image.LANCZOS)
+    top = int(min(max(focus_y * ph.height - h * S / 2, 0), ph.height - h * S))
+    left = (ph.width - W * S) // 2
+    ph = ph.crop((left, top, left + W * S, top + int(h * S)))
+    img.paste(ph, (0, 0))
+    ov = Image.new('RGBA', (W * S, int(h * S)), (0, 0, 0, 0)); od = ImageDraw.Draw(ov)
+    for y in range(int(h * S)):
+        t = y / (h * S)
+        a_top = int(top_dark * max(0, 1 - t / (130 / h)))                       # keeps logo/counter legible
+        a_bot = int(255 * max(0, (t - fade_from) / (1 - fade_from)) ** 1.1)
+        col = bg_at(y / S) if fade_to is None else fade_to
+        if a_top: od.line([(0, y), (W * S, y)], fill=DEEP + (a_top,))
+        if a_bot: od.line([(0, y), (W * S, y)], fill=col + (a_bot,))
+    img.paste(ov, (0, 0), ov)
+    if caption:
+        d = ImageDraw.Draw(img)
+        w = tw(d, caption, 34)
+        y = h * fade_from - 20
+        d.rounded_rectangle(P(W - M - w - 36, y, W - M, y + 54), radius=27 * S, fill=NAVY)
+        text(d, (W - M - 18, y + 9), caption, 34, WHITE)
 
 
 def tag(d, y, s, size=42, bg=BLUE):
@@ -123,16 +161,17 @@ def save(img, n):
 
 # 1 — cover
 def s1():
-    img = canvas(True); arcs(img, 980, 1260, alpha=55, n=4, r0=430, step=80, width=40)
+    img = canvas(True)
+    photo(img, PHOTO_COVER, 820, 0.5, None, fade_from=0.42, top_dark=200)
+    arcs(img, 980, 1360, alpha=40, n=4, r0=400, step=80, width=40)  # drawn over the fade, no seam
     d = ImageDraw.Draw(img)
-    logo(img, 260, W - M, 90, plate=True)
-    text(d, (M, 72), f'1/{TOTAL}', 36, LB, anchor='la', rtl=False)
-    y = 520
-    h = tag(d, y, 'התמונה החינוכית תשפ״ה', 44, bg=LB)
-    text(d, (W - M, y + h + 30), 'יהודה ושומרון', 190, WHITE, shadow=(8, 8, BLUE))
-    text(d, (W - M, y + h + 250), 'בצמרת החינוך', 130, LB, shadow=(6, 6, DEEP))
-    text(d, (W - M, y + h + 400), 'בישראל', 130, WHITE)
-    text(d, (W - M, H - 130), 'החליקו לנתונים ←', 50, SOFT, bold=False)
+    logo(img, 220, W - M, 60, plate=True)
+    text(d, (M, 72), f'1/{TOTAL}', 36, WHITE, anchor='la', rtl=False)
+    y = 700
+    h = tag(d, y, 'התמונה החינוכית תשפ״ה', 44, bg=BLUE)
+    text(d, (W - M, y + h + 24), 'יהודה ושומרון', 180, WHITE, shadow=(8, 8, BLUE))
+    text(d, (W - M, y + h + 230), 'מובילה בחינוך', 150, LB, shadow=(7, 7, DEEP))
+    text(d, (W - M, H - 120), 'החליקו לנתונים ←', 50, SOFT, bold=False)
     save(img, 1)
 
 
@@ -162,19 +201,21 @@ def s3():
 
 # 4 — 5 units math & English
 def s4():
-    img = canvas(False); d = chrome(img, 4, False, SRC_EDU)
-    tag(d, 250, '5 יחידות לימוד', 42)
-    text(d, (W - M, 335), 'מובילים ב־5 יחידות', 104, NAVY)
+    img = canvas(False)
+    photo(img, PHOTO_EFRAT, 440, 0.0, ICE, fade_from=0.74, caption='אפרת', top_dark=170)
+    d = chrome(img, 4, False, SRC_EDU, on_photo=True)
+    tag(d, 428, '5 יחידות לימוד', 40)
+    text(d, (W - M, 488), 'מובילים ב־5 יחידות', 92, NAVY)
 
     def section(y, title):
-        text(d, (W - M, y), title, 60, BLUE)
-        d.rectangle(P(M, y + 40, W - M - tw(d, title, 60) - 24, y + 43), fill=(0xB5, 0xCF, 0xE3))
+        text(d, (W - M, y), title, 56, BLUE)
+        d.rectangle(P(M, y + 38, W - M - tw(d, title, 56) - 24, y + 41), fill=(0xB5, 0xCF, 0xE3))
 
-    section(480, 'מתמטיקה')
-    bar_row(d, 570, 'אלקנה', 35.8, 6, strong=True)
-    bar_row(d, 750, 'אפרת', 32.5, 12)
-    section(950, 'אנגלית')
-    bar_row(d, 1040, 'אלקנה', 82.1, 8, strong=True)
+    section(605, 'מתמטיקה')
+    bar_row(d, 675, 'אלקנה', 35.8, 6, strong=True)
+    bar_row(d, 830, 'אפרת', 32.5, 12)
+    section(990, 'אנגלית')
+    bar_row(d, 1062, 'אלקנה', 82.1, 8, strong=True)
     save(img, 4)
 
 
@@ -236,30 +277,30 @@ def s7():
 # 8 — national service, women (2022 cohort data)
 def s8():
     img = canvas(True); arcs(img, 120, 1340, n=3, r0=400)
-    d = chrome(img, 7, True, SRC_SERVICE)
-    tag(d, 250, 'שירות לאומי · בנות', 42, bg=LB)
-    text(d, (W - M, 330), 'שלושת המקומות', 100, WHITE)
-    text(d, (W - M, 430), 'הראשונים בארץ', 100, LB, shadow=(6, 6, DEEP))
-    text(d, (W - M, 545), 'שירות לאומי / אזרחי — נשים | נתוני תשפ״ב', 42, SOFT, bold=False)
+    photo(img, PHOTO_SHOMRON, 430, 0.0, None, fade_from=0.62, caption='שומרון', top_dark=180)
+    d = chrome(img, 7, True, SRC_SERVICE, on_photo=True)
+    tag(d, 425, 'שירות לאומי · בנות', 40, bg=LB)
+    text(d, (W - M, 490), 'שלושת המקומות הראשונים בארץ', 84, WHITE)
+    text(d, (W - M, 592), 'שירות לאומי / אזרחי — נשים | נתוני תשפ״ב', 40, SOFT, bold=False)
     rows = [('שומרון', 88.7, 1), ('בית אל', 87.6, 2), ('קריית ארבע', 85.1, 3)]
     for i, (nm, pct, rk) in enumerate(rows):
-        y = 625 + i * 140
-        text(d, (W - M, y), f'מקום {rk}', 40, LB)
-        text(d, (W - M - 130, y - 12), nm, 60, WHITE)
-        text(d, (M, y - 10), f'{pct:.1f}%', 60, WHITE, anchor='la', rtl=False)
-        by = y + 72; full = W - 2 * M
-        d.rounded_rectangle(P(M, by, W - M, by + 20), radius=10 * S, fill=(0x2E, 0x55, 0x80))
-        d.rounded_rectangle(P(W - M - full * pct / 100, by, W - M, by + 20), radius=10 * S, fill=LB)
+        y = 670 + i * 112
+        text(d, (W - M, y + 8), f'מקום {rk}', 40, LB)
+        text(d, (W - M - 130, y - 4), nm, 56, WHITE)
+        text(d, (M, y - 2), f'{pct:.1f}%', 56, WHITE, anchor='la', rtl=False)
+        by = y + 66; full = W - 2 * M
+        d.rounded_rectangle(P(M, by, W - M, by + 18), radius=9 * S, fill=(0x2E, 0x55, 0x80))
+        d.rounded_rectangle(P(W - M - full * pct / 100, by, W - M, by + 18), radius=9 * S, fill=LB)
     # also in the top 20
-    y = 1035
-    d.rounded_rectangle(P(M, y, W - M, y + 200), radius=22 * S, fill=(0x1E, 0x4A, 0x75))
+    y = 1015
+    d.rounded_rectangle(P(M, y, W - M, y + 205), radius=22 * S, fill=(0x1E, 0x4A, 0x75))
     text(d, (W - M - 30, y + 18), 'גם בין 20 המובילות:', 40, LB)
     others = [('ערבות הירדן', 74.5, 6), ('קדומים', 73.3, 7), ('מטה בנימין', 63.8, 15)]
     colw = (W - 2 * M - 60) / 3
     for i, (nm, pct, rk) in enumerate(others):
         xr = W - M - 30 - i * colw
-        text(d, (xr, y + 74), nm, 46, WHITE)
-        text(d, (xr, y + 132), f'{pct:.1f}% | מקום {rk}', 40, SOFT, bold=False)
+        text(d, (xr, y + 76), nm, 46, WHITE)
+        text(d, (xr, y + 136), f'{pct:.1f}% | מקום {rk}', 40, SOFT, bold=False)
     save(img, 7)
 
 
