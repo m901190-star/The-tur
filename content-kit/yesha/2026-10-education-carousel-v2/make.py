@@ -88,6 +88,7 @@ PHOTO_EFRAT = UP + '6168c27e-image.jpg'
 PHOTO_SHOMRON = UP + '76ebff00-image.jpg'
 PHOTO_ELKANA = UP + '177480c4-image.jpg'
 PHOTO_ARMY = UP + 'ac7bf51a-image.jpg'
+PHOTO_EXCEL = UP + '08871fa1-image.jpg'
 
 
 def bg_at(y):
@@ -237,13 +238,15 @@ def s2():
 
 # 3 — excellent matriculation
 def s3():
-    img = canvas(False); d = chrome(img, 3, False, SRC_EDU)
-    tag(d, 250, 'בגרות מצטיינת', 42)
-    text(d, (W - M, 335), 'המצטיינים של הארץ', 104, NAVY)
-    text(d, (W - M, 465), 'שיעור הזכאים לבגרות מצטיינת מקרב התלמידים', 46, BLUE, bold=False)
+    img = canvas(False)
+    photo(img, PHOTO_EXCEL, 625, 0.52, ICE, fade_from=0.92, top_dark=120)
+    d = chrome(img, 3, False, SRC_EDU, on_photo=True)
+    tag(d, 640, 'בגרות מצטיינת', 38)
+    text(d, (W - M, 698), 'המצטיינים של הארץ', 84, NAVY)
+    text(d, (W - M, 798), 'שיעור הזכאים לבגרות מצטיינת מקרב התלמידים', 40, BLUE, bold=False)
     rows = [('גוש עציון', 36.7, 'מקום 6 ברשימה הארצית'), ('אלקנה', 26.9, 'מקום 16'), ('אפרת', 26.3, 'מקום 19')]
     for i, (nm, pct, rk) in enumerate(rows):
-        bar_row(d, 600 + i * 205, nm, pct, rk, strong=(i == 0))
+        bar_row(d, 875 + i * 118, nm, pct, rk, strong=(i == 0), k=0.78)
     save(img, 3)
 
 
