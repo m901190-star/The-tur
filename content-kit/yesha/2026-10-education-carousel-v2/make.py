@@ -86,6 +86,7 @@ UP = '/root/.claude/uploads/1a5819ee-0cc0-5045-b086-4a8a80216453/'
 PHOTO_COVER = UP + '9dadb569-image.jpg'
 PHOTO_EFRAT = UP + '6168c27e-image.jpg'
 PHOTO_SHOMRON = UP + '76ebff00-image.jpg'
+PHOTO_ELKANA = UP + '177480c4-image.jpg'
 
 
 def bg_at(y):
@@ -192,14 +193,16 @@ def s1():
 
 # 2 — matriculation eligibility
 def s2():
-    img = canvas(True); arcs(img, 120, 1320, n=3, r0=380)
-    d = chrome(img, 2, True, SRC_EDU)
-    tag(d, 270, 'זכאות לבגרות', 44)
-    text(d, (W / 2, 590), '100%', 330, WHITE, anchor='mm', rtl=False, shadow=(10, 10, BLUE))
-    text(d, (W / 2, 820), 'זכאות לבגרות באלקנה', 84, LB, anchor='mm')
-    d.rounded_rectangle(P(170, 920, W - 170, 1040), radius=24 * S, fill=WHITE)
-    text(d, (W / 2, 980), 'מקום ראשון בארץ — במשותף', 64, NAVY, anchor='mm')
-    text(d, (W / 2, 1110), 'בקרב תלמידי י״ב במוסדות המגישים לבגרות ברשות.', 36, SOFT, anchor='mm', bold=False)
+    img = canvas(True)
+    photo(img, PHOTO_ELKANA, 520, 0.40, None, fade_from=0.48, caption='אלקנה', top_dark=170)
+    arcs(img, 120, 1340, n=3, r0=380)
+    d = chrome(img, 2, True, SRC_EDU, on_photo=True)
+    tag(d, 470, 'זכאות לבגרות', 42)
+    text(d, (W / 2, 670), '100%', 290, WHITE, anchor='mm', rtl=False, shadow=(10, 10, BLUE))
+    text(d, (W / 2, 862), 'זכאות לבגרות באלקנה', 80, LB, anchor='mm')
+    d.rounded_rectangle(P(170, 930, W - 170, 1045), radius=24 * S, fill=WHITE)
+    text(d, (W / 2, 987), 'מקום ראשון בארץ — במשותף', 62, NAVY, anchor='mm')
+    text(d, (W / 2, 1105), 'בקרב תלמידי י״ב במוסדות המגישים לבגרות ברשות.', 36, SOFT, anchor='mm', bold=False)
     save(img, 2)
 
 
@@ -216,19 +219,21 @@ def s3():
 
 # 4 — 5 units math & English
 def s4():
-    img = canvas(False); d = chrome(img, 4, False, SRC_EDU)
-    tag(d, 250, '5 יחידות לימוד', 42)
-    text(d, (W - M, 335), 'מובילים ב־5 יחידות', 104, NAVY)
+    img = canvas(False)
+    photo(img, PHOTO_EFRAT, 440, 0.0, ICE, fade_from=0.74, caption='אפרת', top_dark=170)
+    d = chrome(img, 4, False, SRC_EDU, on_photo=True)
+    tag(d, 428, '5 יחידות לימוד', 40)
+    text(d, (W - M, 488), 'מובילים ב־5 יחידות', 92, NAVY)
 
     def section(y, title):
-        text(d, (W - M, y), title, 60, BLUE)
-        d.rectangle(P(M, y + 40, W - M - tw(d, title, 60) - 24, y + 43), fill=(0xB5, 0xCF, 0xE3))
+        text(d, (W - M, y), title, 56, BLUE)
+        d.rectangle(P(M, y + 38, W - M - tw(d, title, 56) - 24, y + 41), fill=(0xB5, 0xCF, 0xE3))
 
-    section(480, 'מתמטיקה')
-    bar_row(d, 570, 'אלקנה', 35.8, 6, strong=True)
-    bar_row(d, 750, 'אפרת', 32.5, 12)
-    section(950, 'אנגלית')
-    bar_row(d, 1040, 'אלקנה', 82.1, 8, strong=True)
+    section(605, 'מתמטיקה')
+    bar_row(d, 675, 'אלקנה', 35.8, 6, strong=True)
+    bar_row(d, 830, 'אפרת', 32.5, 12)
+    section(990, 'אנגלית')
+    bar_row(d, 1062, 'אלקנה', 82.1, 8, strong=True)
     save(img, 4)
 
 
