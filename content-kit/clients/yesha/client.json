@@ -49,7 +49,14 @@
   "Brand palette only: navy #174068, blue #2566A2, mid-blue #2587BE, light blue #27A4D1, ice #E8F2F8, white. No colours outside it.",
   "Logo: white version (logo_white.png) over video/dark backgrounds; the original blue logo (logo.png) only on white/ice backgrounds.",
   "Institutional, dignified tone: clean motion, no flashy effects, no noisy SFX.",
-  "Initial profile built from logo + palette only — confirm tone and any client notes with the user and add them here."
+  "Photo post style (from the client's example post): a real news photo fills the whole 4:5 post, no frame.",
+  "Logo small in the top-right corner, over the photo (white logo).",
+  "Dark gradient over the bottom third of the photo, behind the text.",
+  "Label: a blue (#2566A2) box with white text, e.g. 'באור יום:', above the headline.",
+  "Headline: large, white, up to two lines, Karantina Bold with an offset blue drop shadow. A short factual sentence (e.g. 'אלפי מתפללים בקבר יוסף בשכם') — no exclamation marks, no emoji.",
+  "When no photo is available, use the text-only graphic style and leave a clear placeholder/instruction for the photo the user should add.",
+  "Photos with identifiable people: mark with ⚠️ that usage rights/approval are needed before publishing.",
+  "Open questions to the user (ask once, then record the answer here): is 'באור יום:' a fixed series or are there other labels; where photos come from; whether a photo credit is shown and where."
  ],
  "notes": "Yesha Council (Judea, Samaria and Gaza). User manages their social media: posts + reels on Facebook and Instagram. Reels 9:16 (also used as IG/FB stories); post graphics 4:5 (1080x1350). Logo PNG has transparent background with dark-blue artwork."
 }
