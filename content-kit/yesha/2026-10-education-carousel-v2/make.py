@@ -61,13 +61,13 @@ def arcs(img, cx, cy, alpha=38, n=3, r0=400, step=74, width=36):
 def logo(img, w, x_right, y, plate):
     """Original logo, aspect ratio kept. On dark slides it sits on a white plate."""
     lg = Image.open(LOGO).convert('RGBA')
+    if plate:  # dark slide: same artwork, recoloured white (shape and proportions untouched)
+        a = lg.getchannel('A').point(lambda v: 0 if v < 40 else v)  # drop faint edge specks
+        lg = Image.new('RGBA', lg.size, WHITE + (0,)); lg.putalpha(a)
     lg = lg.crop(lg.getchannel('A').getbbox())
     h = w * lg.height / lg.width
     lg = lg.resize((int(w * S), int(h * S)), Image.LANCZOS)
     x = x_right - w
-    if plate:
-        pad = 18
-        ImageDraw.Draw(img).rounded_rectangle(P(x - pad, y - pad, x_right + pad, y + h + pad), radius=20 * S, fill=WHITE)
     img.paste(lg, (int(x * S), int(y * S)), lg)
     return h
 
