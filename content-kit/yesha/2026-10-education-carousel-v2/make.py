@@ -206,17 +206,31 @@ def s1():
 
 
 # 2 — matriculation eligibility
+GOLD = (0xF2, 0xC1, 0x4E); GOLD_D = (0xC9, 0x95, 0x2B)
+
+
+def medal(d, cx, cy, r):
+    """First-place medal: ribbon + gold disc with '1'."""
+    d.polygon(P(cx - r * 0.75, cy - r * 2.0, cx - r * 0.15, cy - r * 2.0, cx + r * 0.25, cy - r * 0.6, cx - r * 0.35, cy - r * 0.6), fill=BLUE)
+    d.polygon(P(cx + r * 0.75, cy - r * 2.0, cx + r * 0.15, cy - r * 2.0, cx - r * 0.25, cy - r * 0.6, cx + r * 0.35, cy - r * 0.6), fill=LB)
+    d.ellipse(P(cx - r, cy - r, cx + r, cy + r), fill=GOLD_D)
+    d.ellipse(P(cx - r * 0.84, cy - r * 0.84, cx + r * 0.84, cy + r * 0.84), fill=GOLD)
+    text(d, (cx, cy + r * 0.06), '1', r * 1.25, NAVY, anchor='mm', rtl=False)
+
+
 def s2():
     img = canvas(True)
-    photo(img, PHOTO_ELKANA, 720, 0.5, None, fade_from=0.86, caption='אלקנה', top_dark=170, caption_top=True)
+    photo(img, PHOTO_ELKANA, 700, 0.5, None, fade_from=0.84, caption='אלקנה', top_dark=170, caption_top=True)
     arcs(img, 120, 1400, n=3, r0=380)
     d = chrome(img, 2, True, SRC_EDU, on_photo=True)
-    tag(d, 690, 'זכאות לבגרות', 40)
-    text(d, (W - M, 742), '100%', 210, WHITE, rtl=False, shadow=(8, 8, BLUE))
-    text(d, (W - M, 948), 'זכאות לבגרות באלקנה', 66, LB)
-    d.rounded_rectangle(P(M, 1040, W - M, 1130), radius=22 * S, fill=WHITE)
-    text(d, (W / 2, 1085), 'השיעור הגבוה בארץ — במשותף', 54, NAVY, anchor='mm')
-    text(d, (W - M, 1150), 'בקרב תלמידי י״ב במוסדות המגישים לבגרות ברשות.', 32, SOFT, bold=False)
+    tag(d, 662, 'זכאות לבגרות באלקנה', 40)
+    # headline: first place in the country (tied), as large as the width allows next to the medal
+    line1, line2 = 'מקום ראשון', 'בארץ'
+    text(d, (W - M, 722), line1, 200, WHITE, shadow=(8, 8, BLUE))
+    text(d, (W - M, 905), line2, 200, LB, shadow=(8, 8, DEEP))
+    medal(d, M + 120, 1000, 100)
+    text(d, (W - M, 1112), '100% זכאות לבגרות — במשותף עם רשויות נוספות', 44, WHITE)
+    text(d, (W - M, 1172), 'בקרב תלמידי י״ב במוסדות המגישים לבגרות ברשות.', 32, SOFT, bold=False)
     save(img, 2)
 
 
@@ -239,7 +253,7 @@ def s4():
     d = chrome(img, 4, False, SRC_EDU, on_photo=True)
     tag(d, 585, '5 יחידות לימוד', 38)
     text(d, (W - M, 642), 'מובילים ב־5 יחידות', 80, NAVY)
-    text(d, (W - M, 732), 'שיעור הזכאות ב־5 יחידות מקרב התלמידים — לא ציון בבחינה', 34, BLUE, bold=False)
+    text(d, (W - M, 732), 'שיעור הזכאות ב־5 יחידות מקרב התלמידים', 34, BLUE, bold=False)
 
     def section(y, title):
         text(d, (W - M, y), title, 46, BLUE)
@@ -322,7 +336,7 @@ def s7():
     y = 1042
     d.rounded_rectangle(P(M, y, W - M, y + 182), radius=22 * S, fill=(0x1E, 0x4A, 0x75))
     text(d, (W - M - 30, y + 14), 'גם בין 20 המובילות:', 38, LB)
-    others = [('ערבות הירדן', 74.5, 6), ('קדומים', 73.3, 7), ('מטה בנימין', 63.8, 15)]
+    others = [('בקעת הירדן', 74.5, 6), ('קדומים', 73.3, 7), ('מטה בנימין', 63.8, 15)]
     colw = (W - 2 * M - 60) / 3
     for i, (nm, pct, rk) in enumerate(others):
         xr = W - M - 30 - i * colw
