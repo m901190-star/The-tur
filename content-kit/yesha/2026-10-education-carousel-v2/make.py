@@ -89,6 +89,7 @@ PHOTO_SHOMRON = UP + '76ebff00-image.jpg'
 PHOTO_ELKANA = UP + '177480c4-image.jpg'
 PHOTO_ARMY = UP + 'ac7bf51a-image.jpg'
 PHOTO_EXCEL = UP + '08871fa1-image.jpg'
+PHOTO_TECH = UP + 'd29592b6-image.jpg'
 
 
 def bg_at(y):
@@ -273,31 +274,33 @@ def s4():
 
 # 5 — technological education (two separate metrics, no shared chart)
 def s5():
-    img = canvas(False); d = chrome(img, 5, False, SRC_EDU)
-    tag(d, 230, 'בגרות־טק וחינוך טכנולוגי', 40)
-    text(d, (W - M, 305), 'הישגים בחינוך הטכנולוגי', 88, NAVY)
+    img = canvas(False)
+    photo(img, PHOTO_TECH, 665, 0.0, ICE, fade_from=0.9, top_dark=150)
+    d = chrome(img, 5, False, SRC_EDU, on_photo=True)
+    tag(d, 672, 'בגרות־טק וחינוך טכנולוגי', 38)
+    text(d, (W - M, 726), 'הישגים בחינוך הטכנולוגי', 72, NAVY)
 
-    def card(y, h, name, big, metric, rank_tag, lines, sub=None):
-        d.rounded_rectangle(P(M, y, W - M, y + h), radius=28 * S, fill=WHITE)
-        d.rounded_rectangle(P(W - M - 14, y, W - M, y + h), radius=7 * S, fill=LB)
-        x = W - M - 50
-        text(d, (x, y + 22), name, 66, NAVY)
-        text(d, (x, y + 92), big, 104, LB, rtl=False)
-        text(d, (x - tw(d, big, 104, rtl=False) - 22, y + 128), metric, 50, NAVY)
-        py = y + 218
-        if sub:  # qualifier belongs to the metric, so it sits above the rank tag
-            text(d, (x, py - 4), sub, 42, NAVY, bold=False); py += 64
-        pill(d, x, py, rank_tag, 36)
-        yy = py + 74
-        for ln in lines:
-            text(d, (x, yy), ln, 38, BLUE, bold=False); yy += 50
+    # two separate metrics side by side: never one shared chart
+    gap = 24; cw = (W - 2 * M - gap) / 2; y0, h = 815, 410
 
-    elk = ['הגדרה: זכאות לבגרות הכוללת היבחנות ב־5 יחידות', 'במתמטיקה, באנגלית ובפיזיקה או במדעי המחשב.']
-    h1 = 292 + 50 * len(elk) + 22
-    h2 = 292 + 64 + 6
-    card(410, h1, 'אלקנה', '24.4%', 'זכאות לבגרות־טק', 'מקום 12', elk)
-    card(410 + h1 + 24, h2, 'אורנית', '91.4%', 'זכאות לבגרות', 'מקום 15 במדד זה', [],
-         sub='בקרב הלומדים במגמות טכנולוגיות')
+    def card(x_right, name, big, metric, sub, rank_tag, note):
+        d.rounded_rectangle(P(x_right - cw, y0, x_right, y0 + h), radius=24 * S, fill=WHITE)
+        d.rounded_rectangle(P(x_right - 12, y0, x_right, y0 + h), radius=6 * S, fill=LB)
+        x = x_right - 36; inner = cw - 60
+        text(d, (x, y0 + 18), name, 58, NAVY)
+        text(d, (x, y0 + 82), big, 92, LB, rtl=False)
+        text(d, (x, y0 + 186), metric, 40, NAVY)
+        yy = y0 + 240
+        for ln in wrap(d, sub, 32, inner) if sub else []:
+            text(d, (x, yy), ln, 32, NAVY, bold=False); yy += 40
+        pill(d, x, yy + 6, rank_tag, 32); yy += 74
+        for ln in wrap(d, note, 30, inner) if note else []:
+            text(d, (x, yy), ln, 30, BLUE, bold=False); yy += 38
+
+    card(W - M, 'אלקנה', '24.4%', 'זכאות לבגרות־טק', None, 'מקום 12',
+         'הגדרה: זכאות לבגרות הכוללת היבחנות ב־5 יחידות במתמטיקה, באנגלית ובפיזיקה או במדעי המחשב.')
+    card(W - M - cw - gap, 'אורנית', '91.4%', 'זכאות לבגרות', 'בקרב הלומדים במגמות טכנולוגיות',
+         'מקום 15 במדד זה', None)
     save(img, 5)
 
 
