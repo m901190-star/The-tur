@@ -1,4 +1,4 @@
-"""Yesha Council – education achievements carousel (9 slides, 1080x1350)."""
+"""Yesha Council – education achievements carousel (8 slides, 1080x1350)."""
 import os
 from PIL import Image, ImageDraw, ImageFont
 
@@ -14,8 +14,8 @@ NAVY = (0x17, 0x40, 0x68); BLUE = (0x25, 0x66, 0xA2); MID = (0x25, 0x87, 0xBE)
 LB = (0x27, 0xA4, 0xD1); ICE = (0xE8, 0xF2, 0xF8); WHITE = (255, 255, 255)
 DEEP = (0x0E, 0x2A, 0x47); TRACK = (0xD3, 0xE4, 0xF0); SOFT = (0xB8, 0xD4, 0xE8)
 
-SRC_EDU = 'מקור: משרד החינוך, תמונה חינוכית רשותית תשפ״ה'
-SRC_SERVICE = 'מקור: משרד החינוך, תמונה חינוכית רשותית תשפ״ה · נתוני שירות: תשפ״ב'
+SRC_EDU = 'מקור: משרד החינוך, התמונה החינוכית הרשותית · תשפ״ה (2025)'
+SRC_SERVICE = 'מקור: משרד החינוך, התמונה החינוכית הרשותית · נתוני שירות: תשפ״ב'
 
 
 def F(size, bold=True):
@@ -136,11 +136,11 @@ def pill(d, x_right, y, s, size=36, bg=NAVY, fg=WHITE):
     return w + 40
 
 
-def bar_row(d, y, name, pct, rank, dark=False, strong=False):
+def bar_row(d, y, name, pct, rank_label, dark=False, strong=False):
     """Name + rank pill (right), percentage (left), bar on a fixed 0–100% scale."""
     fg = WHITE if dark else NAVY
     text(d, (W - M, y), name, 72, fg)
-    pill(d, W - M - tw(d, name, 72) - 24, y + 16, f'מקום {rank} בארץ', 36,
+    pill(d, W - M - tw(d, name, 72) - 24, y + 16, rank_label, 36,
          bg=LB if dark else NAVY)
     text(d, (M, y + 2), f'{pct:.1f}%', 72, LB if dark else NAVY, anchor='la', rtl=False)
     by = y + 104; full = W - 2 * M
@@ -160,6 +160,33 @@ def save(img, n):
     img.resize((W, H), Image.LANCZOS).save(os.path.join(OUT, f'{n:02d}.png'))
 
 
+def wrap(d, s, size, width, bold=False):
+    words, lines, cur = s.split(), [], ''
+    for w_ in words:
+        t = (cur + ' ' + w_).strip()
+        if tw(d, t, size, bold) <= width or not cur:
+            cur = t
+        else:
+            lines.append(cur); cur = w_
+    return lines + [cur]
+
+
+def headline_block(d, line, key, y, max_size=205):
+    """One-line claim on a navy block, light-blue stroke under the key word (key = first word of the line)."""
+    padx = 34; size = max_size
+    while tw(d, line, size) > W - 2 * M - 2 * padx - 12:
+        size -= 2
+    lw = tw(d, line, size)
+    bx1 = W - M; bx0 = bx1 - lw - 2 * padx - 12
+    by1 = y + size * 1.0 + 26
+    d.rectangle(P(bx0, y, bx1, by1), fill=NAVY)
+    d.rectangle(P(bx1 - 12, y, bx1, by1), fill=LB)
+    text(d, (bx1 - 12 - padx, y + 4), line, size, WHITE)
+    kx1 = bx1 - 12 - padx; kx0 = kx1 - tw(d, key, size)      # key word is the rightmost (first) word
+    sy = by1 - 34 * size / 205
+    d.polygon(P(kx1 + 6, sy, kx0 - 4, sy + 4, kx0 - 10, sy + 20, kx1 + 2, sy + 16), fill=LB)
+
+
 # 1 — cover
 def s1():
     img = canvas(True)
@@ -168,25 +195,9 @@ def s1():
     d = ImageDraw.Draw(img)
     logo(img, 220, W - M, 60, plate=True)
     text(d, (M, 72), f'1/{TOTAL}', 36, WHITE, anchor='la', rtl=False)
-    tag(d, 612, 'התמונה החינוכית תשפ״ה', 42, bg=BLUE)
-    # campaign-style headline: name on top, the claim in one line on a solid blue block,
-    # with a light-blue stroke under the key word
+    tag(d, 612, 'התמונה החינוכית תשפ״ה (2025)', 42, bg=BLUE)
     text(d, (W - M, 688), 'יהודה ושומרון', 220, WHITE, shadow=(8, 8, DEEP))
-    line, key = 'מובילה בחינוך', 'בחינוך'
-    padx = 34
-    size = 205
-    while tw(d, line, size) > W - 2 * M - 2 * padx:
-        size -= 2
-    lw = tw(d, line, size)
-    bx1 = W - M; bx0 = bx1 - lw - 2 * padx
-    by0 = 905; by1 = by0 + size * 1.0 + 26
-    d.rectangle(P(bx0, by0, bx1, by1), fill=NAVY)
-    d.rectangle(P(bx1 - 12, by0, bx1, by1), fill=LB)
-    text(d, (bx1 - padx, by0 + 4), line, size, WHITE)
-    # the key word is the leftmost part of the RTL line
-    kx0 = bx1 - padx - lw; kx1 = kx0 + tw(d, key, size)
-    sy = by1 - 34
-    d.polygon(P(kx1 + 6, sy, kx0 - 4, sy + 4, kx0 - 10, sy + 22, kx1 + 2, sy + 18), fill=LB)
+    headline_block(d, 'בצמרת החינוך בישראל', 'בצמרת', 905)
     text(d, (W - M, H - 112), 'החליקו לנתונים ←', 46, SOFT, bold=False)
     save(img, 1)
 
@@ -200,8 +211,8 @@ def s2():
     tag(d, 470, 'זכאות לבגרות', 42)
     text(d, (W / 2, 670), '100%', 290, WHITE, anchor='mm', rtl=False, shadow=(10, 10, BLUE))
     text(d, (W / 2, 862), 'זכאות לבגרות באלקנה', 80, LB, anchor='mm')
-    d.rounded_rectangle(P(170, 930, W - 170, 1045), radius=24 * S, fill=WHITE)
-    text(d, (W / 2, 987), 'מקום ראשון בארץ — במשותף', 62, NAVY, anchor='mm')
+    d.rounded_rectangle(P(150, 930, W - 150, 1045), radius=24 * S, fill=WHITE)
+    text(d, (W / 2, 987), 'השיעור הגבוה בארץ — במשותף', 62, NAVY, anchor='mm')
     text(d, (W / 2, 1105), 'בקרב תלמידי י״ב במוסדות המגישים לבגרות ברשות.', 36, SOFT, anchor='mm', bold=False)
     save(img, 2)
 
@@ -212,7 +223,8 @@ def s3():
     tag(d, 250, 'בגרות מצטיינת', 42)
     text(d, (W - M, 335), 'המצטיינים של הארץ', 104, NAVY)
     text(d, (W - M, 465), 'שיעור הזכאים לבגרות מצטיינת מקרב התלמידים', 46, BLUE, bold=False)
-    for i, (nm, pct, rk) in enumerate([('גוש עציון', 36.7, 6), ('אלקנה', 26.9, 16), ('אפרת', 26.3, 19)]):
+    rows = [('גוש עציון', 36.7, 'מקום 6 ברשימה הארצית'), ('אלקנה', 26.9, 'מקום 16'), ('אפרת', 26.3, 'מקום 19')]
+    for i, (nm, pct, rk) in enumerate(rows):
         bar_row(d, 600 + i * 205, nm, pct, rk, strong=(i == 0))
     save(img, 3)
 
@@ -224,93 +236,87 @@ def s4():
     d = chrome(img, 4, False, SRC_EDU, on_photo=True)
     tag(d, 428, '5 יחידות לימוד', 40)
     text(d, (W - M, 488), 'מובילים ב־5 יחידות', 92, NAVY)
+    text(d, (W - M, 588), 'שיעור הזכאות ב־5 יחידות מקרב התלמידים — לא ציון בבחינה', 38, BLUE, bold=False)
 
     def section(y, title):
-        text(d, (W - M, y), title, 56, BLUE)
-        d.rectangle(P(M, y + 38, W - M - tw(d, title, 56) - 24, y + 41), fill=(0xB5, 0xCF, 0xE3))
+        text(d, (W - M, y), title, 54, BLUE)
+        d.rectangle(P(M, y + 36, W - M - tw(d, title, 54) - 24, y + 39), fill=(0xB5, 0xCF, 0xE3))
 
-    section(605, 'מתמטיקה')
-    bar_row(d, 675, 'אלקנה', 35.8, 6, strong=True)
-    bar_row(d, 830, 'אפרת', 32.5, 12)
-    section(990, 'אנגלית')
-    bar_row(d, 1062, 'אלקנה', 82.1, 8, strong=True)
+    section(650, 'מתמטיקה')
+    bar_row(d, 718, 'אלקנה', 35.8, 'מקום 6', strong=True)
+    bar_row(d, 866, 'אפרת', 32.5, 'מקום 12')
+    section(1018, 'אנגלית')
+    bar_row(d, 1084, 'אלקנה', 82.1, 'מקום 8', strong=True)
     save(img, 4)
 
 
-# 5 — technological education (two separate cards, no shared chart)
+# 5 — technological education (two separate metrics, no shared chart)
 def s5():
     img = canvas(False); d = chrome(img, 5, False, SRC_EDU)
-    tag(d, 250, 'בגרות־טק וחינוך טכנולוגי', 42)
-    text(d, (W - M, 335), 'הישגים בחינוך הטכנולוגי', 96, NAVY)
+    tag(d, 230, 'בגרות־טק וחינוך טכנולוגי', 40)
+    text(d, (W - M, 305), 'הישגים בחינוך הטכנולוגי', 88, NAVY)
 
-    def card(y, h, name, big, label, sub, rank_tag, note):
+    def card(y, h, name, big, metric, rank_tag, lines, sub=None):
         d.rounded_rectangle(P(M, y, W - M, y + h), radius=28 * S, fill=WHITE)
         d.rounded_rectangle(P(W - M - 14, y, W - M, y + h), radius=7 * S, fill=LB)
         x = W - M - 50
-        text(d, (x, y + 24), name, 72, NAVY)
-        text(d, (x, y + 100), big, 104, LB, rtl=False)
-        text(d, (x - tw(d, big, 104, rtl=False) - 22, y + 136), label, 52, NAVY)
-        yy = y + 226
-        if sub:
-            text(d, (x, yy), sub, 44, BLUE, bold=False); yy += 62
-        pill(d, x, yy, rank_tag, 36); yy += 76
-        for line in note or []:
-            text(d, (x, yy), line, 36, MID, bold=False); yy += 46
+        text(d, (x, y + 22), name, 66, NAVY)
+        text(d, (x, y + 92), big, 104, LB, rtl=False)
+        text(d, (x - tw(d, big, 104, rtl=False) - 22, y + 128), metric, 50, NAVY)
+        py = y + 218
+        if sub:  # qualifier belongs to the metric, so it sits above the rank tag
+            text(d, (x, py - 4), sub, 42, NAVY, bold=False); py += 64
+        pill(d, x, py, rank_tag, 36)
+        yy = py + 74
+        for ln in lines:
+            text(d, (x, yy), ln, 38, BLUE, bold=False); yy += 50
 
-    card(445, 400, 'אלקנה', '24.4%', 'זכאות לבגרות־טק', None, 'מקום 12 בארץ בזכאות לבגרות־טק',
-         ['בגרות הכוללת 5 יחידות במתמטיקה, באנגלית', 'ובפיזיקה או במדעי המחשב.'])
-    card(862, 370, 'אורנית', '91.4%', 'זכאות לבגרות', 'בקרב הלומדים במגמות טכנולוגיות',
-         'מקום 15 בארץ בזכאות לבגרות במגמות טכנולוגיות', None)
+    elk = ['הגדרה: זכאות לבגרות הכוללת היבחנות ב־5 יחידות', 'במתמטיקה, באנגלית ובפיזיקה או במדעי המחשב.']
+    h1 = 292 + 50 * len(elk) + 22
+    h2 = 292 + 64 + 6
+    card(410, h1, 'אלקנה', '24.4%', 'זכאות לבגרות־טק', 'מקום 12', elk)
+    card(410 + h1 + 24, h2, 'אורנית', '91.4%', 'זכאות לבגרות', 'מקום 15 במדד זה', [],
+         sub='בקרב הלומדים במגמות טכנולוגיות')
     save(img, 5)
 
 
-# 6 — exam integrity (no ranking)
+def year_badge(d, x_right, y, dark):
+    """Prominent 'service data year' marker."""
+    return pill(d, x_right, y, 'נתוני תשפ״ב', 42, bg=LB if dark else BLUE)
+
+
+# 6 — IDF enlistment, men (2022 cohort data)
 def s6():
-    img = canvas(True); arcs(img, 980, 1320, n=3, r0=400)
-    d = chrome(img, 6, True, SRC_EDU)
-    tag(d, 250, 'טוהר הבחינות', 42, bg=LB)
-    text(d, (W - M, 335), 'אפס מחברות', 120, WHITE, shadow=(6, 6, BLUE))
-    text(d, (W - M, 470), 'בגרות פסולות', 120, LB, shadow=(6, 6, DEEP))
-    names = ['קריית ארבע', 'אורנית', 'עמנואל', 'מעלה אפרים', 'ערבות הירדן']
-    y = 660
-    for nm in names:
-        d.rounded_rectangle(P(M, y, W - M, y + 82), radius=18 * S, fill=WHITE)
-        check(d, W - M - 50, y + 41, 24)
-        text(d, (W - M - 96, y + 14), nm, 56, NAVY)
-        y += 100
-    save(img, 6)
-
-
-# 7 — IDF enlistment, men (2022 cohort data)
-def s7():
     img = canvas(False); d = chrome(img, 6, False, SRC_SERVICE)
     tag(d, 250, 'גיוס לצה״ל · בנים', 42)
     text(d, (W - M, 335), 'בחזית השירות', 104, NAVY)
-    text(d, (W - M, 465), 'שיעור הגיוס לצה״ל — בנים | נתוני תשפ״ב', 46, BLUE, bold=False)
-    for i, (nm, pct, rk) in enumerate([('אריאל', 98.7, 2), ('אלקנה', 95.8, 9), ('אפרת', 94.2, 17)]):
+    text(d, (W - M, 465), 'שיעור הגיוס לצה״ל — בנים', 48, BLUE, bold=False)
+    year_badge(d, W - M - tw(d, 'שיעור הגיוס לצה״ל — בנים', 48, False) - 24, 462, False)
+    for i, (nm, pct, rk) in enumerate([('אריאל', 98.7, 'מקום 2'), ('אלקנה', 95.8, 'מקום 9'), ('אפרת', 94.2, 'מקום 17')]):
         bar_row(d, 600 + i * 205, nm, pct, rk, strong=(i == 0))
     save(img, 6)
 
 
-# 8 — national service, women (2022 cohort data)
-def s8():
+# 7 — national service, women (2022 cohort data)
+def s7():
     img = canvas(True); arcs(img, 120, 1340, n=3, r0=400)
     photo(img, PHOTO_SHOMRON, 430, 0.0, None, fade_from=0.62, caption='שומרון', top_dark=180)
     d = chrome(img, 7, True, SRC_SERVICE, on_photo=True)
     tag(d, 425, 'שירות לאומי · בנות', 40, bg=LB)
     text(d, (W - M, 490), 'שלושת המקומות הראשונים בארץ', 84, WHITE)
-    text(d, (W - M, 592), 'שירות לאומי / אזרחי — נשים | נתוני תשפ״ב', 40, SOFT, bold=False)
+    sub = 'שירות לאומי / אזרחי — נשים'
+    text(d, (W - M, 592), sub, 42, SOFT, bold=False)
+    year_badge(d, W - M - tw(d, sub, 42, False) - 24, 586, True)
     rows = [('שומרון', 88.7, 1), ('בית אל', 87.6, 2), ('קריית ארבע', 85.1, 3)]
     for i, (nm, pct, rk) in enumerate(rows):
-        y = 670 + i * 112
+        y = 678 + i * 110
         text(d, (W - M, y + 8), f'מקום {rk}', 40, LB)
         text(d, (W - M - 130, y - 4), nm, 56, WHITE)
         text(d, (M, y - 2), f'{pct:.1f}%', 56, WHITE, anchor='la', rtl=False)
         by = y + 66; full = W - 2 * M
         d.rounded_rectangle(P(M, by, W - M, by + 18), radius=9 * S, fill=(0x2E, 0x55, 0x80))
         d.rounded_rectangle(P(W - M - full * pct / 100, by, W - M, by + 18), radius=9 * S, fill=LB)
-    # also in the top 20
-    y = 1015
+    y = 1018
     d.rounded_rectangle(P(M, y, W - M, y + 205), radius=22 * S, fill=(0x1E, 0x4A, 0x75))
     text(d, (W - M - 30, y + 18), 'גם בין 20 המובילות:', 40, LB)
     others = [('ערבות הירדן', 74.5, 6), ('קדומים', 73.3, 7), ('מטה בנימין', 63.8, 15)]
@@ -322,8 +328,8 @@ def s8():
     save(img, 7)
 
 
-# 9 — closing
-def s9():
+# 8 — closing
+def s8():
     img = canvas(True); arcs(img, 540, 1520, alpha=50, n=4, r0=440, step=80, width=40)
     d = ImageDraw.Draw(img)
     text(d, (M, 72), f'8/{TOTAL}', 36, LB, anchor='la', rtl=False)
@@ -336,7 +342,7 @@ def s9():
     save(img, 8)
 
 
-for f in (s1, s2, s3, s4, s5, s7, s8, s9):
+for f in (s1, s2, s3, s4, s5, s6, s7, s8):
     f()
 sheet = Image.new('RGB', (372 * 4, 462 * 2), WHITE)
 for k in range(8):
