@@ -95,7 +95,7 @@ def bg_at(y):
     return tuple(int(DEEP[i] + (BLUE[i] - DEEP[i]) * t) for i in range(3))
 
 
-def photo(img, path, h, focus_y, fade_to, fade_from=0.55, caption=None, top_dark=150):
+def photo(img, path, h, focus_y, fade_to, fade_from=0.55, caption=None, top_dark=150, caption_top=False):
     """Cover-crop a photo into the top band (W x h) and fade its bottom into the slide colour."""
     ph = Image.open(path).convert('RGB')
     sc = max(W * S / ph.width, h * S / ph.height)
@@ -116,9 +116,12 @@ def photo(img, path, h, focus_y, fade_to, fade_from=0.55, caption=None, top_dark
     if caption:
         d = ImageDraw.Draw(img)
         w = tw(d, caption, 34)
-        y = h * fade_from - 20
-        d.rounded_rectangle(P(W - M - w - 36, y, W - M, y + 54), radius=27 * S, fill=NAVY)
-        text(d, (W - M - 18, y + 9), caption, 34, WHITE)
+        if caption_top:   # top-left, over the sky, so no one in the photo is covered
+            x1, y = M + w + 36, 125
+        else:
+            x1, y = W - M, h * fade_from - 20
+        d.rounded_rectangle(P(x1 - w - 36, y, x1, y + 54), radius=27 * S, fill=NAVY)
+        text(d, (x1 - 18, y + 9), caption, 34, WHITE)
 
 
 def tag(d, y, s, size=42, bg=BLUE):
@@ -136,17 +139,17 @@ def pill(d, x_right, y, s, size=36, bg=NAVY, fg=WHITE):
     return w + 40
 
 
-def bar_row(d, y, name, pct, rank_label, dark=False, strong=False):
-    """Name + rank pill (right), percentage (left), bar on a fixed 0–100% scale."""
+def bar_row(d, y, name, pct, rank_label, dark=False, strong=False, k=1.0):
+    """Name + rank pill (right), percentage (left), bar on a fixed 0–100% scale. k scales the row."""
     fg = WHITE if dark else NAVY
-    text(d, (W - M, y), name, 72, fg)
-    pill(d, W - M - tw(d, name, 72) - 24, y + 16, rank_label, 36,
+    text(d, (W - M, y), name, 72 * k, fg)
+    pill(d, W - M - tw(d, name, 72 * k) - 24, y + 16 * k, rank_label, 36 * k,
          bg=LB if dark else NAVY)
-    text(d, (M, y + 2), f'{pct:.1f}%', 72, LB if dark else NAVY, anchor='la', rtl=False)
-    by = y + 104; full = W - 2 * M
-    d.rounded_rectangle(P(M, by, W - M, by + 26), radius=13 * S, fill=(0x2E, 0x55, 0x80) if dark else TRACK)
+    text(d, (M, y + 2), f'{pct:.1f}%', 72 * k, LB if dark else NAVY, anchor='la', rtl=False)
+    by = y + 104 * k; full = W - 2 * M; bh = 26 * k
+    d.rounded_rectangle(P(M, by, W - M, by + bh), radius=bh / 2 * S, fill=(0x2E, 0x55, 0x80) if dark else TRACK)
     fill_w = full * pct / 100.0                                # proportional, zero-based
-    d.rounded_rectangle(P(W - M - fill_w, by, W - M, by + 26), radius=13 * S,
+    d.rounded_rectangle(P(W - M - fill_w, by, W - M, by + bh), radius=bh / 2 * S,
                         fill=LB if (dark or not strong) else BLUE)
 
 
@@ -205,15 +208,15 @@ def s1():
 # 2 — matriculation eligibility
 def s2():
     img = canvas(True)
-    photo(img, PHOTO_ELKANA, 520, 0.40, None, fade_from=0.48, caption='אלקנה', top_dark=170)
-    arcs(img, 120, 1340, n=3, r0=380)
+    photo(img, PHOTO_ELKANA, 720, 0.5, None, fade_from=0.86, caption='אלקנה', top_dark=170, caption_top=True)
+    arcs(img, 120, 1400, n=3, r0=380)
     d = chrome(img, 2, True, SRC_EDU, on_photo=True)
-    tag(d, 470, 'זכאות לבגרות', 42)
-    text(d, (W / 2, 670), '100%', 290, WHITE, anchor='mm', rtl=False, shadow=(10, 10, BLUE))
-    text(d, (W / 2, 862), 'זכאות לבגרות באלקנה', 80, LB, anchor='mm')
-    d.rounded_rectangle(P(150, 930, W - 150, 1045), radius=24 * S, fill=WHITE)
-    text(d, (W / 2, 987), 'השיעור הגבוה בארץ — במשותף', 62, NAVY, anchor='mm')
-    text(d, (W / 2, 1105), 'בקרב תלמידי י״ב במוסדות המגישים לבגרות ברשות.', 36, SOFT, anchor='mm', bold=False)
+    tag(d, 690, 'זכאות לבגרות', 40)
+    text(d, (W - M, 742), '100%', 210, WHITE, rtl=False, shadow=(8, 8, BLUE))
+    text(d, (W - M, 948), 'זכאות לבגרות באלקנה', 66, LB)
+    d.rounded_rectangle(P(M, 1040, W - M, 1130), radius=22 * S, fill=WHITE)
+    text(d, (W / 2, 1085), 'השיעור הגבוה בארץ — במשותף', 54, NAVY, anchor='mm')
+    text(d, (W - M, 1150), 'בקרב תלמידי י״ב במוסדות המגישים לבגרות ברשות.', 32, SOFT, bold=False)
     save(img, 2)
 
 
@@ -232,21 +235,21 @@ def s3():
 # 4 — 5 units math & English
 def s4():
     img = canvas(False)
-    photo(img, PHOTO_EFRAT, 440, 0.0, ICE, fade_from=0.74, caption='אפרת', top_dark=170)
+    photo(img, PHOTO_EFRAT, 600, 0.0, ICE, fade_from=0.82, caption='אפרת', top_dark=170)
     d = chrome(img, 4, False, SRC_EDU, on_photo=True)
-    tag(d, 428, '5 יחידות לימוד', 40)
-    text(d, (W - M, 488), 'מובילים ב־5 יחידות', 92, NAVY)
-    text(d, (W - M, 588), 'שיעור הזכאות ב־5 יחידות מקרב התלמידים — לא ציון בבחינה', 38, BLUE, bold=False)
+    tag(d, 585, '5 יחידות לימוד', 38)
+    text(d, (W - M, 642), 'מובילים ב־5 יחידות', 80, NAVY)
+    text(d, (W - M, 732), 'שיעור הזכאות ב־5 יחידות מקרב התלמידים — לא ציון בבחינה', 34, BLUE, bold=False)
 
     def section(y, title):
-        text(d, (W - M, y), title, 54, BLUE)
-        d.rectangle(P(M, y + 36, W - M - tw(d, title, 54) - 24, y + 39), fill=(0xB5, 0xCF, 0xE3))
+        text(d, (W - M, y), title, 46, BLUE)
+        d.rectangle(P(M, y + 30, W - M - tw(d, title, 46) - 24, y + 33), fill=(0xB5, 0xCF, 0xE3))
 
-    section(650, 'מתמטיקה')
-    bar_row(d, 718, 'אלקנה', 35.8, 'מקום 6', strong=True)
-    bar_row(d, 866, 'אפרת', 32.5, 'מקום 12')
-    section(1018, 'אנגלית')
-    bar_row(d, 1084, 'אלקנה', 82.1, 'מקום 8', strong=True)
+    section(790, 'מתמטיקה')
+    bar_row(d, 842, 'אלקנה', 35.8, 'מקום 6', strong=True, k=0.78)
+    bar_row(d, 958, 'אפרת', 32.5, 'מקום 12', k=0.78)
+    section(1080, 'אנגלית')
+    bar_row(d, 1130, 'אלקנה', 82.1, 'מקום 8', strong=True, k=0.78)
     save(img, 4)
 
 
@@ -300,31 +303,31 @@ def s6():
 # 7 — national service, women (2022 cohort data)
 def s7():
     img = canvas(True); arcs(img, 120, 1340, n=3, r0=400)
-    photo(img, PHOTO_SHOMRON, 430, 0.0, None, fade_from=0.62, caption='שומרון', top_dark=180)
+    photo(img, PHOTO_SHOMRON, 560, 0.0, None, fade_from=0.80, caption='שומרון', top_dark=180)
     d = chrome(img, 7, True, SRC_SERVICE, on_photo=True)
-    tag(d, 425, 'שירות לאומי · בנות', 40, bg=LB)
-    text(d, (W - M, 490), 'שלושת המקומות הראשונים בארץ', 84, WHITE)
+    tag(d, 548, 'שירות לאומי · בנות', 38, bg=LB)
+    text(d, (W - M, 606), 'שלושת המקומות הראשונים בארץ', 76, WHITE)
     sub = 'שירות לאומי / אזרחי — נשים'
-    text(d, (W - M, 592), sub, 42, SOFT, bold=False)
-    year_badge(d, W - M - tw(d, sub, 42, False) - 24, 586, True)
+    text(d, (W - M, 696), sub, 40, SOFT, bold=False)
+    year_badge(d, W - M - tw(d, sub, 40, False) - 24, 690, True)
     rows = [('שומרון', 88.7, 1), ('בית אל', 87.6, 2), ('קריית ארבע', 85.1, 3)]
     for i, (nm, pct, rk) in enumerate(rows):
-        y = 678 + i * 110
-        text(d, (W - M, y + 8), f'מקום {rk}', 40, LB)
-        text(d, (W - M - 130, y - 4), nm, 56, WHITE)
-        text(d, (M, y - 2), f'{pct:.1f}%', 56, WHITE, anchor='la', rtl=False)
-        by = y + 66; full = W - 2 * M
+        y = 768 + i * 88
+        text(d, (W - M, y + 6), f'מקום {rk}', 36, LB)
+        text(d, (W - M - 118, y - 4), nm, 48, WHITE)
+        text(d, (M, y - 2), f'{pct:.1f}%', 48, WHITE, anchor='la', rtl=False)
+        by = y + 56; full = W - 2 * M
         d.rounded_rectangle(P(M, by, W - M, by + 18), radius=9 * S, fill=(0x2E, 0x55, 0x80))
         d.rounded_rectangle(P(W - M - full * pct / 100, by, W - M, by + 18), radius=9 * S, fill=LB)
-    y = 1018
-    d.rounded_rectangle(P(M, y, W - M, y + 205), radius=22 * S, fill=(0x1E, 0x4A, 0x75))
-    text(d, (W - M - 30, y + 18), 'גם בין 20 המובילות:', 40, LB)
+    y = 1042
+    d.rounded_rectangle(P(M, y, W - M, y + 182), radius=22 * S, fill=(0x1E, 0x4A, 0x75))
+    text(d, (W - M - 30, y + 14), 'גם בין 20 המובילות:', 38, LB)
     others = [('ערבות הירדן', 74.5, 6), ('קדומים', 73.3, 7), ('מטה בנימין', 63.8, 15)]
     colw = (W - 2 * M - 60) / 3
     for i, (nm, pct, rk) in enumerate(others):
         xr = W - M - 30 - i * colw
-        text(d, (xr, y + 76), nm, 46, WHITE)
-        text(d, (xr, y + 136), f'{pct:.1f}% | מקום {rk}', 40, SOFT, bold=False)
+        text(d, (xr, y + 66), nm, 44, WHITE)
+        text(d, (xr, y + 122), f'{pct:.1f}% | מקום {rk}', 38, SOFT, bold=False)
     save(img, 7)
 
 
