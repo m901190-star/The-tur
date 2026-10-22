@@ -1,0 +1,55 @@
+{
+ "name": "מועצת יש\"ע",
+ "slug": "yesha",
+ "aliases": [
+  "מועצת ישע",
+  "ישע",
+  "יש\"ע",
+  "Yesha"
+ ],
+ "language": "he",
+ "base_theme": "clean-white",
+ "theme_overrides": {
+  "accent": "#27A4D1",
+  "secondary": "#2566A2",
+  "panel": "#174068",
+  "text": "#FFFFFF",
+  "text_dark": "#174068"
+ },
+ "fonts": {
+  "bold": "Karantina",
+  "regular": "Karantina"
+ },
+ "logo": {
+  "file": "logo_white.png",
+  "corner": "top-right",
+  "width": 170,
+  "margin": 60,
+  "opacity": 0.95
+ },
+ "defaults": {
+  "output": {
+   "width": 1080,
+   "height": 1920,
+   "fps": 30,
+   "loudness": -14
+  },
+  "layout": "full",
+  "captions": {
+   "style": "pop"
+  },
+  "music": {
+   "style": "ambient",
+   "level_db": -24
+  },
+  "auto_sfx": false,
+  "progress_bar": false
+ },
+ "rules": [
+  "Brand palette only: navy #174068, blue #2566A2, mid-blue #2587BE, light blue #27A4D1, ice #E8F2F8, white. No colours outside it.",
+  "Logo: white version (logo_white.png) over video/dark backgrounds; the original blue logo (logo.png) only on white/ice backgrounds.",
+  "Institutional, dignified tone: clean motion, no flashy effects, no noisy SFX.",
+  "Initial profile built from logo + palette only — confirm tone and any client notes with the user and add them here."
+ ],
+ "notes": "Yesha Council (Judea, Samaria and Gaza). User manages their social media: posts + reels on Facebook and Instagram. Reels 9:16 (also used as IG/FB stories); post graphics 4:5 (1080x1350). Logo PNG has transparent background with dark-blue artwork."
+}
