@@ -162,16 +162,31 @@ def save(img, n):
 # 1 — cover
 def s1():
     img = canvas(True)
-    photo(img, PHOTO_COVER, 820, 0.5, None, fade_from=0.42, top_dark=200)
-    arcs(img, 980, 1360, alpha=40, n=4, r0=400, step=80, width=40)  # drawn over the fade, no seam
+    photo(img, PHOTO_COVER, 740, 0.45, None, fade_from=0.40, top_dark=200)
+    arcs(img, 980, 1420, alpha=34, n=4, r0=400, step=80, width=40)
     d = ImageDraw.Draw(img)
     logo(img, 220, W - M, 60, plate=True)
     text(d, (M, 72), f'1/{TOTAL}', 36, WHITE, anchor='la', rtl=False)
-    y = 700
-    h = tag(d, y, 'התמונה החינוכית תשפ״ה', 44, bg=BLUE)
-    text(d, (W - M, y + h + 24), 'יהודה ושומרון', 180, WHITE, shadow=(8, 8, BLUE))
-    text(d, (W - M, y + h + 230), 'מובילה בחינוך', 150, LB, shadow=(7, 7, DEEP))
-    text(d, (W - M, H - 120), 'החליקו לנתונים ←', 50, SOFT, bold=False)
+    tag(d, 612, 'התמונה החינוכית תשפ״ה', 42, bg=BLUE)
+    # campaign-style headline: name on top, the claim in one line on a solid blue block,
+    # with a light-blue stroke under the key word
+    text(d, (W - M, 688), 'יהודה ושומרון', 220, WHITE, shadow=(8, 8, DEEP))
+    line, key = 'מובילה בחינוך', 'בחינוך'
+    padx = 34
+    size = 205
+    while tw(d, line, size) > W - 2 * M - 2 * padx:
+        size -= 2
+    lw = tw(d, line, size)
+    bx1 = W - M; bx0 = bx1 - lw - 2 * padx
+    by0 = 905; by1 = by0 + size * 1.0 + 26
+    d.rectangle(P(bx0, by0, bx1, by1), fill=NAVY)
+    d.rectangle(P(bx1 - 12, by0, bx1, by1), fill=LB)
+    text(d, (bx1 - padx, by0 + 4), line, size, WHITE)
+    # the key word is the leftmost part of the RTL line
+    kx0 = bx1 - padx - lw; kx1 = kx0 + tw(d, key, size)
+    sy = by1 - 34
+    d.polygon(P(kx1 + 6, sy, kx0 - 4, sy + 4, kx0 - 10, sy + 22, kx1 + 2, sy + 18), fill=LB)
+    text(d, (W - M, H - 112), 'החליקו לנתונים ←', 46, SOFT, bold=False)
     save(img, 1)
 
 
@@ -201,21 +216,19 @@ def s3():
 
 # 4 — 5 units math & English
 def s4():
-    img = canvas(False)
-    photo(img, PHOTO_EFRAT, 440, 0.0, ICE, fade_from=0.74, caption='אפרת', top_dark=170)
-    d = chrome(img, 4, False, SRC_EDU, on_photo=True)
-    tag(d, 428, '5 יחידות לימוד', 40)
-    text(d, (W - M, 488), 'מובילים ב־5 יחידות', 92, NAVY)
+    img = canvas(False); d = chrome(img, 4, False, SRC_EDU)
+    tag(d, 250, '5 יחידות לימוד', 42)
+    text(d, (W - M, 335), 'מובילים ב־5 יחידות', 104, NAVY)
 
     def section(y, title):
-        text(d, (W - M, y), title, 56, BLUE)
-        d.rectangle(P(M, y + 38, W - M - tw(d, title, 56) - 24, y + 41), fill=(0xB5, 0xCF, 0xE3))
+        text(d, (W - M, y), title, 60, BLUE)
+        d.rectangle(P(M, y + 40, W - M - tw(d, title, 60) - 24, y + 43), fill=(0xB5, 0xCF, 0xE3))
 
-    section(605, 'מתמטיקה')
-    bar_row(d, 675, 'אלקנה', 35.8, 6, strong=True)
-    bar_row(d, 830, 'אפרת', 32.5, 12)
-    section(990, 'אנגלית')
-    bar_row(d, 1062, 'אלקנה', 82.1, 8, strong=True)
+    section(480, 'מתמטיקה')
+    bar_row(d, 570, 'אלקנה', 35.8, 6, strong=True)
+    bar_row(d, 750, 'אפרת', 32.5, 12)
+    section(950, 'אנגלית')
+    bar_row(d, 1040, 'אלקנה', 82.1, 8, strong=True)
     save(img, 4)
 
 
