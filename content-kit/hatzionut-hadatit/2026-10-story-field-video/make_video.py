@@ -232,8 +232,8 @@ def end_frame(t):
     lay = Image.new('RGBA', (W, H), (0, 0, 0, 0)); ld = ImageDraw.Draw(lay)
     chevron(ld, W + 260 - 200 * a, 1660, 760, col_a=TEAL + (70,), col_b=TEAL_L + (70,))
     img.paste(lay, (0, 0), lay)
-    pop_line(img, 'לא עושים רעש.', 170, 600, 0.25, t, WHITE)
-    pop_line(img, 'עושים!', 240, 820, 0.8, t, WHITE, block=TEAL)
+    pop_line(img, 'בכל הארץ!', 200, 560, 0.25, t, WHITE)
+    pop_line(img, 'כן. סמוטריץ׳.', 190, 800, 0.8, t, WHITE, block=TEAL)
     la = ease_out((t - 1.6) / 0.4)
     if la > 0:
         sc = 0.9 + 0.1 * ease_back((t - 1.6) / 0.45)
@@ -265,11 +265,17 @@ def render(out_video):
 
 def mix_audio(out_wav):
     cues = [('open', 0.0, 0.45)]                         # market ambience, low
-    cues += [('pop_soft', 0.35, 0.9), ('pop_soft', 0.95, 0.9)]
+    cues += [('whoosh', 0.2, 0.45), ('pop_soft', 0.35, 0.9),     # headline lines pop in
+             ('whoosh', 0.82, 0.45), ('pop_soft', 0.95, 0.9), ('blip', 1.5, 0.35)]
     for k in range(len(SLIDES)):
-        cues.append(('swoosh_soft', SLIDES_START + k * SLIDE_T - 0.08, 0.5))
-    cues += [('riser', END_START - 1.5, 0.35), ('swoosh_soft', END_START - 0.05, 0.6),
-             ('pop_soft', END_START + 0.25, 0.9), ('hit_soft', END_START + 0.8, 0.8), ('pop_soft', END_START + 1.6, 0.8)]
+        t0 = SLIDES_START + k * SLIDE_T
+        cues.append(('swoosh_soft' if k % 2 else 'whoosh', t0 - 0.1, 0.55))   # card transition
+        cues.append(('pop_soft', t0 + 0.14, 0.55))                            # city label slides in
+        cues.append(('tick', t0 + 0.05, 0.35))                                # route dot advances
+    cues += [('riser', END_START - 1.5, 0.35), ('whoosh', END_START - 0.1, 0.6),
+             ('swoosh_soft', END_START + 0.1, 0.4),                           # chevron sweep
+             ('pop_soft', END_START + 0.25, 0.9), ('hit_soft', END_START + 0.8, 0.85),
+             ('chime_up', END_START + 1.6, 0.4)]                              # logo reveal
     args = ['ffmpeg', '-v', 'error', '-y']
     for name, _, _ in cues:
         args += ['-i', HERE + '/prep/open.wav' if name == 'open' else SFX + name + '.wav']
