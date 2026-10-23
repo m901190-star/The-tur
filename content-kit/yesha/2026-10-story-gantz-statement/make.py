@@ -53,9 +53,7 @@ def f1():
     img.paste(ov, (0, 0), ov)
     d = ImageDraw.Draw(img)
     logo(img, 200, W - M, TOP, plate=True)
-    y = 1010
-    h = tag(d, y, 'בתגובה לפיגוע', 44, bg=BLUE)
-    y = quote_lines(d, '״זה לא מחבל בודד ולא פיגוע נקודתי, אלא איום רחב שהולך ומתעצם ועלול להסתיים באסון כבד.״', 92, y + h + 30)
+    y = quote_lines(d, '״זה לא מחבל בודד ולא פיגוע נקודתי, אלא איום רחב שהולך ומתעצם ועלול להסתיים באסון כבד.״', 92, 1080)
     signature(d, y + 30)
     frame_dots(d, 1)
     save(img, 1)
@@ -66,14 +64,13 @@ def f2():
     img = dark_canvas(); arcs(img, 980, 1900, alpha=40, n=4, r0=420, step=80, width=40)
     d = ImageDraw.Draw(img)
     logo(img, 200, W - M, TOP, plate=True)
-    tag(d, 470, 'רק בשלושים הימים האחרונים', 50, bg=BLUE)
-    text(d, (W - M, 560), '197', 480, WHITE, rtl=False, shadow=(14, 14, BLUE))
-    text(d, (W - M, 1060), 'אירועי טרור ותקיפות', 112, LB, shadow=(5, 5, DEEP))
-    text(d, (W - M, 1185), 'ביהודה ושומרון', 112, LB, shadow=(5, 5, DEEP))
-    y = 1320
+    tag(d, 560, 'רק בשלושים הימים האחרונים', 50, bg=BLUE)
+    text(d, (W - M, 650), '197', 480, WHITE, rtl=False, shadow=(14, 14, BLUE))
+    text(d, (W - M, 1150), 'אירועי טרור ותקיפות', 112, LB, shadow=(5, 5, DEEP))
+    text(d, (W - M, 1275), 'ביהודה ושומרון', 112, LB, shadow=(5, 5, DEEP))
+    y = 1410
     for ln in wrap(d, 'בהם פיגועי אבנים, דריסה, תקיפות רועים יהודים וחסימות צירים.', 46, W - 2 * M):
         text(d, (W - M, y), ln, 50, SOFT, bold=False); y += 64
-    signature(d, y + 50)
     frame_dots(d, 2)
     save(img, 2)
 
