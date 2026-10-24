@@ -22,14 +22,11 @@ def para(s, size, y, color, bold=False, lh=1.18, indent=0):
         text(d, (W - M - indent, y), ln, size, color, bold=bold); y += size * lh
     return y
 
-Y0 = 450
-y = tag(d, Y0, 'מבצע בחברון', 48, bg=LB)
-text(d, (W - M, Y0 + y + 22), 'לגדוע את הטרור', 160, WHITE, shadow=(7, 7, BLUE))
-text(d, (W - M, Y0 + y + 192), 'מהשורש', 160, LB, shadow=(7, 7, DEEP))
-y = Y0 + y + 410
-y = para(P1, 58, y, SOFT)
+Y0 = 600
+y = Y0 + tag(d, Y0, 'מבצע בחברון', 52, bg=LB) + 50
+y = para(P1, 66, y, SOFT)
 y += 34
-y2 = para(P2, 66, y, WHITE, bold=True, indent=34)
+y2 = para(P2, 72, y, WHITE, bold=True, indent=34)
 d.rectangle(P(W - M - 10, y + 8, W - M, y2 - 12), fill=LB)            # accent bar beside the key line
-y = para(P3, 58, y2 + 34, SOFT)
+y = para(P3, 66, y2 + 34, SOFT)
 img.resize((W, H), Image.LANCZOS).save(OUT + '/yesha-story-hebron.png'); print('end y', y)
