@@ -22,8 +22,8 @@ def para(s, size, y, color, bold=False, lh=1.18, indent=0):
         text(d, (W - M - indent, y), ln, size, color, bold=bold); y += size * lh
     return y
 
-Y0 = 600
-y = Y0 + tag(d, Y0, 'מבצע בחברון', 52, bg=LB) + 50
+Y0 = 660
+y = Y0
 y = para(P1, 66, y, SOFT)
 y += 34
 y2 = para(P2, 72, y, WHITE, bold=True, indent=34)
