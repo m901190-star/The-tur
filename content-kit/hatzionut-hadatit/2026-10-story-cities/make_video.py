@@ -88,14 +88,23 @@ def ballot_layer(h, alpha, rot, letter_only=False):
     lay = Image.new('RGBA', b.size, TEAL_L + (0,)); lay.putalpha(a.point(lambda v: int(v * alpha)))
     lay = lay.resize((int(b.width * h / b.height), h), Image.LANCZOS)
     return lay.rotate(rot, resample=Image.BICUBIC, expand=True)
-BALLOT_BG = ballot_layer(1500, 0.28, -8, letter_only=True)
-BALLOT_END = ballot_layer(1650, 0.13, 6)
+# the real ballot, fixed top-right and slightly tilted, on screen for the whole video
+def ballot_card(w=210, rot=-9):
+    b = Image.open(U + '6157759a-image.jpg').convert('RGB')
+    b = b.resize((w, int(w * b.height / b.width)), Image.LANCZOS)
+    pad = 24; lay = Image.new('RGBA', (b.width + pad * 2, b.height + pad * 2), (0, 0, 0, 0))
+    sh = Image.new('RGBA', lay.size, (0, 0, 0, 0)); ImageDraw.Draw(sh).rectangle((pad + 6, pad + 10, pad + b.width + 6, pad + b.height + 10), fill=(0, 0, 0, 120))
+    lay.alpha_composite(sh.filter(ImageFilter.GaussianBlur(10))); lay.paste(b, (pad, pad))
+    return lay.rotate(rot, resample=Image.BICUBIC, expand=True)
+BALLOT = ballot_card()
+def add_ballot(img):
+    img.paste(BALLOT, (W - BALLOT.width - 26, 40), BALLOT)
+    return img
 def _bg(im):
     bg = im.copy(); s = max(W / bg.width, H / bg.height)
     bg = bg.resize((int(bg.width * s) + 2, int(bg.height * s) + 2), Image.BILINEAR)
     bg = bg.crop(((bg.width - W) // 2, (bg.height - H) // 2, (bg.width - W) // 2 + W, (bg.height - H) // 2 + H))
     bg = Image.blend(bg.filter(ImageFilter.GaussianBlur(40)), Image.new('RGB', (W, H), DEEP), 0.72)
-    bg.paste(BALLOT_BG, ((W - BALLOT_BG.width) // 2 + 40, (H - BALLOT_BG.height) // 2 - 130), BALLOT_BG)
     return bg
 
 class Card:
@@ -224,15 +233,13 @@ for y in range(H):
 
 def end_frame(t):
     img = END_BG.copy()
-    ba = ease_out(t / 0.8); bl = BALLOT_END.copy(); bl.putalpha(bl.getchannel('A').point(lambda v: int(v * ba)))
-    img.paste(bl, ((W - bl.width) // 2 - 30, (H - bl.height) // 2 + 170 + int(40 * (1 - ba))), bl)
     d = ImageDraw.Draw(img)
     # big chevron sweeping in behind the text
     a = ease_out(t / 0.5)
     lay = Image.new('RGBA', (W, H), (0, 0, 0, 0)); ld = ImageDraw.Draw(lay)
     chevron(ld, W + 260 - 200 * a, 1660, 760, col_a=TEAL + (70,), col_b=TEAL_L + (70,))
     img.paste(lay, (0, 0), lay)
-    pop_line(img, 'חורשים את הארץ', 200, 560, 0.25, t, WHITE)
+    pop_line(img, 'בכל הארץ', 200, 560, 0.25, t, WHITE)
     pop_line(img, 'כן. סמוטריץ׳.', 190, 800, 0.8, t, WHITE, block=TEAL)
     la = ease_out((t - 1.6) / 0.4)
     if la > 0:
@@ -259,7 +266,7 @@ def render(out_video):
             ci, it, st, d, first = ITEMS[j]
             fr = item_frame(cards[j], ci, t - st, d, t - city_start[ci], first)
         else: fr = end_frame(t - END_START)
-        ff.stdin.write(fr.convert('RGB').tobytes())
+        ff.stdin.write(add_ballot(fr.convert('RGB')).tobytes())
     ff.stdin.close(); ff.wait()
 
 
@@ -292,7 +299,7 @@ if __name__ == '__main__':
         prep_opener(); pick = [0, 3, 5, 9, 14]; cards = {j: Card(ITEMS[j][1], j) for j in pick}
         shots = [open_frame(60, 2.0)] + [item_frame(cards[j], ITEMS[j][0], 0.8, ITEMS[j][3], 0.8, True) for j in pick] + [end_frame(3.5)]
         sheet = Image.new('RGB', (len(shots) * 370, 660), WHITE)
-        for j, s in enumerate(shots): sheet.paste(s.resize((360, 640)), (j * 370, 0))
+        for j, s in enumerate(shots): sheet.paste(add_ballot(s.convert('RGB')).resize((360, 640)), (j * 370, 0))
         sheet.save(HERE + '/stills.jpg'); print('stills', TOTAL)
     else:
         render(vid); mix_audio(wav)
