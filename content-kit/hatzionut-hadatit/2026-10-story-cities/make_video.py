@@ -80,11 +80,23 @@ def chevron(d, x_right, cy, h, col_a=TEAL, col_b=TEAL_L):
 
 # ---------- cards: photos (slow push-in) and video clips ----------
 CARD_W, CARD_MAXH, CARD_CY = 940, 1030, 870
+# the ballot (פתק ט) as a faint watermark behind everything: letter + text only, tinted with the brand teal
+def ballot_layer(h, alpha, rot, letter_only=False):
+    b = Image.open(U + '6157759a-image.jpg').convert('L')
+    if letter_only: b = b.crop((0, 0, b.width, int(b.height * 0.69)))
+    a = b.point(lambda v: max(0, min(255, int((235 - v) * 1.4))))
+    lay = Image.new('RGBA', b.size, TEAL_L + (0,)); lay.putalpha(a.point(lambda v: int(v * alpha)))
+    lay = lay.resize((int(b.width * h / b.height), h), Image.LANCZOS)
+    return lay.rotate(rot, resample=Image.BICUBIC, expand=True)
+BALLOT_BG = ballot_layer(1500, 0.28, -8, letter_only=True)
+BALLOT_END = ballot_layer(1650, 0.13, 6)
 def _bg(im):
     bg = im.copy(); s = max(W / bg.width, H / bg.height)
     bg = bg.resize((int(bg.width * s) + 2, int(bg.height * s) + 2), Image.BILINEAR)
     bg = bg.crop(((bg.width - W) // 2, (bg.height - H) // 2, (bg.width - W) // 2 + W, (bg.height - H) // 2 + H))
-    return Image.blend(bg.filter(ImageFilter.GaussianBlur(40)), Image.new('RGB', (W, H), DEEP), 0.72)
+    bg = Image.blend(bg.filter(ImageFilter.GaussianBlur(40)), Image.new('RGB', (W, H), DEEP), 0.72)
+    bg.paste(BALLOT_BG, ((W - BALLOT_BG.width) // 2 + 40, (H - BALLOT_BG.height) // 2 - 130), BALLOT_BG)
+    return bg
 
 class Card:
     def __init__(self, it, idx):
@@ -211,7 +223,10 @@ for y in range(H):
 
 
 def end_frame(t):
-    img = END_BG.copy(); d = ImageDraw.Draw(img)
+    img = END_BG.copy()
+    ba = ease_out(t / 0.8); bl = BALLOT_END.copy(); bl.putalpha(bl.getchannel('A').point(lambda v: int(v * ba)))
+    img.paste(bl, ((W - bl.width) // 2 - 30, (H - bl.height) // 2 + 170 + int(40 * (1 - ba))), bl)
+    d = ImageDraw.Draw(img)
     # big chevron sweeping in behind the text
     a = ease_out(t / 0.5)
     lay = Image.new('RGBA', (W, H), (0, 0, 0, 0)); ld = ImageDraw.Draw(lay)
