@@ -11,25 +11,26 @@ ph = lambda n: U + n + '-image.jpg'
 # cut=fraction of the frame bottom to crop away, box=(x0, y0, x1, y1) photo crop
 SHOTS = [
     ('v', v('v22'), 7.4, 3.6),                                   # market march, the chant leader
-    ('p', ph('730c5ab5'), 0, B), ('p', ph('caadec50'), 0, B), ('p', ph('72b62016'), 0, B), ('p', ph('61660d37'), 0, B),
+    ('p', ph('730c5ab5'), 0, B), ('p', ph('1f888923'), 0, B), ('p', ph('caadec50'), 0, B), ('p', ph('4d59f7ec'), 0, B),
     ('v', v('v08-petahtikva'), 1.0, 2.5),
-    ('p', ph('2e3afae4'), 0, B), ('p', ph('9050e4fb'), 0, B), ('p', ph('acd39014'), 0, B),
+    ('p', ph('2e3afae4'), 0, B), ('p', ph('c7448a3d'), 0, B), ('p', ph('acd39014'), 0, B),
     ('v', v('v20'), 0.4, 2.8),                                   # night, flags, dancing
-    ('p', ph('59cbbb2b'), 0, B), ('p', ph('4f010c1d'), 0, B, {'box': (0, 450, 620, 1550)}), ('p', ph('78e5bd5b'), 0, B),
+    ('p', ph('59cbbb2b'), 0, B), ('p', ph('65ff0f58'), 0, B, {'box': (540, 300, 1200, 1473)}), ('p', ph('483b25f8'), 0, B),
     ('v', v('v01-telaviv'), 4.7, 3.4),
-    ('p', ph('ea9a61af'), 0, B), ('p', ph('7e0b1fe1'), 0, B),
+    ('p', ph('ea9a61af'), 0, B), ('p', ph('c25a9b99'), 0, B), ('p', ph('7e0b1fe1'), 0, B),
     ('v', v('v24'), 12.0, 2.2, {'cut': .2, 'mute': True}),
     ('v', v('v03-batyam'), 0.3, 2.8),
     ('p', ph('488d6f05'), 0, B), ('p', ph('537b1a3c'), 0, B), ('p', ph('d08a8e70'), 0, B),
     ('v', v('v21'), 1.0, 2.4),
-    ('p', ph('4108a468'), 0, B), ('p', ph('caf39821'), 0, B),
+    ('p', ph('4108a468'), 0, B), ('p', ph('caf39821'), 0, B), ('p', ph('fe470ce1'), 0, B, {'box': (0, 320, 740, 1200)}),
     ('v', v('v06-katzrin'), 1.0, 1.5, {'mute': True}),
     # clip 4's own sound is not used (it may name the yeshiva); the Petah Tikva bus chant from clip 8 plays there
     ('v', v('v04-petahtikva'), 3.5, 2.3, {'audio': (v('v08-petahtikva'), 3.9)}),
-    ('p', ph('6ea7f215'), 0, B), ('p', ph('5ef87594'), 0, B),
+    ('p', ph('6ea7f215'), 0, B), ('p', ph('5ef87594'), 0, B), ('p', ph('67189ec9'), 0, B),
     ('v', v('v13-ashkelon'), 1.0, 2.3),
     ('v', v('v23'), 45.5, 1.8, {'mute': True}),
-] + [('p', ph(n), 0, B / 2) for n in ('f3cca4bb', 'c98b45b3', '61660d37', '730c5ab5', '72b62016', 'caadec50', '4a4ef56a', '9050e4fb')]
+] + [('p', ph(n), 0, B / 2) for n in ('f3cca4bb', 'c98b45b3', '9af885fb', '815fbc51', '2537c127', '9db39b34', 'f54a4173', 'c954132c', '61660d37',
+                                     '72b62016', '78e5bd5b', '9050e4fb', '4a4ef56a')] + [('p', ph('4f010c1d'), 0, B / 2, {'box': (0, 450, 620, 1550)})]
 END_D = 4.4
 T0 = []; _t = 0
 for s_ in SHOTS: T0.append(_t); _t += s_[3]
@@ -57,8 +58,8 @@ def cover(im, w=W, h=H, fx=.5):
     x0 = int(max(0, min(im.width - w, im.width * fx - w / 2)))
     return im.crop((x0, (im.height - h) // 2, x0 + w, (im.height - h) // 2 + h))
 # wide group shots stay whole (full width over a blurred copy); others fill the frame around their subject
-FIT = {'61660d37', 'caadec50', 'ea9a61af', '7e0b1fe1', 'd08a8e70'}
-FOCUS = {'4108a468': .64, '9050e4fb': .42, 'caf39821': .45}
+FIT = {'61660d37', 'caadec50', 'ea9a61af', '7e0b1fe1', 'd08a8e70', '1f888923', '4d59f7ec', 'c954132c', '9af885fb', 'f54a4173', 'b07d56a5'}
+FOCUS = {'4108a468': .64, '9050e4fb': .42, 'caf39821': .45, 'fe470ce1': .62}
 
 def grade(im):
     im = ImageEnhance.Contrast(im).enhance(1.12); im = ImageEnhance.Color(im).enhance(1.15)
