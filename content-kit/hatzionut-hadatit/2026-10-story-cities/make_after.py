@@ -7,28 +7,50 @@ from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
 B = 0.5                            # one beat (120 bpm): photo cuts land on the grid
 v = lambda n: M + n + '.mov'
 ph = lambda n: U + n + '-image.jpg'
-# (kind, src, start, dur)
+# (kind, src, start, dur[, opts]) — opts: audio=(file, start) replaces the clip's own sound, mute=True uses the chant bed,
+# cut=fraction of the frame bottom to crop away, box=(x0, y0, x1, y1) photo crop
 SHOTS = [
+    ('v', v('v22'), 7.4, 3.6),                                   # market march, the chant leader
+    ('p', ph('730c5ab5'), 0, B), ('p', ph('caadec50'), 0, B), ('p', ph('72b62016'), 0, B), ('p', ph('61660d37'), 0, B),
     ('v', v('v08-petahtikva'), 1.0, 2.5),
-    ('p', ph('caadec50'), 0, B), ('p', ph('61660d37'), 0, B), ('p', ph('d08a8e70'), 0, B), ('p', ph('78e5bd5b'), 0, B),
+    ('p', ph('2e3afae4'), 0, B), ('p', ph('9050e4fb'), 0, B), ('p', ph('acd39014'), 0, B),
+    ('v', v('v20'), 0.4, 2.8),                                   # night, flags, dancing
+    ('p', ph('59cbbb2b'), 0, B), ('p', ph('4f010c1d'), 0, B, {'box': (0, 450, 620, 1550)}), ('p', ph('78e5bd5b'), 0, B),
     ('v', v('v01-telaviv'), 4.7, 3.4),
-    ('p', ph('ea9a61af'), 0, B), ('p', ph('7e0b1fe1'), 0, B), ('p', ph('9050e4fb'), 0, B),
-    ('v', v('v03-batyam'), 0.3, 3.4),
+    ('p', ph('ea9a61af'), 0, B), ('p', ph('7e0b1fe1'), 0, B),
+    ('v', v('v24'), 12.0, 2.2, {'cut': .2, 'mute': True}),
+    ('v', v('v03-batyam'), 0.3, 2.8),
+    ('p', ph('488d6f05'), 0, B), ('p', ph('537b1a3c'), 0, B), ('p', ph('d08a8e70'), 0, B),
+    ('v', v('v21'), 1.0, 2.4),
     ('p', ph('4108a468'), 0, B), ('p', ph('caf39821'), 0, B),
-    ('v', v('v06-katzrin'), 1.0, 2.0),
-    ('v', v('v04-petahtikva'), 3.5, 2.8),
-    ('p', ph('6ea7f215'), 0, B), ('p', ph('c98b45b3'), 0, B),
+    ('v', v('v06-katzrin'), 1.0, 1.5, {'mute': True}),
+    # clip 4's own sound is not used (it may name the yeshiva); the Petah Tikva bus chant from clip 8 plays there
+    ('v', v('v04-petahtikva'), 3.5, 2.3, {'audio': (v('v08-petahtikva'), 3.9)}),
+    ('p', ph('6ea7f215'), 0, B), ('p', ph('5ef87594'), 0, B),
     ('v', v('v13-ashkelon'), 1.0, 2.3),
-] + [('p', ph(n), 0, B / 2) for n in ('61660d37', 'caadec50', '7e0b1fe1', 'd08a8e70', '78e5bd5b', '9050e4fb')]
+    ('v', v('v23'), 45.5, 1.8, {'mute': True}),
+] + [('p', ph(n), 0, B / 2) for n in ('f3cca4bb', 'c98b45b3', '61660d37', '730c5ab5', '72b62016', 'caadec50', '4a4ef56a', '9050e4fb')]
 END_D = 4.4
 T0 = []; _t = 0
-for s in SHOTS: T0.append(_t); _t += s[3]
+for s_ in SHOTS: T0.append(_t); _t += s_[3]
 END_AT = _t; TOT = END_AT + END_D
-# sound: each clip's own chant, with L/J cuts so the noise never drops under the photo bursts.
-# Clip 4 keeps no sound of its own (it may name the yeshiva); Petah Tikva bus chant from clip 8 plays there.
-AUD = [(v('v08-petahtikva'), 1.0, 0.0, 4.5), (v('v01-telaviv'), 4.7, 4.5, 4.9), (v('v03-batyam'), 0.3, 9.4, 4.4),
-       (v('v01-telaviv'), 0.2, 13.8, 2.0), (v('v08-petahtikva'), 3.9, 15.8, 2.6), (v('v13-ashkelon'), 0.0, 18.6, 3.3),
-       (v('v03-batyam'), 0.3, 21.9, 2.1), (v('v08-petahtikva'), 1.0, END_AT, 2.6)]
+opt = lambda s_: s_[4] if len(s_) > 4 else {}
+_dur = {}
+def fdur(f):
+    if f not in _dur: _dur[f] = float(subprocess.check_output(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]))
+    return _dur[f]
+# sound: clips play their chant; photos and muted clips ride on with the previous chant (L-cut), falling back to the market chant
+BED = [(v('v22'), 7.0, 11.2), (v('v03-batyam'), 0.3, 4.8), (v('v20'), 3.4, 11.5), (v('v21'), 3.4, 7.0)]
+AUD = []
+cur = None; bed_i = 0
+for j, s_ in enumerate(SHOTS):
+    o = opt(s_); d = s_[3]
+    if s_[0] == 'v' and not o.get('mute'):
+        f, p0 = o.get('audio', (s_[1], s_[2])); cur = [f, p0, fdur(f)]
+    elif cur is None or cur[1] + d > cur[2] - .05 or (cur[0] == v('v22') and cur[1] + d > 11.2):
+        f, a0, a1 = BED[bed_i % len(BED)]; bed_i += 1; cur = [f, a0, a1 if a1 < fdur(f) else fdur(f)]
+    AUD.append((cur[0], cur[1], T0[j], d)); cur[1] += d
+AUD.append((v('v22'), 7.0, END_AT, 2.6))
 
 def cover(im, w=W, h=H, fx=.5):
     s = max(w / im.width, h / im.height); im = im.resize((int(im.width * s + .5), int(im.height * s + .5)), Image.LANCZOS)
@@ -48,10 +70,11 @@ VIG = VIG.filter(ImageFilter.GaussianBlur(60)); BLACK = Image.new('RGB', (W, H),
 
 class Shot:
     def __init__(self, s, j):
-        self.kind, self.src, self.ss, self.d = s
+        self.kind, self.src, self.ss, self.d = s[:4]; self.o = opt(s)
         big = (int(W * 1.18), int(H * 1.18))
         if self.kind == 'p':
             im = Image.open(self.src).convert('RGB'); key = os.path.basename(self.src)[:8]
+            if 'box' in self.o: im = im.crop(self.o['box'])
             if key in FIT:
                 bg = ImageEnhance.Brightness(cover(im, *big).filter(ImageFilter.GaussianBlur(30))).enhance(.55)
                 fg = im.resize((big[0] - 60, int((big[0] - 60) * im.height / im.width)), Image.LANCZOS)
@@ -62,7 +85,10 @@ class Shot:
             self.dir = P + f'a{j:02d}/'; os.makedirs(self.dir, exist_ok=True)
             w, h = map(int, subprocess.check_output(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', self.src]).decode().split(','))
             self.vert = h > w
-            vf = f'fps={FPS},scale={big[0]}:-2:flags=lanczos,crop={big[0]}:{big[1]},unsharp=5:5:0.6' if self.vert else f'fps={FPS},scale={W}:-2:flags=lanczos,unsharp=5:5:0.6'
+            cut = self.o.get('cut', 0)      # crop away a burned-in caption bar at the bottom
+            pre = f'crop=iw*{1 - cut:.3f}:ih*{1 - cut:.3f}:iw*{cut / 2:.3f}:0,' if cut else ''
+            vf = (f'fps={FPS},{pre}scale={big[0]}:-2:flags=lanczos,crop={big[0]}:{big[1]},unsharp=5:5:0.6' if self.vert
+                  else f'fps={FPS},scale={W}:-2:flags=lanczos,unsharp=5:5:0.6')
             subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(self.ss), '-t', str(self.d + .2), '-i', self.src, '-vf', vf, self.dir + '%04d.png'], check=True)
             self.fr = sorted(os.listdir(self.dir))
             if not self.vert:
