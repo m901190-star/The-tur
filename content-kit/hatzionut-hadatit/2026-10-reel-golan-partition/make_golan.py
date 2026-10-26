@@ -256,28 +256,23 @@ def render(out):
     ff.stdin.close(); ff.wait()
 
 def mix(out_wav):
+    """Horror sound design: synthesised bed (horror_bed.py) + Golan's real voice + a few hits. No music."""
+    subprocess.run(['python3', HERE + '/horror_bed.py', P + 'horror.wav'], check=True)
     X = lambda n: SFX + n + '.wav'
-    c = []   # (file, at, vol, trim0, dur, extra)
-    c.append((HERE + '/drone.wav', 0, .55, 0, HUSH[0], ''))
-    for k in range(6): c.append((X('tick'), 0.45 + k * 0.5 - (0 if k < 2 else 0), .8 if k < 2 else .5, 0, 0, ''))
-    c += [(X('impact'), 2.0, .8, 0, 0, ''), (X('bass_drop'), 2.0, .6, 0, 0, '')]
+    c = [(P + 'horror.wav', 0, .85, 0, 0, '')]   # (file, at, vol, trim0, dur, extra)
     c.append((SRC, G1[0], 1.0, 0.0, 3.0, ''))
-    c += [(X('impact'), FRZ[0], .9, 0, 0, ''), (SRC, FRZ[0], .45, 2.2, 0.8, ',aecho=0.8:0.7:220|440:0.5|0.3')]
+    # freeze: his own words "חלוקת הארץ" again, slowed and drowned in echo (a sound effect over the freeze, not a new quote)
+    c.append((SRC, FRZ[0] + .1, .55, 0.85, 1.1, ',asetrate=34560,aresample=48000,aecho=0.8:0.85:300|620|940:0.55|0.38|0.25,lowpass=f=2600'))
     c.append((SRC, G2[0], 1.0, 3.0, 4.8, ''))
-    for k in range(6): c.append((HERE + '/heart.wav', MAP[0] + k * (0.95 - k * .06), .9, 0, 0, ''))
-    c += [(X('impact'), MAP[0], .6, 0, 0, ''), (X('whoosh'), MAP[0] + 0.85, .5, 0, 0, ''), (X('hit_soft'), MAP[0] + 1.7, .9, 0, 0, ''),
-          (X('pop'), MAP[0] + 1.72, .5, 0, 0, ''), (X('impact'), MAP[0] + 2.2, .7, 0, 0, ''),
-          (X('hit_soft'), MAP[0] + 3.2, .8, 0, 0, ''), (X('hit_soft'), MAP[0] + 4.0, .8, 0, 0, ''), (X('impact'), MAP[0] + 4.8, .9, 0, 0, ''),
-          (X('riser'), MAP[0] + 4.9, .4, 0, 0, '')]
-    c += [(X('whoosh'), TURN[0], .6, 0, 0, ''), (X('swoosh_soft'), TURN[0] + .1, .5, 0, 0, ''), (X('chime_up'), TURN[0] + 0.6, .45, 0, 0, '')]
-    c += [(X('hit_soft'), CLOSE[0] + .1, .8, 0, 0, ''), (X('impact'), CLOSE[0] + .55, .7, 0, 0, ''),
-          (X('pop'), CLOSE[0] + 1.15, .7, 0, 0, ''), (X('hit_soft'), CLOSE[0] + 1.17, .6, 0, 0, ''), (X('chime_up'), CLOSE[0] + 1.8, .4, 0, 0, ''), (X('tick'), TOTAL - 0.55, .9, 0, 0, '')]
+    for k in range(7): c.append((HERE + '/heart.wav', MAP[0] + 0.2 + sum(0.86 - j * .07 for j in range(k)), 1.1, 0, 0, ',lowpass=f=300'))
+    c += [(X('pop'), MAP[0] + 1.72, .4, 0, 0, ''), (X('hit_soft'), MAP[0] + 3.2, .7, 0, 0, ''), (X('hit_soft'), MAP[0] + 4.0, .75, 0, 0, '')]
+    c += [(X('whoosh'), TURN[0], .5, 0, 0, ''), (X('chime_up'), TURN[0] + 0.6, .35, 0, 0, '')]
+    c += [(X('hit_soft'), CLOSE[0] + .1, .8, 0, 0, ''), (X('impact'), CLOSE[0] + .55, .6, 0, 0, ''), (X('pop'), CLOSE[0] + 1.15, .6, 0, 0, ''), (X('chime_up'), CLOSE[0] + 1.8, .35, 0, 0, '')]
     args = ['ffmpeg', '-v', 'error', '-y']; fl = []
     for j, (f, at, vol, s0, dur, ex) in enumerate(c):
         args += ['-i', f]
         tr = f',atrim={s0}:{s0 + dur},asetpts=PTS-STARTPTS' if dur else ''
-        if f == SRC: tr += ',highpass=f=90,loudnorm=I=-16:TP=-2,afade=t=in:d=0.03,afade=t=out:st=%.2f:d=0.08' % (dur - 0.08)
-        if f.endswith('drone.wav'): tr += f',afade=t=in:d=0.6,afade=t=out:st={dur - 0.05}:d=0.05'
+        if f == SRC: tr += ',highpass=f=90,loudnorm=I=-15:TP=-2,afade=t=in:d=0.03,afade=t=out:st=%.2f:d=0.08' % (dur - 0.08)
         fl.append(f'[{j}:a]aformat=sample_rates=48000:channel_layouts=stereo{tr}{ex},volume={vol},adelay={int(at * 1000)}|{int(at * 1000)}[a{j}]')
     fl.append(''.join(f'[a{j}]' for j in range(len(c))) + f'amix=inputs={len(c)}:normalize=0,atrim=0:{TOTAL:.3f},apad=whole_dur={TOTAL:.3f}[out]')
     subprocess.run(args + ['-filter_complex', ';'.join(fl), '-map', '[out]', out_wav], check=True)
@@ -289,7 +284,8 @@ if __name__ == '__main__':
         for k, x in enumerate(im): sh.paste(x.resize((240, 427)), (k * 250, 0))
         sh.save(HERE + '/stills.jpg'); print('stills', TOTAL)
     else:
-        render(P + 'v.mp4'); mix(P + 'a.wav')
+        if 'audio' not in sys.argv: render(P + 'v.mp4')
+        mix(P + 'a.wav')
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', P + 'v.mp4', '-i', P + 'a.wav', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', P + 'mux.mp4'], check=True)
         subprocess.run(['python3', SKILL + '/scripts/loudnorm.py', P + 'mux.mp4', HERE + '/rz-golan-partition.mp4', '--target', '-14'], check=True)
         print('done', TOTAL)
