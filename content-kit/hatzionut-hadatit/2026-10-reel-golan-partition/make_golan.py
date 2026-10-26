@@ -77,39 +77,33 @@ def caption(img, l1, l2, u, hot=None):
         else:
             text(ld, (W / 2, y), ln, size, WHITE, anchor='mm')
     lay.putalpha(lay.getchannel('A').point(lambda v: int(v * a)))
-    img.paste(lay, (0, 1540), lay)
+    img.paste(lay, (0, CY + 600), lay)
 
-FGH = 1180                     # the clip fills the vertical frame: scaled to this height, cropped around Golan (he drifts left late in the clip)
-FCX = lambda ct: 0.55 - 0.13 * min(1, max(0, (ct - 5.0) / 2.5))
-BOTG = Image.new('L', (W, H), 0); _bg = ImageDraw.Draw(BOTG)
-for y in range(H): _bg.line([(0, y), (W, y)], fill=int(235 * max(0, (y / H - 0.58) / 0.42) ** 1.2 + 120 * max(0, 1 - y / H / 0.16)))
 def golan_frame(t):
+    img = Image.new('RGB', (W, H), INK)
     if t < FRZ[0]: ct = t - G1[0]
     elif t < G2[0]: ct = 2.97
     else: ct = 3.0 + (t - G2[0])
     fr = clip_frame(ct)
     frz = FRZ[0] <= t < G2[0]
-    z = 1.0 + 0.04 * (t - G1[0]) / 9
+    z = 1.0 + 0.02 * (t - G1[0]) / 9
     if frz:
-        u = t - FRZ[0]; z = 1.0 + 0.18 * ease_out(u / 0.35)
+        u = t - FRZ[0]; z = 1.0 + 0.16 * ease_out(u / 0.35)
         fr = ImageOps.grayscale(fr).convert('RGB'); fr = Image.blend(fr, Image.new('RGB', fr.size, RED), 0.22 * min(1, u / 0.1))
         fr = ImageEnhance.Contrast(fr).enhance(1.35)
-    # background: the same frame, blurred and dark, filling the screen
-    bg = fr.resize((int(fr.width * H / fr.height), H), Image.BILINEAR); bx = (bg.width - W) // 2
-    img = ImageEnhance.Brightness(bg.crop((bx, 0, bx + W, H)).filter(ImageFilter.GaussianBlur(28))).enhance(.35)
-    fh = int(FGH * z); fw = int(fr.width * fh / fr.height); fg = fr.resize((fw, fh), Image.BILINEAR)
-    x0 = int(min(fw - W, max(0, fw * FCX(ct) - W / 2))); fg = fg.crop((x0, 0, x0 + W, fh))
-    img.paste(fg, (0, int(250 - (fh - FGH) / 2)))
-    img = Image.composite(Image.new('RGB', (W, H), BLACK), img, BOTG)
+    fr = fr.resize((int(W * z), int(fr.height * z)), Image.BILINEAR).crop(((int(W * z) - W) // 2, 0, (int(W * z) - W) // 2 + W, int(593 * z)))
+    img.paste(fr.crop((0, 0, W, min(fr.height, 640))), (0, CY - (fr.height - 593) // 2))
     d = ImageDraw.Draw(img)
-    text(d, (W - 70, 1500), 'יאיר גולן · חוג בית', 54, PALE, anchor='rm', bold=False)
-    d.rectangle((W - 54, 1476, W - 44, 1524), fill=RED)
+    text(d, (W - 60, CY - 50), 'יאיר גולן · חוג בית', 52, PALE, anchor='rm', bold=False)
+    d.rectangle((W - 46, CY - 74, W - 38, CY - 26), fill=RED)
     if frz:
-        slam(img, 'חלוקת הארץ', 220, 880, FRZ[0], t, WHITE, block=RED)
-        slam(img, '״הדרך היחידה״', 130, 1690, 0.35 + FRZ[0], t, WHITE)
+        u = t - FRZ[0]
+        slam(img, 'חלוקת הארץ', 210, CY + 300, 0.0 + FRZ[0], t, WHITE, block=RED)
+        slam(img, '״הדרך היחידה״', 120, CY + 700, 0.35 + FRZ[0], t, WHITE)
     else:
+        ct2 = ct
         for a0, a1, l1, l2 in LINES:
-            if a0 <= ct < a1: caption(img, l1, l2, ct - a0, hot='חלוקת הארץ')
+            if a0 <= ct2 < a1: caption(img, l1, l2, ct2 - a0, hot='חלוקת הארץ')
     img = vignette(img)
     if frz:
         dx, dy = shake(t, [FRZ[0]]); img = ImageChops.offset(img, dx, dy); img = glitch(img, 14 * math.exp(-(t - FRZ[0]) * 10))
@@ -256,26 +250,17 @@ def render(out):
     ff.stdin.close(); ff.wait()
 
 def mix(out_wav):
-    """Horror sound design: synthesised bed (horror_bed.py) + Golan's real voice + a few hits. No music."""
-    subprocess.run(['python3', HERE + '/horror_bed.py', P + 'horror.wav'], check=True)
+    """Trailer score (trailer_score.py, original) under Golan's real voice; the score ducks while he speaks."""
+    subprocess.run(['python3', HERE + '/trailer_score.py', P + 'score.wav'], check=True)
     X = lambda n: SFX + n + '.wav'
-    c = [(P + 'horror.wav', 0, .85, 0, 0, '')]   # (file, at, vol, trim0, dur, extra)
-    c.append((SRC, G1[0], 1.0, 0.0, 3.0, ''))
-    # freeze: his own words "חלוקת הארץ" again, slowed and drowned in echo (a sound effect over the freeze, not a new quote)
-    c.append((SRC, FRZ[0] + .1, .55, 0.85, 1.1, ',asetrate=34560,aresample=48000,aecho=0.8:0.85:300|620|940:0.55|0.38|0.25,lowpass=f=2600'))
-    c.append((SRC, G2[0], 1.0, 3.0, 4.8, ''))
-    for k in range(7): c.append((HERE + '/heart.wav', MAP[0] + 0.2 + sum(0.86 - j * .07 for j in range(k)), 1.1, 0, 0, ',lowpass=f=300'))
-    c += [(X('pop'), MAP[0] + 1.72, .4, 0, 0, ''), (X('hit_soft'), MAP[0] + 3.2, .7, 0, 0, ''), (X('hit_soft'), MAP[0] + 4.0, .75, 0, 0, '')]
-    c += [(X('whoosh'), TURN[0], .5, 0, 0, ''), (X('chime_up'), TURN[0] + 0.6, .35, 0, 0, '')]
-    c += [(X('hit_soft'), CLOSE[0] + .1, .8, 0, 0, ''), (X('impact'), CLOSE[0] + .55, .6, 0, 0, ''), (X('pop'), CLOSE[0] + 1.15, .6, 0, 0, ''), (X('chime_up'), CLOSE[0] + 1.8, .35, 0, 0, '')]
-    args = ['ffmpeg', '-v', 'error', '-y']; fl = []
-    for j, (f, at, vol, s0, dur, ex) in enumerate(c):
-        args += ['-i', f]
-        tr = f',atrim={s0}:{s0 + dur},asetpts=PTS-STARTPTS' if dur else ''
-        if f == SRC: tr += ',highpass=f=90,loudnorm=I=-15:TP=-2,afade=t=in:d=0.03,afade=t=out:st=%.2f:d=0.08' % (dur - 0.08)
-        fl.append(f'[{j}:a]aformat=sample_rates=48000:channel_layouts=stereo{tr}{ex},volume={vol},adelay={int(at * 1000)}|{int(at * 1000)}[a{j}]')
-    fl.append(''.join(f'[a{j}]' for j in range(len(c))) + f'amix=inputs={len(c)}:normalize=0,atrim=0:{TOTAL:.3f},apad=whole_dur={TOTAL:.3f}[out]')
-    subprocess.run(args + ['-filter_complex', ';'.join(fl), '-map', '[out]', out_wav], check=True)
+    v = lambda at, s0, d: f"[0:a]aformat=sample_rates=48000:channel_layouts=stereo,atrim={s0}:{s0 + d},asetpts=PTS-STARTPTS,highpass=f=90,loudnorm=I=-14:TP=-1.5,afade=t=in:d=0.03,afade=t=out:st={d - 0.08:.2f}:d=0.08,adelay={int(at * 1000)}|{int(at * 1000)}"
+    fl = [v(G1[0], 0.0, 3.0) + '[v1]', v(G2[0], 3.0, 4.8) + '[v2]',
+          f'[v1][v2]amix=inputs=2:normalize=0,apad=whole_dur={TOTAL:.3f},asplit=2[voice][key]',
+          '[1:a]aformat=sample_rates=48000:channel_layouts=stereo,volume=0.9[score]',
+          '[score][key]sidechaincompress=threshold=0.03:ratio=5:attack=15:release=350:makeup=1[duck]',
+          f'[2:a]aformat=sample_rates=48000:channel_layouts=stereo,volume=0.45,adelay={int((MAP[0] + 1.72) * 1000)}|{int((MAP[0] + 1.72) * 1000)}[pop]',
+          f'[duck][voice][pop]amix=inputs=3:normalize=0,atrim=0:{TOTAL:.3f},apad=whole_dur={TOTAL:.3f}[out]']
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', SRC, '-i', P + 'score.wav', '-i', X('pop'), '-filter_complex', ';'.join(fl), '-map', '[out]', out_wav], check=True)
 
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == 'stills':
