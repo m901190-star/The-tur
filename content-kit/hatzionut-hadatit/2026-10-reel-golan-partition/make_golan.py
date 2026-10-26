@@ -48,7 +48,7 @@ def shake(t, hits, k=22):
     return 0, 0
 
 LOGO_S = logo_img(170)
-BALLOT_BIG = ballot_card(300, -7)
+BALLOT_BIG = ballot_card(400, -7)
 VIG = Image.new('L', (W, H), 0); _v = ImageDraw.Draw(VIG)
 for k in range(60):
     r = k / 60; _v.ellipse((-W * .4 * (1 - r) - 40, -H * .3 * (1 - r) - 40, W + W * .4 * (1 - r) + 40, H + H * .3 * (1 - r) + 40), fill=int(190 * (1 - r) ** 2))
@@ -77,33 +77,39 @@ def caption(img, l1, l2, u, hot=None):
         else:
             text(ld, (W / 2, y), ln, size, WHITE, anchor='mm')
     lay.putalpha(lay.getchannel('A').point(lambda v: int(v * a)))
-    img.paste(lay, (0, CY + 600), lay)
+    img.paste(lay, (0, 1540), lay)
 
+FGH = 1180                     # the clip fills the vertical frame: scaled to this height, cropped around Golan (he drifts left late in the clip)
+FCX = lambda ct: 0.55 - 0.13 * min(1, max(0, (ct - 5.0) / 2.5))
+BOTG = Image.new('L', (W, H), 0); _bg = ImageDraw.Draw(BOTG)
+for y in range(H): _bg.line([(0, y), (W, y)], fill=int(235 * max(0, (y / H - 0.58) / 0.42) ** 1.2 + 120 * max(0, 1 - y / H / 0.16)))
 def golan_frame(t):
-    img = Image.new('RGB', (W, H), INK)
     if t < FRZ[0]: ct = t - G1[0]
     elif t < G2[0]: ct = 2.97
     else: ct = 3.0 + (t - G2[0])
     fr = clip_frame(ct)
     frz = FRZ[0] <= t < G2[0]
-    z = 1.0 + 0.02 * (t - G1[0]) / 9
+    z = 1.0 + 0.04 * (t - G1[0]) / 9
     if frz:
-        u = t - FRZ[0]; z = 1.0 + 0.16 * ease_out(u / 0.35)
+        u = t - FRZ[0]; z = 1.0 + 0.18 * ease_out(u / 0.35)
         fr = ImageOps.grayscale(fr).convert('RGB'); fr = Image.blend(fr, Image.new('RGB', fr.size, RED), 0.22 * min(1, u / 0.1))
         fr = ImageEnhance.Contrast(fr).enhance(1.35)
-    fr = fr.resize((int(W * z), int(fr.height * z)), Image.BILINEAR).crop(((int(W * z) - W) // 2, 0, (int(W * z) - W) // 2 + W, int(593 * z)))
-    img.paste(fr.crop((0, 0, W, min(fr.height, 640))), (0, CY - (fr.height - 593) // 2))
+    # background: the same frame, blurred and dark, filling the screen
+    bg = fr.resize((int(fr.width * H / fr.height), H), Image.BILINEAR); bx = (bg.width - W) // 2
+    img = ImageEnhance.Brightness(bg.crop((bx, 0, bx + W, H)).filter(ImageFilter.GaussianBlur(28))).enhance(.35)
+    fh = int(FGH * z); fw = int(fr.width * fh / fr.height); fg = fr.resize((fw, fh), Image.BILINEAR)
+    x0 = int(min(fw - W, max(0, fw * FCX(ct) - W / 2))); fg = fg.crop((x0, 0, x0 + W, fh))
+    img.paste(fg, (0, int(250 - (fh - FGH) / 2)))
+    img = Image.composite(Image.new('RGB', (W, H), BLACK), img, BOTG)
     d = ImageDraw.Draw(img)
-    text(d, (W - 60, CY - 50), 'יאיר גולן · חוג בית', 52, PALE, anchor='rm', bold=False)
-    d.rectangle((W - 46, CY - 74, W - 38, CY - 26), fill=RED)
+    text(d, (W - 70, 1500), 'יאיר גולן · חוג בית', 54, PALE, anchor='rm', bold=False)
+    d.rectangle((W - 54, 1476, W - 44, 1524), fill=RED)
     if frz:
-        u = t - FRZ[0]
-        slam(img, 'חלוקת הארץ', 210, CY + 300, 0.0 + FRZ[0], t, WHITE, block=RED)
-        slam(img, '״הדרך היחידה״', 120, CY + 700, 0.35 + FRZ[0], t, WHITE)
+        slam(img, 'חלוקת הארץ', 220, 880, FRZ[0], t, WHITE, block=RED)
+        slam(img, '״הדרך היחידה״', 130, 1690, 0.35 + FRZ[0], t, WHITE)
     else:
-        ct2 = ct
         for a0, a1, l1, l2 in LINES:
-            if a0 <= ct2 < a1: caption(img, l1, l2, ct2 - a0, hot='חלוקת הארץ')
+            if a0 <= ct < a1: caption(img, l1, l2, ct - a0, hot='חלוקת הארץ')
     img = vignette(img)
     if frz:
         dx, dy = shake(t, [FRZ[0]]); img = ImageChops.offset(img, dx, dy); img = glitch(img, 14 * math.exp(-(t - FRZ[0]) * 10))
@@ -211,17 +217,16 @@ for y in range(H): _c.line([(0, y), (W, y)], fill=tuple(int(DEEP[k] + (TEAL_D[k]
 LOGO_E = logo_img(560)
 def close_scene(t):
     u = t - CLOSE[0]; img = CLOSE_BG.copy()
-    slam(img, 'רק ציונות דתית חזקה', 140, 430, CLOSE[0] + 0.1, t)
-    slam(img, 'תעצור את זה.', 160, 610, CLOSE[0] + 0.5, t)
-    slam(img, 'כן. סמוטריץ׳.', 190, 860, CLOSE[0] + 1.0, t, WHITE, block=TEAL)
-    bu = ease_out((u - 1.5) / 0.25)
+    slam(img, 'ישראל חייבת', 190, 420, CLOSE[0] + 0.1, t)
+    slam(img, 'ציונות דתית חזקה!', 170, 640, CLOSE[0] + 0.55, t, WHITE, block=TEAL)
+    bu = ease_out((u - 1.15) / 0.25)
     if bu > 0:
-        sc = 1.6 - 0.6 * bu; b = BALLOT_BIG.resize((int(BALLOT_BIG.width * sc), int(BALLOT_BIG.height * sc)), Image.BILINEAR)
-        img.paste(b, (int(W / 2 - b.width / 2), int(1250 - b.height / 2)), b)
-    la = ease_out((u - 2.0) / 0.35)
+        sc = 1.7 - 0.7 * bu; b = BALLOT_BIG.resize((int(BALLOT_BIG.width * sc), int(BALLOT_BIG.height * sc)), Image.BILINEAR)
+        img.paste(b, (int(W / 2 - b.width / 2), int(1110 - b.height / 2)), b)
+    la = ease_out((u - 1.8) / 0.35)
     if la > 0:
-        lg = LOGO_E.copy(); lg.putalpha(lg.getchannel('A').point(lambda v: int(v * la))); img.paste(lg, ((W - lg.width) // 2, 1640 - lg.height // 2), lg)
-    dx, dy = shake(t, [CLOSE[0] + 1.0, CLOSE[0] + 1.5], 12)
+        lg = LOGO_E.copy(); lg.putalpha(lg.getchannel('A').point(lambda v: int(v * la))); img.paste(lg, ((W - lg.width) // 2, 1650 - lg.height // 2), lg)
+    dx, dy = shake(t, [CLOSE[0] + 0.55, CLOSE[0] + 1.15], 12)
     return ImageChops.offset(img, dx, dy)
 
 def hook_scene(t):
@@ -265,8 +270,8 @@ def mix(out_wav):
           (X('hit_soft'), MAP[0] + 3.2, .8, 0, 0, ''), (X('hit_soft'), MAP[0] + 4.0, .8, 0, 0, ''), (X('impact'), MAP[0] + 4.8, .9, 0, 0, ''),
           (X('riser'), MAP[0] + 4.9, .4, 0, 0, '')]
     c += [(X('whoosh'), TURN[0], .6, 0, 0, ''), (X('swoosh_soft'), TURN[0] + .1, .5, 0, 0, ''), (X('chime_up'), TURN[0] + 0.6, .45, 0, 0, '')]
-    c += [(X('hit_soft'), CLOSE[0] + .1, .8, 0, 0, ''), (X('hit_soft'), CLOSE[0] + .5, .8, 0, 0, ''), (X('impact'), CLOSE[0] + 1.0, .7, 0, 0, ''),
-          (X('pop'), CLOSE[0] + 1.5, .6, 0, 0, ''), (X('chime_up'), CLOSE[0] + 2.0, .4, 0, 0, ''), (X('tick'), TOTAL - 0.55, .9, 0, 0, '')]
+    c += [(X('hit_soft'), CLOSE[0] + .1, .8, 0, 0, ''), (X('impact'), CLOSE[0] + .55, .7, 0, 0, ''),
+          (X('pop'), CLOSE[0] + 1.15, .7, 0, 0, ''), (X('hit_soft'), CLOSE[0] + 1.17, .6, 0, 0, ''), (X('chime_up'), CLOSE[0] + 1.8, .4, 0, 0, ''), (X('tick'), TOTAL - 0.55, .9, 0, 0, '')]
     args = ['ffmpeg', '-v', 'error', '-y']; fl = []
     for j, (f, at, vol, s0, dur, ex) in enumerate(c):
         args += ['-i', f]
