@@ -1,0 +1,11 @@
+{
+ "name": "תוכן אחד",
+ "slug": "tochen-echad",
+ "tagline": "ערוץ הפודקאסט החרדי",
+ "aliases": ["תוכן אחד", "הבורסה", "הפודקאסט"],
+ "logo": {"file": "logo.png", "on_light": "logo_light_bg.png", "note": "The original logo has a white tagline and play-mark: use logo.png on dark backgrounds, logo_light_bg.png on light ones. No plate behind it."},
+ "palette": {"yellow": "#FFE419", "yellow_dark": "#E0B800", "ink": "#14181D", "charcoal": "#262C33", "grey": "#8A929B", "white": "#FFFFFF"},
+ "usage": "Dark ink/charcoal backgrounds, yellow for the key word or highlight block, white body text. Yellow text never on white.",
+ "fonts": {"bold": "Karantina", "regular": "Karantina"},
+ "reels": "Podcast reels follow the tochen-echad profile in the pro-video-editing skill (two-camera stacked layout, episode template)."
+}
