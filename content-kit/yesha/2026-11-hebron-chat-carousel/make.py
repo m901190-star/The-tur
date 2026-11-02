@@ -32,7 +32,7 @@ def wrap(d, s, font, size, width):
     return out + [cur]
 def canvas(bg):
     img = Image.new('RGBA', (W * S, H * S), bg + (255,)); return img, ImageDraw.Draw(img)
-def counter(d, n, total=8, dark=True, y=40):
+def counter(d, n, total=7, dark=True, y=40):
     T(d, (50, y), f'{n}/{total}', RB, 26, SOFT if dark else GREY, anchor='la')
 def save(img, n): img.convert('RGB').resize((W, H), Image.LANCZOS).save(OUT + f'/slide-{n}.png')
 
@@ -82,7 +82,7 @@ CHAT = [('A', 'היי, ראיתי את המודעה על המערה. עוד רל
         ('A', 'סגור. שוקל לך עכשיו. רק שיהיה מול כולם, בשער העיר.', '10:06', '🤝'),
         ('E', 'למה מול כולם?', '10:06'),
         ('A', 'כדי שאף אחד לא יגיד בעוד 4,000 שנה שלקחתי בכוח.', '10:07')]
-def s2():
+def chat(msgs, n, typing=False):
     img, d = canvas((0xDD, 0xE9, 0xF2))
     for k in range(0, W * S, 46 * S):                                   # faint chat wallpaper
         for j in range(0, H * S, 46 * S): d.ellipse((k + (j // (46 * S)) % 2 * 23 * S, j, k + (j // (46 * S)) % 2 * 23 * S + 4 * S, j + 4 * S), fill=(0xCF, 0xDE, 0xEA))
@@ -92,8 +92,9 @@ def s2():
     for k in range(3): d.ellipse(P(70, 52 + k * 20, 80, 62 + k * 20), fill=WHITE)
     d = ImageDraw.Draw(img)
     T(d, (W / 2, 180), 'היום', RR, 24, GREY, anchor='ma')
-    y = 230
-    for msg in CHAT:
+    counter(d, n, y=168)
+    y = 240
+    for msg in msgs:
         who, txt, tm = msg[:3]; em = msg[3] if len(msg) > 3 else None
         me = who == 'A'                                                   # Abraham = me (left in RTL chats)
         lines = wrap(d, txt, RR, 34, 640); bw = max(TW(d, l, RR, 34) for l in lines) + (52 if em else 0) + 50; bh = len(lines) * 48 + 64
@@ -105,14 +106,17 @@ def s2():
         T(d, (x0 + 22 + (34 if me else 0), y + bh - 34), tm, RR, 20, GREY, anchor='la')
         if me:                                                            # read ticks
             for o in (0, 9): d.line(P(x0 + 22 + o, y + bh - 22, x0 + 27 + o, y + bh - 17), fill=MID, width=2 * S); d.line(P(x0 + 27 + o, y + bh - 17, x0 + 37 + o, y + bh - 29), fill=MID, width=2 * S)
-        y += bh + 18
-    save(img, 2)
+        y += bh + 22
+    if typing:
+        d.rounded_rectangle(P(W - 190, y, W - 50, y + 70), 28 * S, fill=WHITE)
+        for k in range(3): d.ellipse(P(W - 155 + k * 32, y + 27, W - 139 + k * 32, y + 43), fill=GREY)
+    save(img, n)
 
 # ---- 5: the receipt ----
-def s5():
+def receipt():
     img, d = canvas(DEEP)
     for y in range(H * S): d.line([(0, y), (W * S, y)], fill=tuple(int(DEEP[i] + (NAVY[i] - DEEP[i]) * y / (H * S)) for i in range(3)))
-    counter(d, 5, y=50)
+    counter(d, 4, y=50)
     x0, y0, x1, y1 = 140, 210, W - 140, 1120
     d.rounded_rectangle(P(x0, y0, x1, y1), 44 * S, fill=WHITE)
     d.ellipse(P(W / 2 - 70, y0 + 60, W / 2 + 70, y0 + 200), fill=(0x2E, 0xB8, 0x6B))
@@ -125,6 +129,41 @@ def s5():
         T(d, (x1 - 50, y), k_, RR, 30, GREY); T(d, (x0 + 50, y), v_, RB, 30, INK, anchor='la'); y += 58
     T(d, (W / 2, y1 - 70), 'בראשית כ״ג, ט״ז–י״ח', RR, 26, GREY, anchor='ma')
     T(d, (W / 2, 1200), 'קבלה. בתוקף מאז.', RB, 44, WHITE, anchor='ma')
-    save(img, 5)
+    save(img, 4)
 
-s1(); s2(); s5(); print('ok')
+
+def dark(n):
+    img, d = canvas(DEEP)
+    for y in range(H * S): d.line([(0, y), (W * S, y)], fill=tuple(int(DEEP[i] + (NAVY[i] - DEEP[i]) * y / (H * S)) for i in range(3)))
+    counter(d, n, y=50); return img, ImageDraw.Draw(img)
+def para(d, s, font, size, y, col, width=860, lh=1.35):
+    for l in wrap(d, s, font, size, width): T(d, (W / 2, y), l, font, size, col, anchor='ma'); y += size * lh
+    return y
+def s5():
+    img, d = dark(5)
+    T(d, (W / 2, 260), 'למה אברהם', KB, 120, SOFT, anchor='ma'); T(d, (W / 2, 390), 'התעקש לשלם?', KB, 150, WHITE, anchor='ma')
+    d.rectangle(P(W / 2 - 80, 600, W / 2 + 80, 606), fill=LB)
+    y = para(d, 'לפי המדרש, יש שלושה מקומות בארץ ישראל שאי אפשר לומר עליהם ״גזולים הם בידכם״:', RR, 40, 660, SOFT)
+    y += 30
+    for k, p in enumerate(('מערת המכפלה', 'הר הבית', 'קבר יוסף')):
+        d.rounded_rectangle(P(240, y, W - 240, y + 86), 43 * S, fill=BLUE); T(d, (W / 2, y + 43), p, RB, 40, WHITE, anchor='mm'); y += 106
+    T(d, (W / 2, 1250), 'בראשית רבה ע״ט, ז׳', RR, 26, SOFT, anchor='ma'); save(img, 5)
+def s6():
+    img, d = dark(6)
+    d.rounded_rectangle(P(70, 120, W - 70, 780), 36 * S, fill=(0x1E, 0x45, 0x6E), outline=LB, width=3 * S)
+    T(d, (W / 2, 430), 'כאן: תמונה אמיתית מחברון', RB, 44, SOFT, anchor='mm'); T(d, (W / 2, 490), '(משבת חיי שרה, מהמועצה)', RR, 30, SOFT, anchor='mm')
+    T(d, (W / 2, 850), '3,800 שנה עברו.', KB, 130, WHITE, anchor='ma')
+    tx = TW(d, 'הקבלה עדיין אצלנו.', KB, 130); d.rectangle(P(W / 2 - tx / 2 - 30, 1010, W / 2 + tx / 2 + 30, 1150), fill=LB)
+    T(d, (W / 2, 1000), 'הקבלה עדיין אצלנו.', KB, 130, DEEP, anchor='ma'); save(img, 6)
+def s7():
+    img, d = dark(7)
+    lw = 300; lg = WL.resize((lw * S, int(lw * S * WL.height / WL.width)), Image.LANCZOS); img.alpha_composite(lg, (int((W - lw) / 2 * S), 200 * S)); d = ImageDraw.Draw(img)
+    T(d, (W / 2, 620), 'שבת חיי שרה', KB, 150, WHITE, anchor='ma'); T(d, (W / 2, 790), 'בחברון', KB, 150, LB, anchor='ma')
+    T(d, (W / 2, 1000), 'מחכים לכם', RB, 56, SOFT, anchor='ma'); save(img, 7)
+
+s1()
+chat(CHAT[:4], 2)
+chat(CHAT[4:] + [('A', 'שלחתי 400 שקל כסף. תאשר קבלה', '10:08')], 3, typing=True)
+receipt(); s5(); s6(); s7(); print('ok')
+
+
