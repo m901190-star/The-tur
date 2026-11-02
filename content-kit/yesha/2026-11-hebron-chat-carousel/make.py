@@ -67,6 +67,7 @@ def s1():
     pim = cover(Image.open(PHOTO).convert('RGB'), pw, phh).convert('RGBA') if HAVE else illustration(pw, phh)
     m = Image.new('L', (pw, phh), 0); ImageDraw.Draw(m).rounded_rectangle((0, 0, pw - 1, phh + 40 * S), 24 * S, fill=255)
     img.paste(pim, P(ph[0], ph[1]), m); d = ImageDraw.Draw(img)
+    if HAVE: T(d, (x1 - 24, ph[3] - 36), 'צילום: מחדשי היישוב היהודי בחברון', RR, 20, (255, 255, 255), anchor='ra')
     d.rounded_rectangle(P(x1 - 230, y0 + 24, x1 - 24, y0 + 74), 8 * S, fill=ORANGE); T(d, (x1 - 127, y0 + 49), 'מודעה חדשה', RB, 26, WHITE, anchor='mm')
     for k in range(5): d.ellipse(P(W / 2 - 52 + k * 24, ph[3] - 30, W / 2 - 40 + k * 24, ph[3] - 18), fill=WHITE if k == 0 else (255, 255, 255, 150))
     y = ph[3] + 36; xr = x1 - 44
@@ -151,7 +152,8 @@ def s5():
         ph = cover(Image.open(PHOTO).convert('RGB'), W * S, 820 * S).convert('RGBA')
         fade = Image.new('L', ph.size, 255); fd = ImageDraw.Draw(fade)
         for y in range(ph.height): fd.line([(0, y), (ph.width, y)], fill=int(255 * min(1, (ph.height - y) / (260 * S))))
-        img.paste(ph, (0, 0), fade); d = ImageDraw.Draw(img); counter(d, 5, y=50)
+        img.paste(ph, (0, 0), fade); d = ImageDraw.Draw(img); d.rounded_rectangle(P(36, 40, 112, 82), 21 * S, fill=(14, 42, 71, 200)); counter(d, 5, y=48)
+        T(d, (W - 30, 770), 'צילום: מחדשי היישוב היהודי בחברון', RR, 20, SOFT, anchor='ra')
     else:
         d.rounded_rectangle(P(70, 120, W - 70, 780), 36 * S, fill=(0x1E, 0x45, 0x6E), outline=LB, width=3 * S)
         T(d, (W / 2, 450), 'כאן: התמונה מחיי שרה', RB, 44, SOFT, anchor='mm')
