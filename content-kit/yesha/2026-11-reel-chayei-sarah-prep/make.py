@@ -161,9 +161,10 @@ def score(out):
     y = x * .8 + wet * .9; f = int(1.2 * SR); y[-f:] *= np.linspace(1, 0, f)[:, None]; y = np.tanh(y / np.abs(y).max() * 1.2) / np.tanh(1.2) * .85
     w = wave.open(out, 'w'); w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes((y * 32767).astype('<i2').tobytes()); w.close()
 
+MUSIC = HERE + '/music.wav'      # Splice: NH_IFR_115_music_western_red_Gmaj (licensed via the user's Splice account)
 def mix(out):
-    score(P + 'score.wav')
-    cues = [(P + 'score.wav', 0, .9), (SFX + 'whoosh.wav', .3, .4), (SFX + 'pop_soft.wav', .4, .6), (SFX + 'pop_soft.wav', .6, .5)]
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', MUSIC, '-af', f'aresample=48000,afade=t=in:d=0.4,afade=t=out:st={TOT - 1.4}:d=1.4,atrim=0:{TOT}', P + 'score.wav'], check=True)
+    cues = [(P + 'score.wav', 0, .75), (SFX + 'whoosh.wav', .3, .4), (SFX + 'pop_soft.wav', .4, .6), (SFX + 'pop_soft.wav', .6, .5)]
     for j in range(1, len(SHOTS)): cues.append((SFX + ('swoosh_soft.wav' if j % 2 else 'whoosh.wav'), T0[j] - .1, .3))
     cues += [(SFX + 'chime_up.wav', T0[-1] + .3, .4)]
     args = ['ffmpeg', '-v', 'error', '-y']; fl = []
@@ -178,7 +179,8 @@ def mix(out):
     subprocess.run(args + ['-filter_complex', ';'.join(fl), '-map', '[o]', out], check=True)
 
 if __name__ == '__main__':
-    render(P + 'v.mp4'); mix(P + 'a.wav')
+    if 'audio' not in sys.argv or not os.path.exists(P + 'v.mp4'): render(P + 'v.mp4')
+    mix(P + 'a.wav')
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', P + 'v.mp4', '-i', P + 'a.wav', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', P + 'm.mp4'], check=True)
     subprocess.run(['python3', LOUD, P + 'm.mp4', HERE + '/yesha-reel-chayei-sarah-prep.mp4', '--target', '-14'], check=True)
     print('done', TOT)
