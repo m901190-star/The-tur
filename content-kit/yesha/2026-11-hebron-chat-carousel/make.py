@@ -160,29 +160,55 @@ def s5():
     tx = TW(d, 'הקבלה עדיין אצלנו.', KB, 130); d.rectangle(P(W / 2 - tx / 2 - 30, 1010, W / 2 + tx / 2 + 30, 1150), fill=LB)
     T(d, (W / 2, 1000), 'הקבלה עדיין אצלנו.', KB, 130, DEEP, anchor='ma'); save(img, 5)
 def s6():
+    """Closer: Ma'arat HaMachpela at night, the Shabbat table (cut out) in the foreground, lit by its own candles."""
+    import numpy as np
     img, d = canvas(DEEP)
-    bg = cover(Image.open(OUT + '/machpela-night.jpg').convert('RGB'), W * S, H * S, fy=.15).convert('RGBA')
-    img.alpha_composite(bg)
+    bg = cover(Image.open(OUT + '/machpela-night.jpg').convert('RGB'), W * S, H * S, fy=.0)
+    bg = Image.blend(bg, Image.new('RGB', bg.size, (0x0A, 0x18, 0x2E)), .42)            # pull it into the brand's night blue
+    img.alpha_composite(bg.convert('RGBA'))
     sh = Image.new('RGBA', img.size, (0, 0, 0, 0)); sd = ImageDraw.Draw(sh)
-    for y in range(H * S):                                   # dark at the top for the text, warm-dark at the bottom for the Shabbat card
-        t = y / (H * S); a = int(235 * max(0, 1 - t / .42) ** 1.2 + 230 * max(0, (t - .55) / .45) ** 1.3)
-        sd.line([(0, y), (W * S, y)], fill=DEEP + (min(235, a),))
-    img.alpha_composite(sh); d = ImageDraw.Draw(img)
-    lw = 190; lg = WL.resize((lw * S, int(lw * S * WL.height / WL.width)), Image.LANCZOS); img.alpha_composite(lg, (int((W - lw) / 2 * S), 60 * S)); d = ImageDraw.Draw(img)
+    for y in range(H * S):
+        t = y / (H * S); a_ = int(225 * max(0, 1 - t / .38) ** 1.3 + 255 * max(0, (t - .56) / .30) ** 1.2)
+        sd.line([(0, y), (W * S, y)], fill=(0x08, 0x14, 0x26, min(245, a_)))
+    img.alpha_composite(sh)
+    # the table: items cut from the photo, standing on a soft warm ledge
+    it = Image.open(OUT + '/shabbat_cut.png').convert('RGBA'); it = it.crop(it.getchannel('A').getbbox())
+    iw = int(1000 * S); it = it.resize((iw, int(iw * it.height / it.width)), Image.LANCZOS)
+    ix, iy = int(40 * S), int(H * S - it.height - 90 * S)
+    ledge = Image.new('RGBA', img.size, (0, 0, 0, 0)); ld = ImageDraw.Draw(ledge)
+    ld.ellipse((ix - 60 * S, iy + it.height - 70 * S, ix + iw + 60 * S, iy + it.height + 90 * S), fill=(0xF2, 0xC1, 0x7A, 90))
+    # warm candle glow behind the items (flames sit ~4-12% from the top of the cut, at ~45% and ~57% across)
+    glow = Image.new('L', img.size, 0); gd = ImageDraw.Draw(glow)
+    for fx, fy in ((.448, .07), (.562, .055)):
+        cx, cy = ix + iw * fx, iy + it.height * fy
+        for r, v in ((420, 40), (240, 80), (110, 150), (40, 230)): gd.ellipse((cx - r * S, cy - r * S, cx + r * S, cy + r * S), fill=v)
+    glow = glow.filter(ImageFilter.GaussianBlur(50 * S))
+    warm = Image.new('RGBA', img.size, (0xFF, 0xC9, 0x7A, 0)); warm.putalpha(glow.point(lambda v: int(v * .85)))
+    img.alpha_composite(warm)
+    # items, slightly warmed so they belong to the candle-lit scene, with a contact shadow
+    arr = np.asarray(it).astype(np.float32); arr[..., 0] *= 1.0; arr[..., 1] *= .93; arr[..., 2] *= .80
+    it2 = Image.fromarray(arr.clip(0, 255).astype(np.uint8), 'RGBA')
+    fadeL = Image.new('L', it.size, 255); fdl = ImageDraw.Draw(fadeL)                 # soften the photo's hard left edge (the cloth)
+    for x in range(int(160 * S)): fdl.line([(x, 0), (x, it.height)], fill=int(255 * x / (160 * S)))
+    it2.putalpha(Image.fromarray(np.minimum(np.asarray(it2.getchannel('A')), np.asarray(fadeL))))
+    img.alpha_composite(it2, (ix, iy))
+    # flame bloom on top
+    bloom = Image.new('L', img.size, 0); bd = ImageDraw.Draw(bloom)
+    for fx, fy in ((.448, .07), (.562, .055)):
+        cx, cy = ix + iw * fx, iy + it.height * fy; bd.ellipse((cx - 26 * S, cy - 40 * S, cx + 26 * S, cy + 30 * S), fill=255)
+    bloom = bloom.filter(ImageFilter.GaussianBlur(22 * S)); fl = Image.new('RGBA', img.size, (0xFF, 0xE6, 0xB0, 0)); fl.putalpha(bloom.point(lambda v: int(v * .7)))
+    img.alpha_composite(fl)
+    bot = Image.new('RGBA', img.size, (0, 0, 0, 0)); bd2 = ImageDraw.Draw(bot)          # the table fades into the night under the text
+    for y in range(int(1150 * S), H * S):
+        t = (y / S - 1150) / (H - 1150); bd2.line([(0, y), (W * S, y)], fill=(0x08, 0x14, 0x26, int(250 * min(1, t * 1.6) ** 1.2)))
+    img.alpha_composite(bot)
+    d = ImageDraw.Draw(img)
+    lw = 180; lg = WL.resize((lw * S, int(lw * S * WL.height / WL.width)), Image.LANCZOS); img.alpha_composite(lg, (int((W - lw) / 2 * S), 50 * S)); d = ImageDraw.Draw(img)
     counter(d, 6, y=50)
-    for tx_, y_, col in (('השבת, חיי שרה', 250, WHITE), ('כולנו בעיר האבות', 400, LB)):
-        T(d, (W / 2 + 5, y_ + 5), tx_, KB, 140, DEEP, anchor='ma'); T(d, (W / 2, y_), tx_, KB, 140, col, anchor='ma')
-    # Shabbat table card
-    cw, ch = 760, 330; cx0, cy0 = (W - cw) / 2, 860
-    card = cover(Image.open(OUT + '/shabbat.jpg').convert('RGB'), int(cw * S), int(ch * S), fy=.05).convert('RGBA')
-    m = Image.new('L', card.size, 0); ImageDraw.Draw(m).rounded_rectangle((0, 0, card.width - 1, card.height - 1), 30 * S, fill=255)
-    shadow = Image.new('RGBA', img.size, (0, 0, 0, 0)); ImageDraw.Draw(shadow).rounded_rectangle(P(cx0 + 8, cy0 + 18, cx0 + cw + 8, cy0 + ch + 18), 30 * S, fill=(0, 0, 0, 140))
-    img.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(20 * S)))
-    d = ImageDraw.Draw(img); d.rounded_rectangle(P(cx0 - 6, cy0 - 6, cx0 + cw + 6, cy0 + ch + 6), 34 * S, fill=WHITE)
-    img.paste(card, P(cx0, cy0), m); d = ImageDraw.Draw(img)
-    tw_ = TW(d, 'מחכים לכם', RB, 60); sw = d.textlength(':)', font=F(RB, 60)) / S; x = W / 2 + (tw_ + 16 + sw) / 2
-    T(d, (x, 1225), 'מחכים לכם', RB, 60, WHITE, anchor='ra')
-    d.text(P(x - tw_ - 16 - sw, 1225), ':)', font=F(RB, 60), fill=WHITE, anchor='la'); save(img, 6)
+    for tx_, y_, col in (('השבת, חיי שרה', 225, WHITE), ('כולנו בעיר האבות', 370, (0xFF, 0xD9, 0x9A))):
+        T(d, (W / 2 + 5, y_ + 6), tx_, KB, 140, (0x08, 0x14, 0x26), anchor='ma'); T(d, (W / 2, y_), tx_, KB, 140, col, anchor='ma')
+    tw_ = TW(d, 'מחכים לכם', RB, 56); x = W / 2 + (tw_ + 16 + 54) / 2
+    T(d, (x, 1262), 'מחכים לכם', RB, 56, WHITE, anchor='ra'); emoji(img, '🙂', x - tw_ - 16 - 54, 1270, 54); save(img, 6)
 
 for f in os.listdir(OUT):
     if f.startswith('slide-'): os.remove(OUT + '/' + f)
