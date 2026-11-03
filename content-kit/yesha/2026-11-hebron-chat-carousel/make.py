@@ -64,10 +64,9 @@ def s1():
     x0, y0, x1, y1 = 50, 250, W - 50, 1200
     d.rounded_rectangle(P(x0, y0, x1, y1), 24 * S, fill=WHITE, outline=LINE, width=2 * S)
     ph = (x0, y0, x1, y0 + 520); pw, phh = int((ph[2] - ph[0]) * S), int((ph[3] - ph[1]) * S)
-    pim = cover(Image.open(PHOTO).convert('RGB'), pw, phh).convert('RGBA') if HAVE else illustration(pw, phh)
+    pim = cover(Image.open(OUT + '/cave.jpg').convert('RGB'), pw, phh, fy=.45).convert('RGBA')
     m = Image.new('L', (pw, phh), 0); ImageDraw.Draw(m).rounded_rectangle((0, 0, pw - 1, phh + 40 * S), 24 * S, fill=255)
     img.paste(pim, P(ph[0], ph[1]), m); d = ImageDraw.Draw(img)
-    if HAVE: T(d, (x1 - 24, ph[3] - 36), 'צילום: מחדשי היישוב היהודי בחברון', RR, 20, (255, 255, 255), anchor='ra')
     d.rounded_rectangle(P(x1 - 230, y0 + 24, x1 - 24, y0 + 74), 8 * S, fill=ORANGE); T(d, (x1 - 127, y0 + 49), 'מודעה חדשה', RB, 26, WHITE, anchor='mm')
     for k in range(5): d.ellipse(P(W / 2 - 52 + k * 24, ph[3] - 30, W / 2 - 40 + k * 24, ph[3] - 18), fill=WHITE if k == 0 else (255, 255, 255, 150))
     y = ph[3] + 36; xr = x1 - 44
@@ -161,13 +160,29 @@ def s5():
     tx = TW(d, 'הקבלה עדיין אצלנו.', KB, 130); d.rectangle(P(W / 2 - tx / 2 - 30, 1010, W / 2 + tx / 2 + 30, 1150), fill=LB)
     T(d, (W / 2, 1000), 'הקבלה עדיין אצלנו.', KB, 130, DEEP, anchor='ma'); save(img, 5)
 def s6():
-    img, d = dark(6)
-    lw = 300; lg = WL.resize((lw * S, int(lw * S * WL.height / WL.width)), Image.LANCZOS); img.alpha_composite(lg, (int((W - lw) / 2 * S), 180 * S)); d = ImageDraw.Draw(img)
-    T(d, (W / 2, 560), 'השבת, חיי שרה', KB, 140, WHITE, anchor='ma')
-    T(d, (W / 2, 720), 'כולנו בעיר האבות', KB, 140, LB, anchor='ma')
+    img, d = canvas(DEEP)
+    bg = cover(Image.open(OUT + '/machpela-night.jpg').convert('RGB'), W * S, H * S, fy=.15).convert('RGBA')
+    img.alpha_composite(bg)
+    sh = Image.new('RGBA', img.size, (0, 0, 0, 0)); sd = ImageDraw.Draw(sh)
+    for y in range(H * S):                                   # dark at the top for the text, warm-dark at the bottom for the Shabbat card
+        t = y / (H * S); a = int(235 * max(0, 1 - t / .42) ** 1.2 + 230 * max(0, (t - .55) / .45) ** 1.3)
+        sd.line([(0, y), (W * S, y)], fill=DEEP + (min(235, a),))
+    img.alpha_composite(sh); d = ImageDraw.Draw(img)
+    lw = 190; lg = WL.resize((lw * S, int(lw * S * WL.height / WL.width)), Image.LANCZOS); img.alpha_composite(lg, (int((W - lw) / 2 * S), 60 * S)); d = ImageDraw.Draw(img)
+    counter(d, 6, y=50)
+    for tx_, y_, col in (('השבת, חיי שרה', 250, WHITE), ('כולנו בעיר האבות', 400, LB)):
+        T(d, (W / 2 + 5, y_ + 5), tx_, KB, 140, DEEP, anchor='ma'); T(d, (W / 2, y_), tx_, KB, 140, col, anchor='ma')
+    # Shabbat table card
+    cw, ch = 760, 330; cx0, cy0 = (W - cw) / 2, 860
+    card = cover(Image.open(OUT + '/shabbat.jpg').convert('RGB'), int(cw * S), int(ch * S), fy=.05).convert('RGBA')
+    m = Image.new('L', card.size, 0); ImageDraw.Draw(m).rounded_rectangle((0, 0, card.width - 1, card.height - 1), 30 * S, fill=255)
+    shadow = Image.new('RGBA', img.size, (0, 0, 0, 0)); ImageDraw.Draw(shadow).rounded_rectangle(P(cx0 + 8, cy0 + 18, cx0 + cw + 8, cy0 + ch + 18), 30 * S, fill=(0, 0, 0, 140))
+    img.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(20 * S)))
+    d = ImageDraw.Draw(img); d.rounded_rectangle(P(cx0 - 6, cy0 - 6, cx0 + cw + 6, cy0 + ch + 6), 34 * S, fill=WHITE)
+    img.paste(card, P(cx0, cy0), m); d = ImageDraw.Draw(img)
     tw_ = TW(d, 'מחכים לכם', RB, 60); sw = d.textlength(':)', font=F(RB, 60)) / S; x = W / 2 + (tw_ + 16 + sw) / 2
-    T(d, (x, 950), 'מחכים לכם', RB, 60, SOFT, anchor='ra')
-    d.text(P(x - tw_ - 16 - sw, 950), ':)', font=F(RB, 60), fill=SOFT, anchor='la'); save(img, 6)
+    T(d, (x, 1225), 'מחכים לכם', RB, 60, WHITE, anchor='ra')
+    d.text(P(x - tw_ - 16 - sw, 1225), ':)', font=F(RB, 60), fill=WHITE, anchor='la'); save(img, 6)
 
 for f in os.listdir(OUT):
     if f.startswith('slide-'): os.remove(OUT + '/' + f)
