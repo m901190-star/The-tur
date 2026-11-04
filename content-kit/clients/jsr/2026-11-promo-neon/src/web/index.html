@@ -51,11 +51,12 @@ h1 .g{color:var(--gold);text-shadow:0 0 18px rgba(240,200,90,.85),0 0 60px rgba(
 .ripple{position:absolute;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;border:4px solid #fff3c8;opacity:0}
 #flash{position:absolute;inset:0;background:#fff8e0;opacity:0;mix-blend-mode:screen;pointer-events:none}
 #endc{position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,#3b6290 0%,var(--blue) 45%,#14253b 100%);clip-path:circle(0px at 540px 960px)}
-#endc .lg{position:absolute;left:190px;top:520px;width:700px}
+#endc .lg{position:absolute;left:210px;top:470px;width:660px}
 .handle{position:absolute;left:120px;right:120px;height:120px;border-radius:60px;background:rgba(4,7,12,.55);box-shadow:inset 0 0 0 2px rgba(227,198,110,.55);
   display:flex;align-items:center;justify-content:center;gap:24px;font-size:46px;font-weight:700;direction:rtl}
 .handle .ico{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;background:#fff;color:#000;flex:none}
 .handle .ico.tg{background:#29a9eb;color:#fff}
+.handle .ico.wa{background:#25d366}
 .uline{position:absolute;left:300px;width:480px;height:6px;border-radius:6px;background:var(--gold);box-shadow:0 0 20px #f0c85a,0 0 50px rgba(240,200,90,.6);transform-origin:50% 50%}
 #vign{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%);pointer-events:none}
 #intro{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
@@ -68,7 +69,7 @@ h1 .g{color:var(--gold);text-shadow:0 0 18px rgba(240,200,90,.85),0 0 60px rgba(
 
     <!-- P0 hook -->
     <div class="panel" style="left:0"><div class="inner" id="in0">
-      <div class="kick" style="top:640px" id="k0">חמ״ל יש״ע · JSR</div>
+      <div class="kick" style="top:640px" id="k0">חדר מצב - יש״ע · JSR</div>
       <h1 style="top:740px;font-size:150px" id="h0">מה <span class="g">באמת</span> קורה ביהודה ושומרון?</h1>
     </div></div>
 
@@ -106,7 +107,7 @@ h1 .g{color:var(--gold);text-shadow:0 0 18px rgba(240,200,90,.85),0 0 60px rgba(
       <h1 style="top:160px;font-size:124px" id="h4">מה שלא <span class="g">מספרים</span> לכם</h1>
       <div class="persp"><div class="card" id="c_man" style="left:110px;top:470px;width:560px"><img src="manual.png"></div>
       <div class="card" id="c_ly" style="left:420px;top:900px;width:580px"><img src="lynch.png"></div></div>
-      <div class="tag" id="tg4" style="left:640px;top:1560px">מקור: חמ״ל יש״ע</div>
+      <div class="tag" id="tg4" style="left:640px;top:1560px">מקור: חדר מצב - יש״ע</div>
     </div></div>
 
     <!-- P5 facts -->
@@ -123,10 +124,11 @@ h1 .g{color:var(--gold);text-shadow:0 0 18px rgba(240,200,90,.85),0 0 60px rgba(
 
   <div id="endc">
     <img class="lg" id="lg" src="logo.png">
-    <div class="uline" id="ul" style="top:1150px"></div>
-    <h1 style="top:1220px;font-size:120px" id="h6"><span class="g">עקבו</span> עכשיו</h1>
-    <div class="handle" id="hx" style="top:1430px"><span dir="ltr" style="unicode-bidi:isolate">@JSR_HEB</span><span class="ico">X</span></div>
-    <div class="handle" id="ht" style="top:1590px"><span>חמ״ל יש״ע JSR</span><span class="ico tg">➤</span></div>
+    <div class="uline" id="ul" style="top:1035px"></div>
+    <h1 style="top:1110px;font-size:120px" id="h6"><span class="g">עקבו</span> עכשיו</h1>
+    <div class="handle" id="hx" style="top:1400px"><span dir="ltr" style="unicode-bidi:isolate">@JSR_HEB</span><span class="ico">X</span></div>
+    <div class="handle" id="ht" style="top:1540px"><span>חדר מצב - יש״ע JSR</span><span class="ico tg">➤</span></div>
+    <div class="handle" id="hw" style="top:1680px"><span>חדר מצב - יש״ע JSR</span><span class="ico wa"><svg viewBox="0 0 24 24" width="36" height="36"><path fill="#fff" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.6-.1l2 .9c.3.1.5.2.5.3.1.2.1.7-.1 1.2z"/></svg></span></div>
   </div>
   <div id="intro"><img id="introLogo" src="logo.png"></div>
   <div id="vign"></div><div id="flash"></div>
@@ -275,6 +277,7 @@ tl.fromTo('#ul', {scaleX:0}, {scaleX:1, duration:.6, ease:'expo.out'}, C.end + .
 wordsIn('h6', C.w6);
 tl.fromTo('#hx', {opacity:0, x:-300}, {opacity:1, x:0, duration:.6, ease:'expo.out'}, C.w6[1] + .35);
 tl.fromTo('#ht', {opacity:0, x:-300}, {opacity:1, x:0, duration:.6, ease:'expo.out'}, C.w6[1] + .5);
+tl.fromTo('#hw', {opacity:0, x:-300}, {opacity:1, x:0, duration:.6, ease:'expo.out'}, C.w6[1] + .65);
 tl.to('#lg', {scale:1.04, duration:C.total - C.end, ease:'sine.inOut'}, C.end + .9);
 tl.set({}, {}, C.total);
 
