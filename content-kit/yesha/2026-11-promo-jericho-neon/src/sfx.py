@@ -12,7 +12,7 @@ def chime(f=1318.5):
     n=int(1.5*SR); t=np.arange(n)/SR; return (np.sin(2*np.pi*f*t)+.3*np.sin(2*np.pi*2*f*t))*np.exp(-t*3)*.25
 O=1.0
 add(chime(987.8),.08,.5); add(whoosh(.45),.8,.35)
-for k in ['p1','p2','p3','p4','p5']: add(whoosh(),O+C[k]-.35,.45,.3)
+for k in [x for x in ['p1','p2','p3','p4','p5','p6'] if x in C]: add(whoosh(),O+C[k]-.35,.45,.3)
 add(chime(1318.5),O+C['p1']+1.3,.35)
 add(swell(1.0),O+C['end']-1.0,.5); add(chime(659.25),O+C['end'],.6); add(chime(987.8),O+C['end']+.05,.35)
 out=np.tanh(out)*.8

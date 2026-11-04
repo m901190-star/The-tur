@@ -11,10 +11,10 @@ html,body{width:1080px;height:1920px;overflow:hidden;background:var(--ink);font-
 #dust{position:absolute;inset:0}
 .d{position:absolute;border-radius:50%;background:#e8f2f8;box-shadow:0 0 8px 2px rgba(39,164,209,.7)}
 #cam{position:absolute;left:0;top:0;width:1080px;height:1920px}
-#world{position:absolute;left:0;top:0;width:7560px;height:1920px}
+#world{position:absolute;left:0;top:0;width:8640px;height:1920px}
 .panel{position:absolute;top:0;width:1080px;height:1920px}
 .inner{position:absolute;inset:0;transform-origin:50% 50%}
-svg#neon{position:absolute;left:0;top:0;width:7560px;height:1920px;overflow:visible;pointer-events:none;z-index:4}
+svg#neon{position:absolute;left:0;top:0;width:8640px;height:1920px;overflow:visible;pointer-events:none;z-index:4}
 .halo{fill:none;stroke:#2587BE;stroke-width:30;stroke-linecap:round;stroke-linejoin:round;opacity:.65;filter:url(#blur16)}
 .tube{fill:none;stroke:#27A4D1;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 6px #27A4D1) drop-shadow(0 0 18px rgba(39,164,209,.85))}
 .core{fill:none;stroke:#E8F2F8;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
@@ -52,7 +52,7 @@ h1 .g{color:var(--light);text-shadow:0 0 18px rgba(39,164,209,.85),0 0 60px rgba
 <div id="stage">
   <div id="grid"></div><div id="dust"></div>
   <div id="cam"><div id="world">
-    <svg id="neon" viewBox="0 0 7560 1920"><defs><filter id="blur16" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="16"/></filter></defs><g id="paths"></g></svg>
+    <svg id="neon" viewBox="0 0 8640 1920"><defs><filter id="blur16" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="16"/></filter></defs><g id="paths"></g></svg>
 
     <!-- P0 -->
     <div class="panel" style="left:0"><div class="inner" id="in0">
@@ -95,14 +95,23 @@ h1 .g{color:var(--light);text-shadow:0 0 18px rgba(39,164,209,.85),0 0 60px rgba
       <h1 style="top:1340px;font-size:170px" id="h4b">חוזרת <span class="g">להתיישבות</span> יהודית</h1>
     </div></div>
 
-    <!-- P5 quote -->
+    <!-- P5 Gantz at 16 -->
     <div class="panel" style="left:5400px"><div class="inner" id="in5">
+      <div class="kick" style="top:300px" id="k5a">ישראל גנץ, יו״ר מועצת יש״ע</div>
+      <div class="big" id="n16" style="top:360px;font-size:560px">16</div>
+      <h1 style="top:930px;font-size:120px" id="h5a">בגיל 16 יצא בקבוצה האחרונה מיריחו</h1>
+      <h1 style="top:1190px;font-size:120px" id="h5b">היום הבן שלו בן <span class="g">16</span></h1>
+      <div class="quote" id="qt5" style="top:1450px;padding:44px 50px 40px"><div class="q" style="font-size:84px" id="qq5">הכאב של היציאה הופך היום <span class="g">למעשה של תיקון</span></div></div>
+    </div></div>
+
+    <!-- P6 quote -->
+    <div class="panel" style="left:6480px"><div class="inner" id="in6">
       <div class="card" id="c_truck" style="left:-60px;top:240px;width:1200px;opacity:.55"><img src="truck.png"></div>
       <div class="quote" id="qt" style="top:880px"><div class="mk">”</div>
         <div class="q" id="qq">מפרקים את הסכמי אוסלו במעשים - <span class="g">בית אחר בית, משפחה אחר משפחה</span></div>
         <div class="by" id="qb">ישראל גנץ<span>יו״ר מועצת יש״ע וראש מועצת בנימין</span></div></div>
     </div></div>
-    <div class="panel" style="left:6480px"><div class="inner" id="in6"></div></div>
+    <div class="panel" style="left:7560px"><div class="inner" id="in7"></div></div>
   </div></div>
 
   <img id="lgc" src="logo.png">
@@ -117,7 +126,7 @@ h1 .g{color:var(--light);text-shadow:0 0 18px rgba(39,164,209,.85),0 0 60px rgba
 </div>
 <script src="gsap.min.js"></script>
 <script>
-window.CUE = window.CUE || {p0:0.1, p1:3.4, p2:6.2, p3:9.2, p4:12.0, p5:15.8, end:19.8, total:23.6};
+window.CUE = window.CUE || {p0:0.1, p1:3.4, p2:6.2, p3:9.2, p4:12.0, p5:15.8, p6:20.0, end:24.0, total:27.8};
 </script>
 <script src="cues.js"></script>
 <script>
@@ -219,13 +228,26 @@ draw(rr(X4 + 34, 694, 1012, clipH + 54, 64).replace(/^M[^H]+/, `M${X4 + 540},${7
 draw(ex(X4, 720 + clipH + 28, 1850), C.p5 - .6, .6, 'power1.in');
 out('#h4 .w, #h4b .w', C.p5 - .45);
 
-// P5 quote
-const X5 = 5 * PW; camTo(5, C.p5); push('in5', C.p5, C.end);
-tl.fromTo('#c_truck', {opacity:0, scale:1.1}, {opacity:.5, scale:1, duration:1.2, ease:'power2.out'}, C.p5);
-tl.fromTo('#qt', {opacity:0, y:120}, {opacity:1, y:0, duration:.8, ease:'expo.out'}, C.p5 + .15);
-wordsIn('qq', C.p5 + .4, .12);
-tl.fromTo('#qb', {opacity:0, y:20}, {opacity:1, y:0, duration:.6, ease:'expo.out'}, C.p5 + 1.9);
-draw(`M${X5 - 40},1850 C${X5 + 200},1850 ${X5 + 300},1780 ${X5 + 540},1780 C${X5 + 780},1780 ${X5 + 880},1850 ${X5 + 1000},1850`, C.p5 - .3, 1.4, 'power2.inOut');
+// P5 Gantz at 16
+const X5 = 5 * PW; camTo(5, C.p5); push('in5', C.p5, C.p6);
+tl.fromTo('#k5a', {opacity:0, letterSpacing:'30px'}, {opacity:.9, letterSpacing:'4px', duration:.8, ease:'expo.out'}, C.p5 + .05);
+const n16 = document.getElementById('n16'), c16 = {v:0};
+tl.fromTo('#n16', {opacity:0, scale:.6}, {opacity:.22, scale:1, duration:.6, ease:'expo.out'}, C.p5 + .1);
+tl.to(c16, {v:16, duration:1.0, ease:'power2.out', onUpdate() { n16.textContent = Math.round(c16.v); }}, C.p5 + .15);
+wordsIn('h5a', C.p5 + .4, .12);
+wordsIn('h5b', C.p5 + 1.5, .14);
+tl.fromTo('#qt5', {opacity:0, y:100}, {opacity:1, y:0, duration:.8, ease:'expo.out'}, C.p5 + 2.2);
+wordsIn('qq5', C.p5 + 2.4, .1);
+draw(`M${X5 - 40},1850 C${X5 + 60},1850 ${X5 + 40},1150 ${X5 + 120},1110 C${X5 + 300},1030 ${X5 + 780},1030 ${X5 + 960},1110 C${X5 + 1040},1150 ${X5 + 1000},1850 ${X5 + PW + 40},1860`, C.p5 - .3, 1.8, 'power2.inOut');
+out('#h5a .w, #h5b .w, #k5a, #n16, #qt5', C.p6 - .45);
+
+// P6 quote
+const X6 = 6 * PW; camTo(6, C.p6); push('in6', C.p6, C.end);
+tl.fromTo('#c_truck', {opacity:0, scale:1.1}, {opacity:.5, scale:1, duration:1.2, ease:'power2.out'}, C.p6);
+tl.fromTo('#qt', {opacity:0, y:120}, {opacity:1, y:0, duration:.8, ease:'expo.out'}, C.p6 + .15);
+wordsIn('qq', C.p6 + .4, .12);
+tl.fromTo('#qb', {opacity:0, y:20}, {opacity:1, y:0, duration:.6, ease:'expo.out'}, C.p6 + 1.9);
+draw(`M${X6 - 40},1850 C${X6 + 200},1850 ${X6 + 300},1780 ${X6 + 540},1780 C${X6 + 780},1780 ${X6 + 880},1850 ${X6 + 1000},1850`, C.p6 - .3, 1.4, 'power2.inOut');
 
 // END
 tl.to('#lgc', {opacity:0, duration:.3}, C.end - .3);
