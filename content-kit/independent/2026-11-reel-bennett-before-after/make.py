@@ -9,7 +9,7 @@ SRC = '/root/.claude/uploads/1a5819ee-0cc0-5045-b086-4a8a80216453/79274151-copy_
 KB = glob.glob('/root/.claude/skills/synced/*/pro-video-editing/assets/fonts/Karantina-Bold.ttf')[0]
 RUB = '/tmp/claude-0/-home-user-The-tur/1a5819ee-0cc0-5045-b086-4a8a80216453/scratchpad/fonts/Rubik-700.ttf'
 W, H, FPS = 1080, 1920, 30
-T1 = 17.37; SRC_END = 37.6; CLOSE = 3.8; TOTAL = SRC_END + CLOSE
+T1 = 17.37; SRC_END = 37.6; CLOSE = 4.8; TOTAL = SRC_END + CLOSE
 RED = (214, 32, 39); WHITE = (255, 255, 255); BLACK = (0, 0, 0)
 _fc = {}
 def F(p, s):
@@ -66,10 +66,10 @@ def part_a(t):
     if u > 0:
         y_off = -500 * (1 - back(u, 1.4)); k = eo((t - 3.2) / .6); sc = 1 - .38 * k; ytop = 170 - 40 * k
         lay = Image.new('RGBA', (W, 760), (0, 0, 0, 0)); ld = ImageDraw.Draw(lay)
-        outlined(ld, (W / 2, 0), 'בנט', F(KB, 330), WHITE, 12)
+        outlined(ld, (W / 2, 0), 'היחס לחרדים', F(KB, 230), WHITE, 11)
         f2 = F(KB, 170); tw = ld.textlength('לפני הבחירות', font=f2, direction='rtl')
-        ld.rectangle((W / 2 - tw / 2 - 36, 330, W / 2 + tw / 2 + 36, 520), fill=(250, 250, 250)); ld.rectangle((W / 2 - tw / 2 - 36, 520, W / 2 + tw / 2 + 36, 532), fill=RED)
-        ld.text((W / 2, 340), 'לפני הבחירות', font=f2, fill=BLACK, anchor='ma', direction='rtl')
+        ld.rectangle((W / 2 - tw / 2 - 36, 250, W / 2 + tw / 2 + 36, 440), fill=(250, 250, 250)); ld.rectangle((W / 2 - tw / 2 - 36, 440, W / 2 + tw / 2 + 36, 452), fill=RED)
+        ld.text((W / 2, 260), 'לפני הבחירות', font=f2, fill=BLACK, anchor='ma', direction='rtl')
         lay = lay.resize((int(W * sc), int(760 * sc)), Image.LANCZOS)
         im.paste(lay, (int((W - lay.width) / 2), int(ytop + y_off)), lay)
         if 0 <= t - .7 < .25: im = ImageChops.offset(im, int(rng.integers(-14, 14)), int(rng.integers(-14, 14)))
@@ -107,13 +107,13 @@ def part_b(t):
         im.paste((0, 0, 0), (cx - f2.width // 2 + 0, cy - f2.height // 2 + 30), sh)
         im.paste(f2, (cx - f2.width // 2, cy - f2.height // 2), f2)
     # header slams
-    for i, (s, at, y, fill, blk) in enumerate([('לאחר', .45, 250, WHITE, None), ('הבחירות:', .75, 470, WHITE, RED)]):
+    for i, (s, at, y, fill, blk) in enumerate([('היחס לחרדים', .45, 230, WHITE, None), ('אחרי הבחירות:', .75, 450, WHITE, RED)]):
         p = (u - at) / .18
         if p <= 0: continue
-        sc = 1.6 - .6 * eo(p); f = F(KB, int(220 * sc)); al = min(1, p * 1.5)
+        sc = 1.6 - .6 * eo(p); f = F(KB, int(175 * sc)); al = min(1, p * 1.5)
         lay = Image.new('RGBA', (W, 400), (0, 0, 0, 0)); ld = ImageDraw.Draw(lay)
         if blk:
-            tw = ld.textlength(s, font=f, direction='rtl'); ld.rectangle((W / 2 - tw / 2 - 30, 40, W / 2 + tw / 2 + 30, 40 + int(205 * sc)), fill=blk)
+            tw = ld.textlength(s, font=f, direction='rtl'); ld.rectangle((W / 2 - tw / 2 - 30, 40, W / 2 + tw / 2 + 30, 40 + int(165 * sc)), fill=blk)
             ld.text((W / 2, 30), s, font=f, fill=fill, anchor='ma', direction='rtl')
         else: outlined(ld, (W / 2, 30), s, f, fill, 8)
         lay.putalpha(lay.getchannel('A').point(lambda v: int(v * al)))
@@ -124,17 +124,17 @@ def part_b(t):
 
 def closer(t):
     u = t - SRC_END; im = Image.new('RGB', (W, H), (8, 8, 10)); d = ImageDraw.Draw(im)
-    for s, at, y, hi in [('פעם נוכל,', .25, 640, False), ('תמיד נוכל.', 1.15, 960, True)]:
+    for s, at, y, hi, fs in [('בנט.', .25, 380, False, 330), ('פעם נוכל,', 1.25, 790, False, 230), ('תמיד נוכל.', 2.15, 1080, True, 230)]:
         p = (u - at) / .16
         if p <= 0: continue
-        sc = 1.8 - .8 * eo(p); f = F(KB, int(250 * sc))
+        sc = 1.8 - .8 * eo(p); f = F(KB, int(fs * sc))
         lay = Image.new('RGBA', (W, 500), (0, 0, 0, 0)); ld = ImageDraw.Draw(lay)
         if hi:
-            tw = ld.textlength(s, font=f, direction='rtl'); ld.rectangle((W / 2 - tw / 2 - 34, 50, W / 2 + tw / 2 + 34, 50 + int(235 * sc)), fill=RED)
+            tw = ld.textlength(s, font=f, direction='rtl'); ld.rectangle((W / 2 - tw / 2 - 34, 50, W / 2 + tw / 2 + 34, 50 + int(218 * sc)), fill=RED)
             ld.text((W / 2, 40), s, font=f, fill=WHITE, anchor='ma', direction='rtl')
         else: ld.text((W / 2, 40), s, font=f, fill=WHITE, anchor='ma', direction='rtl')
         im.paste(lay, (0, int(y - 40 - (sc - 1) * 140)), lay)
-    for at in (.25, 1.15):
+    for at in (.25, 1.25, 2.15):
         if 0 <= u - at < .25: im = ImageChops.offset(im, int(rng.integers(-16, 16)), int(rng.integers(-16, 16)))
     if u < .12: im = Image.blend(im, Image.new('RGB', (W, H), WHITE), .6 * (1 - u / .12))
     return im
@@ -147,22 +147,22 @@ def frame(t):
     if t < SRC_END: return part_b(t)
     return closer(t)
 
-def sfx(path):
-    SR = 48000; N = int(TOTAL * SR); out = np.zeros(N)
-    def add(s, t, g):
-        i = int(t * SR); n = min(len(s), N - i)
-        if n > 0: out[i:i + n] += s[:n] * g
-    def hit(f=50, d=1.2):
-        n = int(d * SR); tt = np.arange(n) / SR; return np.sin(2 * np.pi * f * tt * (1 + 1.5 * np.exp(-tt * 18))) * np.exp(-tt * 3.5) + rng.standard_normal(n) * np.exp(-tt * 35) * .3
-    def noise(d): n = int(d * SR); return rng.standard_normal(n) * .5
-    def whoosh(d=.5):
-        n = int(d * SR); x = rng.standard_normal(n); e = np.sin(np.pi * np.linspace(0, 1, n)) ** 2; y = np.convolve(x, np.ones(30) / 30, 'same'); return (x - y) * e * .6
-    add(hit(55), .7, .9)
-    add(noise(.32), T1 - .13, .45)
-    add(whoosh(.6), T1 + .1, .7); add(hit(48, 1.0), T1 + .45, .7); add(hit(44, 1.4), T1 + .75, .9)
-    add(hit(46, 1.2), SRC_END + .25, 1.0); add(hit(40, 2.4), SRC_END + 1.15, 1.1)
-    out = np.tanh(out * .9) * .8
-    import wave; s = np.stack([out, out], 1); w = wave.open(path, 'wb'); w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes((s * 32767).astype('<i2').tobytes()); w.close()
+AU = HERE + '/audio/'
+def build_audio(out):
+    T = f'{TOTAL:.2f}'
+    hits = [('metal_impact', .7, .9), ('tape_stop', T1 - .3, 1.0), ('whoosh_hit', T1 + .05, .8), ('sub_impact', T1 + .75, 1.0),
+            ('metal_impact', SRC_END + .25, 1.0), ('sub_impact', SRC_END + 1.25, .8), ('sub_impact', SRC_END + 2.15, 1.1)]
+    ins = ['-i', SRC, '-stream_loop', '3', '-i', AU + 'music.wav']
+    fl = [f'[0:a]aformat=sample_rates=48000:channel_layouts=stereo,loudnorm=I=-15:TP=-2,apad=whole_dur={T},asplit=2[v][key]',
+          # music: dips while the footage speaks, rises on the hook and the closer
+          f"[1:a]aformat=sample_rates=48000:channel_layouts=stereo,atrim=0:{T},volume='if(lt(t,3.2),0.9,if(gt(t,{SRC_END - .2:.2f}),1.0,0.42))':eval=frame,afade=t=out:st={TOTAL - 1.6:.2f}:d=1.6[m]",
+          '[m][key]sidechaincompress=threshold=0.04:ratio=4:attack=20:release=300[md]']
+    labs = []
+    for k, (n, at, g) in enumerate(hits):
+        ins += ['-i', AU + n + '.wav']; idx = 2 + k
+        fl.append(f'[{idx}:a]aformat=sample_rates=48000:channel_layouts=stereo,volume={g},adelay={int(at * 1000)}:all=1[h{k}]'); labs.append(f'[h{k}]')
+    fl.append(f"[v][md]{''.join(labs)}amix=inputs={2 + len(hits)}:normalize=0,alimiter=limit=0.95,atrim=0:{T}[o]")
+    subprocess.run(['ffmpeg', '-v', 'error', '-y'] + ins + ['-filter_complex', ';'.join(fl), '-map', '[o]', out], check=True)
 
 if __name__ == '__main__':
     prep()
@@ -171,12 +171,11 @@ if __name__ == '__main__':
         ims = [frame(x).resize((216, 384)) for x in ts]; sh = Image.new('RGB', (len(ims) * 220, 384))
         for k, x in enumerate(ims): sh.paste(x, (k * 220, 0))
         sh.save(P + '../stills.jpg'); print(TOTAL); sys.exit()
+    if 'audio' in sys.argv: build_audio(P + 'a.wav'); sys.exit()
     ff = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p', P + 'v.mp4'], stdin=subprocess.PIPE)
     for i in range(int(round(TOTAL * FPS))): ff.stdin.write(frame(i / FPS).tobytes())
     ff.stdin.close(); ff.wait()
-    sfx(P + 'sfx.wav')
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', SRC, '-i', P + 'sfx.wav', '-filter_complex',
-        f'[0:a]aformat=sample_rates=48000:channel_layouts=stereo,loudnorm=I=-15:TP=-2,apad=whole_dur={TOTAL:.2f}[v];[v][1:a]amix=inputs=2:normalize=0,atrim=0:{TOTAL:.2f}[o]', '-map', '[o]', P + 'a.wav'], check=True)
+    build_audio(P + 'a.wav')
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', P + 'v.mp4', '-i', P + 'a.wav', '-c:v', 'libx264', '-preset', 'slow', '-crf', '21', '-maxrate', '10M', '-bufsize', '20M', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', P + 'mux.mp4'], check=True)
     LN = glob.glob('/root/.claude/skills/synced/*/pro-video-editing/scripts/loudnorm.py')[0]
     subprocess.run(['python3', LN, P + 'mux.mp4', HERE + '/bennett-before-after.mp4', '--target', '-14'], check=True)
