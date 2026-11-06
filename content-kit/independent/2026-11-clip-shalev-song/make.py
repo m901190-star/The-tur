@@ -13,6 +13,9 @@ W, H, FPS = 1080, 1920, 30
 BEAT = 60 / 86.4; BAR = 4 * BEAT; L0 = 2.60
 def LS(k): return L0 + (k - 1) * BAR          # start of lyric line k (1..14)
 SONG_END = 41.6; C3 = LS(15) - .3; C3D = 8.95; END0 = C3 + C3D; TOTAL = END0 + 2.4
+BR = [(LS(5), 'v1', 0.0, 3.55), (LS(9), 'v2', 1.70, 4.65)]   # song pauses, Shalev speaks (song time, src, in, out)
+DSUM = sum(b - a for _, _, a, b in BR); TOTAL_V = TOTAL + DSUM
+TAPE = HERE + '/../2026-11-reel-bennett-before-after/audio/tape_stop.wav'
 C3SUB = [(0.0, 2.6, 'אני בטוח שכבר קנית ציצית,'), (2.6, 4.9, 'הנחת תפילין, שמת כיפה,'), (4.9, 6.2, 'תתחיל לשמור שבת.'), (6.2, 9.0, 'רק תבואו איתנו. אה?')]
 LY = {1: 'שָׁלֵו שָׁלֵו, הַמְעַרְבֵּב', 2: 'עָשָׂה וָואחַד קַמְפֵּיין', 3: 'עִם מַדִּים וּמִלּוּאִים', 4: 'טִנֵּף עַל מִשְׁתַּמְּטִים',
       5: 'שָׁלֵו שָׁלֵו הַמְעַרְבֵּב', 6: 'עָשָׂה וָואחַד סִבּוּב', 7: 'עַל הַלּוֹחֲמִים, עַל הַחֲרֵדִים', 8: 'עַל בְּרִית הַמְּשָׁרְתִים',
@@ -32,6 +35,11 @@ rng = np.random.default_rng(7)
 
 # ---------- footage ----------
 def prep():
+    for i, (_, src, a, b) in enumerate(BR):
+        d = P + f'brk{i}/'
+        if os.path.exists(d + '0001.png'): continue
+        os.makedirs(d, exist_ok=True); crop = 'crop=720:620:0:0,scale=760:654' if src == 'v1' else 'crop=1080:1350:0:80,scale=640:800'
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(a), '-t', str(b - a + .1), '-i', V1 if src == 'v1' else V2, '-vf', f'fps={FPS},{crop}', d + '%04d.png'], check=True)
     d = P + 'end3/'
     if not os.path.exists(d + '0001.png'):
         os.makedirs(d, exist_ok=True)
@@ -313,24 +321,57 @@ def backcover(t):
     place(im, emoji('💔', 150), W / 2, 1280, bk((u - .8) / .4), 0)
     if u < .44: return flip(clip3(END0 - .01), im, .5 + u / .88)
     return im
-def frame(t):
+_bf = {}
+def brk(i, u):
+    d = P + f'brk{i}/'
+    if d not in _bf: _bf[d] = sorted(os.listdir(d))
+    fr = Image.open(d + _bf[d][max(0, min(len(_bf[d]) - 1, int(u * FPS)))]).convert('RGB')
+    T = BR[i][0] + u; im = pop(T, True)
+    place(im, sticker(fr, 20), W / 2, 900, 1.12 * bk(u / .35, 1.5) * (1 + .015 * math.sin(u * 9)), (-2, 2)[i] + 1.5 * math.sin(u * 4))
+    popword(im, 'שָׁלֵו, לִפְנֵי הַבְּחִירוֹת:', W / 2, 150, 150, BR[i][0] + .05, T, blk=(30, 30, 30), rot=-2)
+    place(im, emoji('🎤', 190), (880, 190)[i], 1560, bk((u - .3) / .3), (12, -12)[i])
+    SUB = [[(0, 1.95, 'אתה מקדם השתמטות'), (1.95, 3.6, 'יש ביני לבינך פער')], [(0, 1.15, 'זה מתחיל בקידום'), (1.15, 3.0, 'של השתמטות המונית')]][i]
+    for a0, b0, txt in SUB:
+        if a0 <= u < b0: popword(im, txt, W / 2, 1330, 150, BR[i][0] + a0, T, fill=WHITE, blk=(30, 30, 30))
+    if u < .1: im = Image.blend(im.convert('RGB'), Image.new('RGB', (W, H), WHITE), .6 * (1 - u / .1)).convert('RGBA')
+    return im
+def frame(T):
+    off = 0.
+    for i, (at, _, a, b) in enumerate(BR):
+        if T < at + off: break
+        if T < at + off + (b - a): return brk(i, T - at - off).convert('RGB')
+        off += b - a
+    t = T - off
     im = backcover(t) if t >= END0 else (clip3(t) if t >= C3 else scene(t))
     return im.convert('RGB')
 
 if __name__ == '__main__':
     prep()
     if len(sys.argv) > 1 and sys.argv[1] == 'stills':
-        ts = [1.2] + [LS(k) + 2.0 for k in range(1, 15)] + [C3 + 1.5, C3 + 7.0, END0 + 1.5]
+        ts = [LS(5) + 1.5, LS(9) + 3.55 + 1.5]; ts = ts + [1.2]
         ims = [frame(x).resize((216, 384)) for x in ts]; sh = Image.new('RGB', (9 * 220, 2 * 388), WHITE)
         for i, x in enumerate(ims): sh.paste(x, ((i % 9) * 220, (i // 9) * 388))
         sh.save(SC + 'stills.jpg'); print(TOTAL); sys.exit()
     if 'mux' not in sys.argv:
      ff = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p', P + 'v.mp4'], stdin=subprocess.PIPE)
-     for i in range(int(round(TOTAL * FPS))): ff.stdin.write(frame(i / FPS).tobytes())
+     for i in range(int(round(TOTAL_V * FPS))): ff.stdin.write(frame(i / FPS).tobytes())
      ff.stdin.close(); ff.wait()
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', P + 'v.mp4', '-i', SONG, '-i', V3, '-filter_complex', f'[1:a]aformat=sample_rates=48000:channel_layouts=stereo,loudnorm=I=-14:TP=-1.5,atrim=0:{SONG_END},afade=t=out:st={SONG_END - .6:.2f}:d=0.6[s];[2:a]aformat=sample_rates=48000:channel_layouts=stereo,highpass=f=90,loudnorm=I=-14:TP=-1.5,afade=t=in:d=0.05,adelay={int(C3 * 1000)}:all=1[c];[s][c]amix=inputs=2:normalize=0,apad=whole_dur={TOTAL:.2f},atrim=0:{TOTAL:.2f}[a]', '-map', '0:v', '-map', '[a]',
-                    '-c:v', 'libx264', '-preset', 'slow', '-crf', '21', '-maxrate', '10M', '-bufsize', '20M', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-t', f'{TOTAL:.2f}', '-movflags', '+faststart', P + 'mux.mp4'], check=True)
+    ins = ['-i', SONG, '-i', V1, '-i', V2, '-i', V3, '-i', TAPE]; fl = []; mix = []
+    cuts = [0.] + [at for at, *_ in BR] + [SONG_END]; off = 0.; src = {'v1': 1, 'v2': 2}
+    for n in range(len(cuts) - 1):
+        a, b = cuts[n], cuts[n + 1]; last = n == len(cuts) - 2
+        fade = f'afade=t=out:st={b - a - (0.6 if last else 0.12):.3f}:d={0.6 if last else 0.12}'
+        fl.append(f'[0:a]aformat=sample_rates=48000:channel_layouts=stereo,atrim={a:.3f}:{b:.3f},asetpts=PTS-STARTPTS,volume=1.3,afade=t=in:d=0.04,{fade},adelay={int((a + off) * 1000)}:all=1[s{n}]'); mix.append(f'[s{n}]')
+        if not last:
+            at, sv, c0, c1 = BR[n]
+            fl.append(f'[{src[sv]}:a]aformat=sample_rates=48000:channel_layouts=stereo,atrim={c0}:{c1},asetpts=PTS-STARTPTS,highpass=f=90,loudnorm=I=-13:TP=-1.5,afade=t=in:d=0.03,afade=t=out:st={c1 - c0 - .08:.3f}:d=0.08,adelay={int((at + off + .12) * 1000)}:all=1[v{n}]')
+            fl.append(f'[4:a]aformat=sample_rates=48000:channel_layouts=stereo,atrim=0:0.9,volume=0.5,adelay={int((at + off - .25) * 1000)}:all=1[t{n}]'); mix += [f'[v{n}]', f'[t{n}]']
+            off += c1 - c0
+    fl.append(f'[3:a]aformat=sample_rates=48000:channel_layouts=stereo,highpass=f=90,loudnorm=I=-14:TP=-1.5,afade=t=in:d=0.05,adelay={int((C3 + DSUM) * 1000)}:all=1[c]'); mix.append('[c]')
+    fl.append(f"{''.join(mix)}amix=inputs={len(mix)}:normalize=0,apad=whole_dur={TOTAL_V:.2f},atrim=0:{TOTAL_V:.2f}[a]")
+    subprocess.run(['ffmpeg', '-v', 'error', '-y'] + ins + ['-filter_complex', ';'.join(fl), '-map', '[a]', P + 'a.wav'], check=True)
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', P + 'v.mp4', '-i', P + 'a.wav', '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-preset', 'slow', '-crf', '21', '-maxrate', '10M', '-bufsize', '20M', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-t', f'{TOTAL_V:.2f}', '-movflags', '+faststart', P + 'mux.mp4'], check=True)
     LN = glob.glob('/root/.claude/skills/synced/*/pro-video-editing/scripts/loudnorm.py')[0]
     subprocess.run(['python3', LN, P + 'mux.mp4', HERE + '/shalev-hamearbev.mp4', '--target', '-14'], check=True)
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', HERE + '/shalev-hamearbev.mp4', '-vf', 'scale=720:1280:flags=lanczos', '-c:v', 'libx264', '-preset', 'slow', '-b:v', '1500k', '-maxrate', '2000k', '-bufsize', '4000k', '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-level', '4.0', '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', HERE + '/shalev-hamearbev-small.mp4'], check=True)
-    print('done', TOTAL)
+    print('done', TOTAL_V)
