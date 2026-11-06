@@ -324,10 +324,11 @@ if __name__ == '__main__':
         ims = [frame(x).resize((216, 384)) for x in ts]; sh = Image.new('RGB', (9 * 220, 2 * 388), WHITE)
         for i, x in enumerate(ims): sh.paste(x, ((i % 9) * 220, (i // 9) * 388))
         sh.save(SC + 'stills.jpg'); print(TOTAL); sys.exit()
-    ff = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p', P + 'v.mp4'], stdin=subprocess.PIPE)
-    for i in range(int(round(TOTAL * FPS))): ff.stdin.write(frame(i / FPS).tobytes())
-    ff.stdin.close(); ff.wait()
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', P + 'v.mp4', '-i', SONG, '-i', V3, '-filter_complex', f'[1:a]aformat=sample_rates=48000:channel_layouts=stereo,loudnorm=I=-14:TP=-1.5,atrim=0:{SONG_END},afade=t=out:st={SONG_END - .6:.2f}:d=.6[s];[2:a]aformat=sample_rates=48000:channel_layouts=stereo,highpass=f=90,loudnorm=I=-14:TP=-1.5,afade=t=in:d=.05,adelay={int(C3 * 1000)}:all=1[c];[s][c]amix=inputs=2:normalize=0,apad=whole_dur={TOTAL:.2f},atrim=0:{TOTAL:.2f}[a]', '-map', '0:v', '-map', '[a]',
+    if 'mux' not in sys.argv:
+     ff = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p', P + 'v.mp4'], stdin=subprocess.PIPE)
+     for i in range(int(round(TOTAL * FPS))): ff.stdin.write(frame(i / FPS).tobytes())
+     ff.stdin.close(); ff.wait()
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', P + 'v.mp4', '-i', SONG, '-i', V3, '-filter_complex', f'[1:a]aformat=sample_rates=48000:channel_layouts=stereo,loudnorm=I=-14:TP=-1.5,atrim=0:{SONG_END},afade=t=out:st={SONG_END - .6:.2f}:d=0.6[s];[2:a]aformat=sample_rates=48000:channel_layouts=stereo,highpass=f=90,loudnorm=I=-14:TP=-1.5,afade=t=in:d=0.05,adelay={int(C3 * 1000)}:all=1[c];[s][c]amix=inputs=2:normalize=0,apad=whole_dur={TOTAL:.2f},atrim=0:{TOTAL:.2f}[a]', '-map', '0:v', '-map', '[a]',
                     '-c:v', 'libx264', '-preset', 'slow', '-crf', '21', '-maxrate', '10M', '-bufsize', '20M', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-t', f'{TOTAL:.2f}', '-movflags', '+faststart', P + 'mux.mp4'], check=True)
     LN = glob.glob('/root/.claude/skills/synced/*/pro-video-editing/scripts/loudnorm.py')[0]
     subprocess.run(['python3', LN, P + 'mux.mp4', HERE + '/shalev-hamearbev.mp4', '--target', '-14'], check=True)
