@@ -2,7 +2,6 @@
   "_readme": "כל הטקסט של קיבוץ. אין מחרוזת עברית אחת בקוד — הכל כאן. להוסיף שפה = להעתיק את הקובץ ולתרגם. המפתחות באנגלית ולעולם לא משתנים.",
   "locale": "he",
   "dir": "rtl",
-
   "ui": {
     "brand": "קיבוץ",
     "brandLatin": "KIBBUTZ",
@@ -17,10 +16,27 @@
     "advancedMode": "מצב מתקדם",
     "advancedCaption": "הערכים האמיתיים — הם זזים לפי הכפתור למעלה",
     "counter": "{n} מתוך {total}",
-    "severity": { "critical": "דחוף", "warning": "שים לב", "minor": "קל", "clear": "נקי" },
-    "lamps": { "level": "עוצמה", "noise": "רעש", "bass": "בס", "dynamics": "דינמיקה" },
-    "lampState": { "ok": "תקין", "attention": "לטפל" },
-    "vizTitle": { "spec": "חלוקת התדרים", "dyn": "עוצמת ההברות", "gain": "איפה האות יושב" },
+    "severity": {
+      "critical": "דחוף",
+      "warning": "שים לב",
+      "minor": "קל",
+      "clear": "נקי"
+    },
+    "lamps": {
+      "level": "עוצמה",
+      "noise": "רעש",
+      "bass": "בס",
+      "dynamics": "דינמיקה"
+    },
+    "lampState": {
+      "ok": "תקין",
+      "attention": "לטפל"
+    },
+    "vizTitle": {
+      "spec": "חלוקת התדרים",
+      "dyn": "עוצמת ההברות",
+      "gain": "איפה האות יושב"
+    },
     "scan": {
       "heading": "מקשיב לווקאל",
       "phase1": "נגן 20 שניות ואני אדע מה לתקן",
@@ -32,27 +48,71 @@
       "body": "כל שלבי העיבוד הושלמו. עכשיו תוכל ללכת ללוגיק ולהוסיף ריברב, דיליי, ולאזן את הערוץ במיקס."
     }
   },
-
   "steps": [
-    { "id": "check",   "n": "1", "name": "בדיקה" },
-    { "id": "clean",   "n": "2", "name": "ניקיון" },
-    { "id": "repair",  "n": "3", "name": "תיקון" },
-    { "id": "control", "n": "4", "name": "שליטה" },
-    { "id": "character","n": "5", "name": "אופי" }
+    {
+      "id": "check",
+      "n": "1",
+      "name": "בדיקה"
+    },
+    {
+      "id": "clean",
+      "n": "2",
+      "name": "ניקיון"
+    },
+    {
+      "id": "repair",
+      "n": "3",
+      "name": "תיקון"
+    },
+    {
+      "id": "control",
+      "n": "4",
+      "name": "שליטה"
+    },
+    {
+      "id": "character",
+      "n": "5",
+      "name": "אופי"
+    }
   ],
-
   "tools": {
-    "input_gain": { "name": "עוצמת כניסה", "term": "Input Gain · Gain Staging" },
-    "hum":        { "name": "מנקה האם",    "term": "Hum Remover · Notch Filter" },
-    "hpf":        { "name": "ניקוי בס",    "term": "High Pass Filter (HPF)" },
-    "breath":     { "name": "מנקה נשימות", "term": "Breath Control" },
-    "deess":      { "name": "דה-אסר",      "term": "De-Esser" },
-    "mud":        { "name": "ניקוי בוץ",   "term": "Parametric EQ · Bell Cut" },
-    "level":      { "name": "מיישר עוצמה", "term": "Leveler · Gain Rider" },
-    "comp":       { "name": "קומפרסור",    "term": "Compressor" },
-    "warmth":     { "name": "חום",         "term": "Saturation · Tube" }
+    "input_gain": {
+      "name": "עוצמת כניסה",
+      "term": "Input Gain · Gain Staging"
+    },
+    "hum": {
+      "name": "מנקה האם",
+      "term": "Hum Remover · Notch Filter"
+    },
+    "hpf": {
+      "name": "ניקוי בס",
+      "term": "High Pass Filter (HPF)"
+    },
+    "breath": {
+      "name": "מנקה נשימות",
+      "term": "Breath Control"
+    },
+    "deess": {
+      "name": "דה-אסר",
+      "term": "De-Esser"
+    },
+    "mud": {
+      "name": "ניקוי בוץ",
+      "term": "Parametric EQ · Bell Cut"
+    },
+    "level": {
+      "name": "מיישר עוצמה",
+      "term": "Leveler · Gain Rider"
+    },
+    "comp": {
+      "name": "קומפרסור",
+      "term": "Compressor"
+    },
+    "warmth": {
+      "name": "חום",
+      "term": "Saturation · Tube"
+    }
   },
-
   "findings": {
     "input_gain_hot": {
       "title": "ההקלטה נכנסת חזק מדי",
@@ -153,6 +213,29 @@
         "דיגיטלי נקי מדי, ולכן נשמע לפעמים קר ושטוח.",
         "הכלל: **אם אתה שומע את זה, הגזמת.** המבחן הוא לכבות — אם פתאום נשמע דל ומסכן, זה היה במקום הנכון."
       ]
+    }
+  },
+  "roles": {
+    "_note": "תפקיד העותק בערימת הווקאלים. משנה יעדים ונוסח המלצות. לא ממומש בגרסה 1 — המבנה קיים מראש.",
+    "lead": {
+      "name": "ליד",
+      "goal": "דיוק ושליטה. זה מה שמקשיבים לו."
+    },
+    "double": {
+      "name": "דאבל",
+      "goal": "עובי. 6dB מתחת לליד, מפוזר הצידה."
+    },
+    "harmony": {
+      "name": "הרמוניה",
+      "goal": "צבע. 7-9dB מתחת, רחב, פחות נוכחות באמצע."
+    },
+    "chorus_stack": {
+      "name": "הרמוניית פזמון",
+      "goal": "גובה ורוחב. הכי הרבה חלל. אל תחדד אותה."
+    },
+    "vocoder": {
+      "name": "ווקודר",
+      "goal": "אפקט. לא עובר את רוב שלבי הניקיון."
     }
   }
 }
