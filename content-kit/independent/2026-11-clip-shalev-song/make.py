@@ -8,16 +8,17 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SC = '/tmp/claude-0/-home-user-The-tur/1a5819ee-0cc0-5045-b086-4a8a80216453/scratchpad/shalev/'; P = SC + 'prep/'; os.makedirs(P, exist_ok=True)
 FD = SC + 'fonts/'; KB = glob.glob('/root/.claude/skills/synced/*/pro-video-editing/assets/fonts/Karantina-Bold.ttf')[0]
 EMO = '/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf'
-V1 = HERE + '/footage/shalev-debate-v1.mp4'; V2 = HERE + '/footage/shalev-clip2.mov'; SONG = HERE + '/song.wav'
+V1 = HERE + '/footage/shalev-debate-v1.mp4'; V2 = HERE + '/footage/shalev-clip2.mov'; V3 = HERE + '/footage/shalev-clip3.mov'; SONG = HERE + '/song.wav'
 W, H, FPS = 1080, 1920, 30
 BEAT = 60 / 86.4; BAR = 4 * BEAT; L0 = 2.60
 def LS(k): return L0 + (k - 1) * BAR          # start of lyric line k (1..14)
-END0 = LS(15) - .35; TOTAL = END0 + 2.4
+SONG_END = 41.6; C3 = LS(15) - .3; C3D = 8.95; END0 = C3 + C3D; TOTAL = END0 + 2.4
+C3SUB = [(0.0, 2.6, 'אני בטוח שכבר קנית ציצית,'), (2.6, 4.9, 'הנחת תפילין, שמת כיפה,'), (4.9, 6.2, 'תתחיל לשמור שבת.'), (6.2, 9.0, 'רק תבואו איתנו. אה?')]
 LY = {1: 'שָׁלֵו שָׁלֵו, הַמְעַרְבֵּב', 2: 'עָשָׂה וָואחַד קַמְפֵּיין', 3: 'עִם מַדִּים וּמִלּוּאִים', 4: 'טִנֵּף עַל מִשְׁתַּמְּטִים',
       5: 'שָׁלֵו שָׁלֵו הַמְעַרְבֵּב', 6: 'עָשָׂה וָואחַד סִבּוּב', 7: 'עַל הַלּוֹחֲמִים, עַל הַחֲרֵדִים', 8: 'עַל בְּרִית הַמְּשָׁרְתִים',
       9: 'לָה לָה לָה כִּסֵּא', 10: 'לָה לָה לָה כִּסֵּא', 11: 'לָה לָה לָה כִּסֵּא', 12: 'לָה לָה לָה לָה', 13: 'שָׁלֵו שָׁלֵו הַמְעַרְבֵּב', 14: 'שָׁבַרְתָּ לִי תַּ\'לֵּב'}
 # clip ranges (source, start, crop) per line
-CLIPS = {1: ('v1', 1.5), 2: ('v1', 3.8), 3: ('v1', 7.6), 4: ('v2', 1.6), 5: ('v1', 0.0), 9: ('v1', 27.4), 10: ('v1', 24.6), 11: ('v1', 29.8), 13: ('v1', 0.0), 7: ('v1', 4.0)}
+CLIPS = {6: ('v1', 8.9), 1: ('v1', 1.5), 2: ('v1', 3.8), 3: ('v1', 7.6), 4: ('v2', 1.6), 5: ('v1', 0.0), 9: ('v1', 27.4), 10: ('v1', 24.6), 11: ('v1', 29.8), 13: ('v1', 0.0), 7: ('v1', 4.0)}
 INK = (45, 40, 90); RED = (230, 45, 60); YEL = (255, 210, 0); YEL2 = (255, 186, 0); WHITE = (255, 255, 255); BLACK = (0, 0, 0)
 _f = {}
 def F(name, s):
@@ -31,6 +32,10 @@ rng = np.random.default_rng(7)
 
 # ---------- footage ----------
 def prep():
+    d = P + 'end3/'
+    if not os.path.exists(d + '0001.png'):
+        os.makedirs(d, exist_ok=True)
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', V3, '-vf', f'fps={FPS},crop=1388:932:36:68,scale=900:604', d + '%04d.png'], check=True)
     for k, (src, s0) in CLIPS.items():
         d = P + f'c{k}/'
         if os.path.exists(d + '0001.png'): continue
@@ -237,22 +242,12 @@ def s5(t, k, u):   # pop: the blender arrives, Shalev sticker gets sucked in
     place(im, bl, W / 2, 1150, 1.25 * p, 3 * math.sin(t * 6))
     if sc > .01: place(im, s, W / 2, 620 + 400 * eo((u - 1.4) / .9), sc, 30 * eo((u - 1.4) / .9))
     popword(im, 'שָׁלֵו שָׁלֵו', W / 2, 140, 200, LS(k) + .05, t); popword(im, 'הַמְעַרְבֵּב', W / 2, 1640, 220, LS(k) + 1.3, t, blk=RED, rot=-3); return im
-def s6(t, k, u):   # story: AFTER THE ELECTIONS card, page does a full spin ('סיבוב')
-    im = paper(t); d = ImageDraw.Draw(im)
-    popword(im, 'אַחֲרֵי הַבְּחִירוֹת:', W / 2, 300, 170, LS(k) + .3, t, blk=RED, rot=-2)
-    if u > .7:
-        p = eo((u - .7) / .4); card = Image.new('RGBA', (900, 560), (0, 0, 0, 0)); cd = ImageDraw.Draw(card)
-        cd.rounded_rectangle((0, 0, 899, 559), 30, fill=WHITE, outline=INK, width=8)
-        cd.text((450, 50), 'בֶּנֶט, רֹאשׁ הַמִּפְלָגָה שֶׁל שָׁלֵו:', font=F('SecularOne.ttf', 64), fill=(110, 100, 80), anchor='ma', direction='rtl')
-        cd.text((450, 170), 'לֹא שׁוֹלֵל לָשֶׁבֶת', font=F('SecularOne.ttf', 104), fill=INK, anchor='ma', direction='rtl')
-        cd.text((450, 310), 'עִם הַחֲרֵדִים', font=F('SecularOne.ttf', 104), fill=RED, anchor='ma', direction='rtl')
-        cd.text((450, 430), 'וְעִם לִיבֶּרְמַן', font=F('SecularOne.ttf', 104), fill=RED, anchor='ma', direction='rtl')
-        place(im, card, W / 2, 860, .3 + .7 * p, 2 * (1 - p))
-        place(im, emoji('🤔', 150), 880, 1190, bk((u - 1.2) / .35), 12)
-    lyric_story(im, k, t, 1440, 120)
-    if u < .55:   # whole page spins once
-        a = 360 * eo(u / .55); bgc = Image.new('RGBA', (W, H), (60, 50, 40, 255)); place(bgc, im, W / 2, H / 2, .8 + .2 * eo(u / .55), a); return bgc
-    return im
+def s6(t, k, u):   # story: 'עשה ואחד סיבוב' - the sticker does a full spin
+    im = paper(t); uu = u - .3; a = 360 * eo(uu / 1.2) if uu > 0 else 0
+    p = bk(u / .45, 1.6); sk = sticker(clipframe(k, u)); place(im, sk, W / 2, 800, .95 * (.25 + .75 * p), -a + 2 * math.sin(t * 3))
+    place(im, emoji('🌀', 170), 160, 1240, bk((u - .2) / .35) * (1 + .1 * beatpulse(t)), -t * 120)
+    place(im, emoji('🔄', 150), 920, 1230, bk((u - .5) / .35), t * 90)
+    lyric_story(im, k, t, 1440, 130); return im
 def s7(t, k, u):   # pop: labels drop into the blender (lines 7-8)
     im = pop(t); uu = t - LS(7)
     cont = []
@@ -292,6 +287,22 @@ def s14(t, k, u):   # story: heart breaks
     return im
 SCENES = {1: s1, 2: s2, 3: s3, 4: s4, 5: s5, 6: s6, 7: s7, 8: s7, 9: s9, 10: s9, 11: s9, 12: s12, 13: s13, 14: s14}
 STORY = {1: True, 3: True, 6: True, 13: True, 14: True}
+_c3 = None
+def clip3(t):
+    u = t - C3; im = paper(t); d = ImageDraw.Draw(im)
+    global _c3
+    if _c3 is None: _c3 = sorted(os.listdir(P + 'end3/'))
+    fr = Image.open(P + 'end3/' + _c3[max(0, min(len(_c3) - 1, int(u * FPS)))]).convert('RGB')
+    place(im, sticker(fr, 18, 34), W / 2, 760, bk(u / .5, 1.5), -2 + 1.5 * math.sin(t * 2))
+    place(im, emoji('😏', 150), 900, 1130, bk((u - 6.2) / .3), 10)
+    for a, b, txt in C3SUB:
+        if a <= u < b:
+            f = F('SecularOne.ttf', 84); tw = d.textlength(txt, font=f, direction='rtl'); p = eo((u - a) / .2)
+            lay = Image.new('RGBA', (int(tw) + 80, 150), (0, 0, 0, 0)); ld = ImageDraw.Draw(lay)
+            ld.rounded_rectangle((0, 0, lay.width - 1, 149), 26, fill=WHITE, outline=INK, width=6); ld.text((lay.width / 2, 18), txt, font=f, fill=INK, anchor='ma', direction='rtl')
+            place(im, lay, W / 2, 1330 + 20 * (1 - p), .9 + .1 * p, 0)
+    if u < .44: return flip(scene(C3 - .01), im, .5 + u / .88)
+    return im
 def backcover(t):
     u = t - END0; im = paper(t); d = ImageDraw.Draw(im)
     lay = Image.new('RGBA', (W, 400), (0, 0, 0, 0)); ld = ImageDraw.Draw(lay)
@@ -300,23 +311,23 @@ def backcover(t):
     place(im, lay, W / 2, 760, bk(u / .5), -3)
     d.text((W / 2, 1080), 'סִפּוּרוֹ שֶׁל שָׁלֵו הַמְעַרְבֵּב', font=F('SecularOne.ttf', 70), fill=(110, 100, 80, int(255 * eo((u - .5) / .5))), anchor='ma', direction='rtl')
     place(im, emoji('💔', 150), W / 2, 1280, bk((u - .8) / .4), 0)
-    if u < .44: return flip(scene(END0 - .01), im, .5 + u / .88)
+    if u < .44: return flip(clip3(END0 - .01), im, .5 + u / .88)
     return im
 def frame(t):
-    im = backcover(t) if t >= END0 else scene(t)
+    im = backcover(t) if t >= END0 else (clip3(t) if t >= C3 else scene(t))
     return im.convert('RGB')
 
 if __name__ == '__main__':
     prep()
     if len(sys.argv) > 1 and sys.argv[1] == 'stills':
-        ts = [1.2] + [LS(k) + 2.0 for k in range(1, 15)] + [END0 + 1.5]
-        ims = [frame(x).resize((216, 384)) for x in ts]; sh = Image.new('RGB', (8 * 220, 2 * 388), WHITE)
-        for i, x in enumerate(ims): sh.paste(x, ((i % 8) * 220, (i // 8) * 388))
+        ts = [1.2] + [LS(k) + 2.0 for k in range(1, 15)] + [C3 + 1.5, C3 + 7.0, END0 + 1.5]
+        ims = [frame(x).resize((216, 384)) for x in ts]; sh = Image.new('RGB', (9 * 220, 2 * 388), WHITE)
+        for i, x in enumerate(ims): sh.paste(x, ((i % 9) * 220, (i // 9) * 388))
         sh.save(SC + 'stills.jpg'); print(TOTAL); sys.exit()
     ff = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p', P + 'v.mp4'], stdin=subprocess.PIPE)
     for i in range(int(round(TOTAL * FPS))): ff.stdin.write(frame(i / FPS).tobytes())
     ff.stdin.close(); ff.wait()
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', P + 'v.mp4', '-i', SONG, '-filter_complex', f'[1:a]aformat=sample_rates=48000:channel_layouts=stereo,apad=whole_dur={TOTAL:.2f},afade=t=out:st={TOTAL - 1.2:.2f}:d=1.2[a]', '-map', '0:v', '-map', '[a]',
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', P + 'v.mp4', '-i', SONG, '-i', V3, '-filter_complex', f'[1:a]aformat=sample_rates=48000:channel_layouts=stereo,loudnorm=I=-14:TP=-1.5,atrim=0:{SONG_END},afade=t=out:st={SONG_END - .6:.2f}:d=.6[s];[2:a]aformat=sample_rates=48000:channel_layouts=stereo,highpass=f=90,loudnorm=I=-14:TP=-1.5,afade=t=in:d=.05,adelay={int(C3 * 1000)}:all=1[c];[s][c]amix=inputs=2:normalize=0,apad=whole_dur={TOTAL:.2f},atrim=0:{TOTAL:.2f}[a]', '-map', '0:v', '-map', '[a]',
                     '-c:v', 'libx264', '-preset', 'slow', '-crf', '21', '-maxrate', '10M', '-bufsize', '20M', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-t', f'{TOTAL:.2f}', '-movflags', '+faststart', P + 'mux.mp4'], check=True)
     LN = glob.glob('/root/.claude/skills/synced/*/pro-video-editing/scripts/loudnorm.py')[0]
     subprocess.run(['python3', LN, P + 'mux.mp4', HERE + '/shalev-hamearbev.mp4', '--target', '-14'], check=True)
