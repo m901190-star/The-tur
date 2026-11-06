@@ -1,0 +1,53 @@
+{
+ "name": "הציונות הדתית",
+ "slug": "hatzionut-hadatit",
+ "aliases": [
+  "הציונות הדתית",
+  "ציונות דתית",
+  "סמוטריץ'",
+  "המפלגה"
+ ],
+ "language": "he",
+ "base_theme": "default",
+ "theme_overrides": {
+  "accent": "#69B4BD",
+  "secondary": "#509299",
+  "panel": "#2B5155",
+  "text": "#FFFFFF",
+  "text_dark": "#2B5155"
+ },
+ "fonts": {
+  "bold": "Karantina",
+  "regular": "Karantina"
+ },
+ "logo": {
+  "file": "logo.png",
+  "corner": "top-right",
+  "width": 220,
+  "margin": 60,
+  "opacity": 1.0
+ },
+ "defaults": {
+  "output": {
+   "width": 1080,
+   "height": 1920,
+   "fps": 30,
+   "loudness": -14
+  },
+  "layout": "full",
+  "captions": {
+   "style": "pop"
+  },
+  "music": null,
+  "auto_sfx": false,
+  "progress_bar": false
+ },
+ "rules": [
+  "Palette only: deep teal #2B5155, teal #509299, light teal #69B4BD, pale teal #ADD5D9, mist #EAF2F3, white. No colours outside it.",
+  "Logo is white artwork with teal accents (transparent PNG): use it only on dark/teal backgrounds or over darkened video; never recolour or redraw it.",
+  "Stories: 1080x1920, keep text inside the Instagram safe area (about 230px top, 280px bottom).",
+  "No background music unless asked: motion graphics + purposeful, subtle sound effects only.",
+  "Never invent quotes, numbers or claims; text on screen comes from the user or from what is said in the footage."
+ ],
+ "notes": "Religious Zionism party (led by Bezalel Smotrich). User manages their social media. Palette from the user's palette image."
+}

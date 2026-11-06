@@ -1,0 +1,69 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 0
+ScaledBorderAndShadow: yes
+YCbCr Matrix: TV.709
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Cap,Karantina,96,&H00FFFFFF,&H002CC7FF,&H00000000,&H64000000,-1,0,0,0,100,100,0,0,1,5,2,5,86,129,0,-1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:04.14,0:00:05.40,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫כחלק מיצירת {\c&H002CC7FF}ההרתעה{\c&H00FFFFFF}‬
+Dialogue: 0,0:00:05.46,0:00:06.58,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫וקביעת {\c&H002CC7FF}המחיר{\c&H00FFFFFF} על‬
+Dialogue: 0,0:00:06.62,0:00:08.08,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫ההיתקלות הקשה היום‬
+Dialogue: 0,0:00:08.10,0:00:09.32,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫באזור חברון אני‬
+Dialogue: 0,0:00:09.36,0:00:10.22,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫נתתי הנחיה לבצע‬
+Dialogue: 0,0:00:10.26,0:00:10.86,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫כאן עכשיו סדרה‬
+Dialogue: 0,0:00:10.86,0:00:11.52,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫של {\c&H002CC7FF}הריסות{\c&H00FFFFFF} של‬
+Dialogue: 0,0:00:11.74,0:00:12.46,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫מבנים לא חוקיים‬
+Dialogue: 0,0:00:13.00,0:00:14.02,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫בתיאום עם הצבא‬
+Dialogue: 0,0:00:14.06,0:00:14.68,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫עם אגף תשתית‬
+Dialogue: 0,0:00:14.72,0:00:15.58,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫ועם המנהל האזרחי‬
+Dialogue: 0,0:00:15.96,0:00:16.50,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫אנחנו פה כבר‬
+Dialogue: 0,0:00:16.50,0:00:17.66,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫עם הכלים בשטח‬
+Dialogue: 0,0:00:18.74,0:00:19.64,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫אנחנו מעבירים מסר‬
+Dialogue: 0,0:00:19.70,0:00:20.44,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫חד משמעי לאויבים‬
+Dialogue: 0,0:00:20.50,0:00:21.48,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫שלנו אם אתם‬
+Dialogue: 0,0:00:21.52,0:00:22.48,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫תתעסקו איתנו אנחנו‬
+Dialogue: 0,0:00:22.52,0:00:24.26,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫נקבע לכם {\c&H002CC7FF}מחירים{\c&H00FFFFFF}‬
+Dialogue: 0,0:00:24.34,0:00:25.32,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫{\c&H002CC7FF}כואבים{\c&H00FFFFFF} מאוד מאוד‬
+Dialogue: 0,0:00:25.78,0:00:26.48,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫אנחנו אישרנו היום‬
+Dialogue: 0,0:00:26.52,0:00:27.42,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫ארבע חוות נוספות‬
+Dialogue: 0,0:00:27.80,0:00:28.56,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫שיעלו לשטח באזור‬
+Dialogue: 0,0:00:28.60,0:00:29.10,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫דרום הר חברון‬
+Dialogue: 0,0:00:29.10,0:00:29.82,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫ממשיכים גם בעשה‬
+Dialogue: 0,0:00:29.88,0:00:30.82,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫טוב אבל גם‬
+Dialogue: 0,0:00:30.86,0:00:31.58,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫בסור מרע‬
+Dialogue: 0,0:00:32.00,0:00:32.90,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫אני מבקש להודות‬
+Dialogue: 0,0:00:32.98,0:00:34.26,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫לאלוף הפיקוד לאגף‬
+Dialogue: 0,0:00:34.30,0:00:36.08,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫תשתית למנהל האזרחי‬
+Dialogue: 0,0:00:36.14,0:00:36.96,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫לסגן ראש המנהל‬
+Dialogue: 0,0:00:36.98,0:00:37.82,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫לעניינים אזרחיים הילה‬
+Dialogue: 0,0:00:37.86,0:00:39.28,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫רוט ולכל אנשי‬
+Dialogue: 0,0:00:39.32,0:00:40.60,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫יחידת הפיקוח של‬
+Dialogue: 0,0:00:40.64,0:00:41.54,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫המנהל האזרחי שעובדים‬
+Dialogue: 0,0:00:41.58,0:00:42.08,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫כאן היום יום‬
+Dialogue: 0,0:00:42.08,0:00:42.68,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫שישי‬
+Dialogue: 0,0:00:42.92,0:00:43.68,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫עד שבת אנחנו‬
+Dialogue: 0,0:00:43.72,0:00:44.18,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫נוריד כאן לא‬
+Dialogue: 0,0:00:44.18,0:00:45.80,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫מעט מבנים ויהיה‬
+Dialogue: 0,0:00:45.86,0:00:47.56,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫ברור שלטרור‬
+Dialogue: 0,0:00:48.22,0:00:50.56,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫שפוגע באזרחי ישראל‬
+Dialogue: 0,0:00:50.64,0:00:52.14,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫יש {\c&H002CC7FF}מחיר{\c&H00FFFFFF} {\c&H002CC7FF}כבד{\c&H00FFFFFF}‬
+Dialogue: 0,0:00:52.22,0:00:52.82,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫מאוד‬
+Dialogue: 0,0:00:53.04,0:00:53.76,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫זו רק {\c&H002CC7FF}ההתחלה{\c&H00FFFFFF}‬
+Dialogue: 0,0:00:54.02,0:00:54.68,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫אנחנו סיכמנו פה‬
+Dialogue: 0,0:00:54.72,0:00:55.07,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫גם עם ראש‬
+Dialogue: 0,0:00:55.06,0:00:55.90,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫הממשלה ושר הביטחון‬
+Dialogue: 0,0:00:55.96,0:00:56.98,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫הם מפעילים עכשיו‬
+Dialogue: 0,0:00:57.06,0:00:57.74,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫את האזור הזה‬
+Dialogue: 0,0:00:57.80,0:00:58.72,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫ואזורים רבים אחרים‬
+Dialogue: 0,0:00:59.02,0:01:00.22,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫נרכז עכשיו מאמץ‬
+Dialogue: 0,0:01:00.30,0:01:01.42,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫לגבות {\c&H002CC7FF}מחיר{\c&H00FFFFFF} וליצור‬
+Dialogue: 0,0:01:01.46,0:01:02.06,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫{\c&H002CC7FF}הרתעה{\c&H00FFFFFF}‬
+Dialogue: 0,0:01:02.36,0:01:03.34,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫{\c&H002CC7FF}דם{\c&H00FFFFFF} {\c&H002CC7FF}יהודי{\c&H00FFFFFF} אינו‬
+Dialogue: 0,0:01:03.36,0:01:03.96,Cap,,0,0,0,,{\pos(540,1470)\fscx112\fscy112\alpha&H40&\t(0,120,\fscx100\fscy100\alpha&H00&)}‫{\c&H002CC7FF}זול{\c&H00FFFFFF}‬
