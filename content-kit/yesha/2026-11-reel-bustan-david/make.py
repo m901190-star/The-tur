@@ -39,7 +39,7 @@ SHOTS = [(0.45, 2.2, 'img', 'p4-97140d1b.jpg', 0, 1), (2.2, 4.9, 'vid', 'IMG_817
          (59.4, 99, 'vid', 'IMG_8174.mov', 3.5, .7)]
 SUBS = [(0.75, 2.0, 'נוסעים בכביש 90?'), (2.41, 4.47, 'יש עצירה שאתם חייבים לעשות.'), (5.04, 5.92, 'בוסתן דוד,'), (6.30, 9.11, 'על שם רס״ן דוד מאיר הי״ד,'),
         (9.57, 10.64, 'מכוכב השחר.'), (11.26, 13.7, 'קצין בסיירת מטכ״ל, איש של שטח,'), (13.7, 16.43, 'שהכיר את הארץ כמו את כף ידו.'),
-        (16.88, 17.85, 'בשמחת תורה,'), (18.46, 21.66, 'דוד נלחם בגבורה בקרבות בבארי,'), (22.23, 23.02, 'ושם נפל.'),
+        (16.89, 18.2, 'בשמחת תורה,'), (18.2, 20.74, 'דוד נלחם בגבורה בקרבות בבארי,'), (21.38, 22.3, 'ושם נפל.'),
         (23.75, 25.87, 'והיום, בבוסתן שנבנה לזכרו,'),
         (29.35, 31.26, 'שתי בריכות מים אקולוגיות,'), (31.62, 33.06, 'נוף שעוצר את הנשימה,'), (33.56, 35.42, 'ועגלת קפה עם מאפים טריים,'),
         (35.83, 37.08, 'סנדוויצ\'ים מושקעים,'), (37.59, 39.68, 'וקפה שמחמם את הלב.'), (40.64, 43.3, 'את המצפה מימן עם ישראל, בגיוס המונים,'),
@@ -97,10 +97,14 @@ for y in range(H):
     gd.line((0, y, W, y), fill=(5, 14, 28, a))
 def headline(d, xy, s, size, anchor='ma'):
     f = F(KB, size); d.text((xy[0] + 6, xy[1] + 6), s, font=f, fill=BLUE, anchor=anchor, direction='rtl'); d.text(xy, s, font=f, fill=WHITE, anchor=anchor, direction='rtl')
+def bk(x, s=1.7): x = max(0., min(1., x)); x -= 1; return x * x * ((s + 1) * x + s) + 1
 def label(im, s, cx, y, size=52, alpha=1.):
+    if alpha <= .01: return
     d = ImageDraw.Draw(im); f = F(SEC, size); tw = d.textlength(s, font=f, direction='rtl')
-    lay = Image.new('RGBA', (int(tw) + 60, size + 36), BLUE + (int(255 * alpha),)); ImageDraw.Draw(lay).text((lay.width / 2, 12), s, font=f, fill=(255, 255, 255, int(255 * alpha)), anchor='ma', direction='rtl')
-    im.alpha_composite(lay, (int(cx - lay.width / 2), int(y)))
+    lay = Image.new('RGBA', (int(tw) + 60, size + 36), (0, 0, 0, 0)); ld = ImageDraw.Draw(lay); ld.rounded_rectangle((0, 0, lay.width - 1, lay.height - 1), 14, fill=BLUE)
+    ld.text((lay.width / 2, 12), s, font=f, fill=WHITE, anchor='ma', direction='rtl')
+    sc = .6 + .4 * bk(alpha); lay = lay.resize((max(1, int(lay.width * sc)), max(1, int(lay.height * sc))), Image.BILINEAR); lay.putalpha(lay.getchannel('A').point(lambda v: int(v * min(1, alpha * 1.5))))
+    im.alpha_composite(lay, (int(cx - lay.width / 2), int(y + (1 - sc) * 30)))
 def wrap(d, s, f, maxw):
     out, cur = [], ''
     for w in s.split():
@@ -139,7 +143,7 @@ def overlays(im, nt, vt):
         if int(u * 2.5) % 2 == 0 and n < len(txt): bd.line((750 - bd.textlength(txt[:n], font=F(SEC, 70), direction='rtl') - 6, 40, 750 - bd.textlength(txt[:n], font=F(SEC, 70), direction='rtl') - 6, 110), fill=LB, width=5)
         bar.putalpha(bar.getchannel('A').point(lambda v: int(v * p))); im.alpha_composite(bar, (90, int(760 + 40 * (1 - p))))
         if u > 1.6:
-            q = eo((u - 1.6) / .35); pin = emoji('📍', 150); im.alpha_composite(pin, (int(W / 2 - pin.width / 2), int(470 + 150 * (1 - q) - 0)))
+            q = bk((u - 1.6) / .45, 2.6); pin = emoji('📍', 150); im.alpha_composite(pin, (int(W / 2 - pin.width / 2), int(470 - 220 * (1 - q))))
         if u > 2.2: label(im, 'כביש 90 · בקעת הירדן', W / 2, 960, 46, eo((u - 2.2) / .4))
     if vt > TOTAL - 2.6:   # end: logo in the centre
         u = vt - (TOTAL - 2.6); lg = Image.open(LOGO).convert('RGBA'); lg = lg.crop(lg.getchannel('A').getbbox()); lg = lg.resize((420, int(420 * lg.height / lg.width)), Image.LANCZOS)
@@ -169,14 +173,15 @@ def frame(vt):
 def audio(out):
     T = f'{TOTAL:.2f}'
     fl = [f'[0:a]atrim=0.6:{P1_END},asetpts=PTS-STARTPTS,afade=t=out:st={P1_END - .6 - .08:.2f}:d=0.08,adelay={int(V(.6) * 1000)}:all=1[a1]',
-          f'[0:a]atrim={P2_START}:{CUT[0]},asetpts=PTS-STARTPTS,afade=t=in:d=0.05,afade=t=out:st={CUT[0] - P2_START - .06:.2f}:d=0.06,adelay={int(V(P2_START) * 1000)}:all=1[a2]',
+          f'[0:a]atrim=23.4:{CUT[0]},asetpts=PTS-STARTPTS,afade=t=in:d=0.05,afade=t=out:st={CUT[0] - 23.4 - .06:.2f}:d=0.06,adelay={int(V(23.4) * 1000)}:all=1[a2]',
+          f'[3:a]atrim=0.45:6.0,asetpts=PTS-STARTPTS,afade=t=in:d=0.04,afade=t=out:st=5.45:d=0.1,adelay={int(V(16.78) * 1000)}:all=1[a4]',
           f'[0:a]atrim={CUT[1]}:{VO_END},asetpts=PTS-STARTPTS,afade=t=in:d=0.05,adelay={int(V(CUT[1]) * 1000)}:all=1[a3]',
           f'[1:a]aformat=sample_rates=48000:channel_layouts=mono,atrim=0:{MOM_D},asetpts=PTS-STARTPTS,highpass=f=80,loudnorm=I=-16:TP=-1.5,afade=t=in:d=0.15,afade=t=out:st={MOM_D - .3:.2f}:d=0.3,adelay={int(MOM_AT * 1000)}:all=1[mo]',
-          '[a1][a2][a3][mo]amix=inputs=4:normalize=0,aformat=sample_rates=48000:channel_layouts=stereo,asplit=2[voice][key]',
-          f"[2:a]aformat=sample_rates=48000:channel_layouts=stereo,aloop=loop=3:size={int(25.6 * 48000)},atrim=0:{T},volume='if(between(t,{MOM_AT - .5:.2f},{V(CUT[1]):.2f}),0.16,if(gt(t,{V(59.3):.2f}),0.42,0.30))':eval=frame,afade=t=in:d=1.0,afade=t=out:st={TOTAL - 2.0:.2f}:d=2.0[m]",
+          '[a1][a2][a3][a4][mo]amix=inputs=5:normalize=0,aformat=sample_rates=48000:channel_layouts=stereo,asplit=2[voice][key]',
+          f"[2:a]aformat=sample_rates=48000:channel_layouts=stereo,aloop=loop=2:size={int(34.909 * 48000)},atrim=0:{T},volume='if(between(t,{MOM_AT - .6:.2f},{V(23.2):.2f}),0.10,if(gt(t,{V(59.3):.2f}),0.50,0.40))':eval=frame,afade=t=in:d=1.0,afade=t=out:st={TOTAL - 2.0:.2f}:d=2.0[m]",
           '[m][key]sidechaincompress=threshold=0.03:ratio=3:attack=25:release=400[md]',
           f'[voice][md]amix=inputs=2:normalize=0,alimiter=limit=0.95,apad=whole_dur={T},atrim=0:{T}[o]']
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', HERE + '/vo_clean.wav', '-i', FT + 'mother.mov', '-i', HERE + '/music.wav', '-filter_complex', ';'.join(fl), '-map', '[o]', out], check=True)
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', HERE + '/vo_clean.wav', '-i', FT + 'mother.mov', '-i', HERE + '/music_cafe.wav', '-i', HERE + '/vo_fix_clean.wav', '-filter_complex', ';'.join(fl), '-map', '[o]', out], check=True)
 
 if __name__ == '__main__':
     prep()
