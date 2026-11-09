@@ -13,8 +13,11 @@ W, H, FPS = 1080, 1920, 30
 BLUE = (0x25, 0x66, 0xA2); NAVY = (0x17, 0x40, 0x68); LB = (0x27, 0xA4, 0xD1); WHITE = (255, 255, 255)
 MOM_D = 6.35; P1_END = 16.6; P2_START = 16.75
 MOM_AT = P1_END - .45 + .15; OFF2 = MOM_AT + MOM_D + .15 - P2_START
-def V(nt): return nt - 0.45 if nt < P1_END else nt + OFF2
-VO_END = 62.6; TOTAL = V(VO_END) + 2.6
+CUT = (26.0, 29.25)   # removed: 'נשתלו עצים שהגיעו מבארי' (unverified) -> 'והיום, בבוסתן שנבנה לזכרו, שתי בריכות מים...'
+CD = CUT[1] - CUT[0]
+def V(nt): return nt - 0.45 if nt < P1_END else (nt + OFF2 if nt < CUT[0] else nt + OFF2 - CD)
+VO_END = 62.6
+TOTAL = V(VO_END) + 2.6
 _f = {}
 def F(p, s):
     k = (p, s)
@@ -36,7 +39,7 @@ SHOTS = [(0.45, 2.2, 'img', 'p4-97140d1b.jpg', 0, 1), (2.2, 4.9, 'vid', 'IMG_817
 SUBS = [(0.75, 2.0, 'נוסעים בכביש 90?'), (2.41, 4.47, 'יש עצירה שאתם חייבים לעשות.'), (5.04, 5.92, 'בוסתן דוד,'), (6.30, 9.11, 'על שם רס״ן דוד מאיר הי״ד,'),
         (9.57, 10.64, 'מכוכב השחר.'), (11.26, 13.7, 'קצין בסיירת מטכ״ל, איש של שטח,'), (13.7, 16.43, 'שהכיר את הארץ כמו את כף ידו.'),
         (16.88, 17.85, 'בשמחת תורה,'), (18.46, 21.66, 'דוד נשלח להוביל כוח בקרבות בבארי,'), (22.23, 23.02, 'ושם נפל.'),
-        (23.75, 25.87, 'והיום, בבוסתן שנבנה לזכרו,'), (26.40, 28.75, 'נשתלו עצים שהגיעו מבארי.'),
+        (23.75, 25.87, 'והיום, בבוסתן שנבנה לזכרו,'),
         (29.35, 31.26, 'שתי בריכות מים אקולוגיות,'), (31.62, 33.06, 'נוף שעוצר את הנשימה,'), (33.56, 35.42, 'ועגלת קפה עם מאפים טריים,'),
         (35.83, 37.08, 'סנדוויצ\'ים מושקעים,'), (37.59, 39.68, 'וקפה שמחמם את הלב.'), (40.64, 43.3, 'את המצפה מימן עם ישראל, בגיוס המונים,'),
         (43.3, 45.96, 'ובנו אותו חבריו ליחידה,'), (46.40, 48.16, 'מכינות קדם־צבאיות,'), (48.64, 51.27, 'ונוער מכל הארץ ומכל העולם.'),
@@ -126,7 +129,6 @@ def overlays(im, nt, vt):
     if 6.3 <= nt < 11.1:
         p = eo((nt - 6.3) / .4); label(im, 'רס״ן דוד מאיר הי״ד', W / 2, 300, 60, p)
         if nt > 9.4: label(im, 'כוכב השחר', W / 2, 400, 46, eo((nt - 9.5) / .4))
-    if 26.2 <= nt < 29.1: label(im, 'עצים שהגיעו מבארי', W / 2, 300, 54, eo((nt - 26.3) / .4))
     if 29.1 <= nt < 40.4 and nt < 29.1 + 99: pass
     if 40.4 <= nt < 43.3: label(im, 'בגיוס המונים מכל הארץ', W / 2, 300, 50, eo((nt - 40.5) / .4))
     if nt >= 59.3:   # navigation search: 'בוסתן דוד'
@@ -154,7 +156,9 @@ def frame(vt):
         if MOM_AT + MOM_D - vt < .3: im = Image.blend(im, base(P2_START).convert('RGBA'), 1 - (MOM_AT + MOM_D - vt) / .3)
     else:
         if vt < MOM_AT: nt = min(vt + .45, P1_END - .001)
-        else: nt = max(vt - OFF2, P2_START)
+        else:
+            nt = max(vt - OFF2, P2_START)
+            if nt >= CUT[0]: nt += CD
         nt = max(nt, .45)
         im = base(nt).convert('RGBA'); im.alpha_composite(GRAD); overlays(im, nt, vt); subtitle(im, nt)
         if vt < .5: im = Image.blend(Image.new('RGBA', (W, H), (0, 0, 0, 255)), im, vt / .5)
@@ -164,10 +168,11 @@ def frame(vt):
 def audio(out):
     T = f'{TOTAL:.2f}'
     fl = [f'[0:a]atrim=0.6:{P1_END},asetpts=PTS-STARTPTS,afade=t=out:st={P1_END - .6 - .08:.2f}:d=0.08,adelay={int(V(.6) * 1000)}:all=1[a1]',
-          f'[0:a]atrim={P2_START}:{VO_END},asetpts=PTS-STARTPTS,afade=t=in:d=0.05,adelay={int(V(P2_START) * 1000)}:all=1[a2]',
+          f'[0:a]atrim={P2_START}:{CUT[0]},asetpts=PTS-STARTPTS,afade=t=in:d=0.05,afade=t=out:st={CUT[0] - P2_START - .06:.2f}:d=0.06,adelay={int(V(P2_START) * 1000)}:all=1[a2]',
+          f'[0:a]atrim={CUT[1]}:{VO_END},asetpts=PTS-STARTPTS,afade=t=in:d=0.05,adelay={int(V(CUT[1]) * 1000)}:all=1[a3]',
           f'[1:a]aformat=sample_rates=48000:channel_layouts=mono,atrim=0:{MOM_D},asetpts=PTS-STARTPTS,highpass=f=80,loudnorm=I=-16:TP=-1.5,afade=t=in:d=0.15,afade=t=out:st={MOM_D - .3:.2f}:d=0.3,adelay={int(MOM_AT * 1000)}:all=1[mo]',
-          '[a1][a2][mo]amix=inputs=3:normalize=0,aformat=sample_rates=48000:channel_layouts=stereo,asplit=2[voice][key]',
-          f"[2:a]aformat=sample_rates=48000:channel_layouts=stereo,aloop=loop=3:size={int(25.6 * 48000)},atrim=0:{T},volume='if(between(t,{MOM_AT - .5:.2f},{V(29.1):.2f}),0.16,if(gt(t,{V(59.3):.2f}),0.42,0.30))':eval=frame,afade=t=in:d=1.0,afade=t=out:st={TOTAL - 2.0:.2f}:d=2.0[m]",
+          '[a1][a2][a3][mo]amix=inputs=4:normalize=0,aformat=sample_rates=48000:channel_layouts=stereo,asplit=2[voice][key]',
+          f"[2:a]aformat=sample_rates=48000:channel_layouts=stereo,aloop=loop=3:size={int(25.6 * 48000)},atrim=0:{T},volume='if(between(t,{MOM_AT - .5:.2f},{V(CUT[1]):.2f}),0.16,if(gt(t,{V(59.3):.2f}),0.42,0.30))':eval=frame,afade=t=in:d=1.0,afade=t=out:st={TOTAL - 2.0:.2f}:d=2.0[m]",
           '[m][key]sidechaincompress=threshold=0.03:ratio=3:attack=25:release=400[md]',
           f'[voice][md]amix=inputs=2:normalize=0,alimiter=limit=0.95,apad=whole_dur={T},atrim=0:{T}[o]']
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', HERE + '/vo_clean.wav', '-i', FT + 'mother.mov', '-i', HERE + '/music.wav', '-filter_complex', ';'.join(fl), '-map', '[o]', out], check=True)
@@ -175,7 +180,7 @@ def audio(out):
 if __name__ == '__main__':
     prep()
     if 'stills' in sys.argv:
-        ts = [1.0, 3.5, 6.0, 8.5, 10.5, 12.5, 15.0, MOM_AT + 3, V(20), V(27), V(30), V(32.5), V(34.5), V(38), V(41.5), V(45), V(49.5), V(52.5), V(55), V(58), V(60.5), TOTAL - 1]
+        ts = [1.0, 3.5, 6.0, 8.5, 10.5, 12.5, 15.0, MOM_AT + 3, V(20), V(25), V(30), V(32.5), V(34.5), V(38), V(41.5), V(45), V(49.5), V(52.5), V(55), V(58), V(60.5), TOTAL - 1]
         ims = [frame(x).resize((180, 320)) for x in ts]; sh = Image.new('RGB', (11 * 184, 2 * 324), WHITE)
         for i, x in enumerate(ims): sh.paste(x, ((i % 11) * 184, (i // 11) * 324))
         sh.save(P + '../stills.jpg'); print(TOTAL); sys.exit()
