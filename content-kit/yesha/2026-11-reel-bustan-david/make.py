@@ -12,7 +12,10 @@ EMO = '/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf'
 W, H, FPS = 1080, 1920, 30
 BLUE = (0x25, 0x66, 0xA2); NAVY = (0x17, 0x40, 0x68); LB = (0x27, 0xA4, 0xD1); WHITE = (255, 255, 255)
 MOM_D = 6.35; P1_END = 16.6; P2_START = 16.75
-MOM_AT = P1_END - .45 + .15; OFF2 = MOM_AT + MOM_D + .15 - P2_START
+HOLD = 4.8   # after the mother: the song's 'יחדיו נכה פה שורש אל לב האדמה' plays alone over the plaque
+MOM_AT = P1_END - .45 + .15; OFF2 = MOM_AT + MOM_D + .15 - P2_START + HOLD
+MOM_END = MOM_AT + MOM_D
+SONG_LINE = 70.1; SONG_J = 17.0; SONG_D = SONG_LINE - (MOM_END + .15)   # song jumps (under the mother) so the line lands as we return
 CUT = (26.0, 29.25)   # removed: 'נשתלו עצים שהגיעו מבארי' (unverified) -> 'והיום, בבוסתן שנבנה לזכרו, שתי בריכות מים...'
 CD = CUT[1] - CUT[0]
 def V(nt): return nt - 0.45 if nt < P1_END else (nt + OFF2 if nt < CUT[0] else nt + OFF2 - CD)
@@ -68,6 +71,7 @@ def photo(name):
     return _img[name]
 def shot_frame(i, nt):
     a, b, kind, src, t0, sp = SHOTS[i]; u = nt - a; dur = max(.1, min(b, VO_END + 2) - a)
+    if src.startswith('p3'): u += HOLD; dur += HOLD
     if kind == 'img':
         im = photo(src); k = u / dur; z = 1 + .08 * k
         if 'p7' in src: cx, cy = .80 * im.width, .55 * im.height; z = 1 + .25 * ss(k)        # push in on the young trees
@@ -158,7 +162,12 @@ def frame(vt):
     if MOM_AT <= vt < MOM_AT + MOM_D:
         im = mom_frame(vt - MOM_AT); u = vt - MOM_AT
         if u < .3: im = Image.blend(base(P1_END - .001).convert('RGBA'), im, u / .3)
-        if MOM_AT + MOM_D - vt < .3: im = Image.blend(im, base(P2_START).convert('RGBA'), 1 - (MOM_AT + MOM_D - vt) / .3)
+        if MOM_AT + MOM_D - vt < .3: im = Image.blend(im, shot_frame(7, P2_START - .15 - HOLD).convert('RGBA'), 1 - (MOM_AT + MOM_D - vt) / .3)
+    elif MOM_END <= vt < MOM_END + .15 + HOLD:
+        u = vt - MOM_END; im = shot_frame(7, P2_START - .15 - HOLD + u).convert('RGBA'); im.alpha_composite(GRAD)
+        p = eo((u - .35) / .6); lay = Image.new('RGBA', (W, 420), (0, 0, 0, 0)); ld = ImageDraw.Draw(lay)
+        headline(ld, (W / 2, 20), 'יַחְדָּיו נַכֶּה פֹּה שֹׁרֶשׁ', 130); headline(ld, (W / 2, 175), 'אֶל לֵב הָאֲדָמָה', 130)
+        lay.putalpha(lay.getchannel('A').point(lambda v: int(v * p))); im.alpha_composite(lay, (0, int(1380 + 20 * (1 - p))))
     else:
         if vt < MOM_AT: nt = min(vt + .45, P1_END - .001)
         else:
@@ -182,14 +191,22 @@ def audio(out):
           f'[4:a]atrim=5.0:7.62,asetpts=PTS-STARTPTS,afade=t=in:d=0.04,afade=t=out:st=2.52:d=0.1,adelay={int(V(53.9) * 1000)}:all=1[a8]',
           f'[1:a]aformat=sample_rates=48000:channel_layouts=mono,atrim=0:{MOM_D},asetpts=PTS-STARTPTS,highpass=f=80,loudnorm=I=-16:TP=-1.5,afade=t=in:d=0.15,afade=t=out:st={MOM_D - .3:.2f}:d=0.3,adelay={int(MOM_AT * 1000)}:all=1[mo]',
           '[a1][a2][a3][a4][a5][a6][a7][a8][mo]amix=inputs=9:normalize=0,aformat=sample_rates=48000:channel_layouts=stereo[voice]']
-    # no music bed (the song is added in Instagram); light Splice SFX only
-    SX = HERE + '/sfx/'; fx = [('whoosh', V(4.9) - .5, .30, 3.3), ('whoosh', V(29.3) - .5, .30, 3.3), ('whoosh', V(59.4) - .5, .30, 3.3),
-                              ('splash', V(51.6) + .3, .45, 3.4), ('typing', V(59.3) + .4, .35, 1.0), ('pin', V(59.3) + 1.55, .55, .95)]
-    ins = ['-i', HERE + '/vo_clean.wav', '-i', FT + 'mother.mov', '-i', HERE + '/music_cafe.wav', '-i', HERE + '/vo_fix_clean.wav', '-i', HERE + '/vo_fix2_clean.wav']
+    # the song (user-supplied): starts at 0; jumps under the mother so 'יחדיו נכה פה שורש' lands as we return; ducked under narration
+    TT = TOTAL; HS, HE = MOM_END + .05, MOM_END + .15 + HOLD
+    vol = f"if(lt(t,0.5),0.85,if(between(t,{MOM_AT - .3:.2f},{MOM_END:.2f}),0.07,if(between(t,{HS:.2f},{HE - .2:.2f}),0.95,if(gt(t,{TT - 2.6:.2f}),0.6,0.30))))"
+    fl += [f'[2:a]aformat=sample_rates=48000:channel_layouts=stereo,atrim=0:{SONG_J + .6:.2f},asetpts=PTS-STARTPTS[sga]',
+           f'[2:a]aformat=sample_rates=48000:channel_layouts=stereo,atrim={SONG_J + SONG_D:.2f}:{TT + SONG_D + 1:.2f},asetpts=PTS-STARTPTS[sgb]',
+           '[sga][sgb]acrossfade=d=1.2:c1=tri:c2=tri,loudnorm=I=-15:TP=-1.5[sg]',
+           f"[sg]volume='{vol}':eval=frame,afade=t=out:st={TT - 2.0:.2f}:d=2.0[sgv]",
+           '[voice]asplit=2[voice1][key]', '[sgv][key]sidechaincompress=threshold=0.03:ratio=3:attack=20:release=350[sgd]',
+           '[voice1][sgd]amix=inputs=2:normalize=0[vm]']
+    SX = HERE + '/sfx/'; fx = [('whoosh', V(4.9) - .5, .18, 3.3), ('whoosh', V(29.3) - .5, .18, 3.3), ('whoosh', V(59.4) - .5, .18, 3.3),
+                              ('splash', V(51.6) + .3, .3, 3.4), ('typing', V(59.3) + .4, .25, 1.0), ('pin', V(59.3) + 1.55, .4, .95)]
+    ins = ['-i', HERE + '/vo_clean.wav', '-i', FT + 'mother.mov', '-i', '/tmp/claude-0/-home-user-The-tur/1a5819ee-0cc0-5045-b086-4a8a80216453/scratchpad/bustan/song.mp3', '-i', HERE + '/vo_fix_clean.wav', '-i', HERE + '/vo_fix2_clean.wav']
     labs = []
     for k, (n, at, g, d) in enumerate(fx):
         ins += ['-i', SX + n + '.wav']; fl.append(f'[{5 + k}:a]aformat=sample_rates=48000:channel_layouts=stereo,atrim=0:{d},afade=t=out:st={d - .2:.2f}:d=0.2,volume={g},adelay={int(at * 1000)}:all=1[x{k}]'); labs.append(f'[x{k}]')
-    fl.append(f"[voice]{''.join(labs)}amix=inputs={1 + len(fx)}:normalize=0,alimiter=limit=0.95,apad=whole_dur={T},atrim=0:{T}[o]")
+    fl.append(f"[vm]{''.join(labs)}amix=inputs={1 + len(fx)}:normalize=0,alimiter=limit=0.95,apad=whole_dur={T},atrim=0:{T}[o]")
     subprocess.run(['ffmpeg', '-v', 'error', '-y'] + ins + ['-filter_complex', ';'.join(fl), '-map', '[o]', out], check=True)
 
 if __name__ == '__main__':
@@ -205,5 +222,5 @@ if __name__ == '__main__':
     audio(P + 'a.wav')
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', P + 'v.mp4', '-i', P + 'a.wav', '-map', '0:v', '-map', '1:a', '-vf', 'scale=720:1280:flags=lanczos', '-c:v', 'libx264', '-preset', 'slow', '-b:v', '2200k', '-maxrate', '3000k', '-bufsize', '6000k', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k', '-t', f'{TOTAL:.2f}', '-movflags', '+faststart', P + 'mux.mp4'], check=True)
     LN = glob.glob('/root/.claude/skills/synced/*/pro-video-editing/scripts/loudnorm.py')[0]
-    subprocess.run(['python3', LN, P + 'mux.mp4', HERE + '/yesha-bustan-david.mp4', '--target', '-14'], check=True)
+    subprocess.run(['python3', LN, P + 'mux.mp4', '/tmp/claude-0/-home-user-The-tur/1a5819ee-0cc0-5045-b086-4a8a80216453/scratchpad/bustan/yesha-bustan-david-with-song.mp4', '--target', '-14'], check=True)
     print('done', TOTAL)
