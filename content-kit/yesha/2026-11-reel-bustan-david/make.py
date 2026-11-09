@@ -177,11 +177,16 @@ def audio(out):
           f'[3:a]atrim=0.45:6.0,asetpts=PTS-STARTPTS,afade=t=in:d=0.04,afade=t=out:st=5.45:d=0.1,adelay={int(V(16.78) * 1000)}:all=1[a4]',
           f'[0:a]atrim={CUT[1]}:{VO_END},asetpts=PTS-STARTPTS,afade=t=in:d=0.05,adelay={int(V(CUT[1]) * 1000)}:all=1[a3]',
           f'[1:a]aformat=sample_rates=48000:channel_layouts=mono,atrim=0:{MOM_D},asetpts=PTS-STARTPTS,highpass=f=80,loudnorm=I=-16:TP=-1.5,afade=t=in:d=0.15,afade=t=out:st={MOM_D - .3:.2f}:d=0.3,adelay={int(MOM_AT * 1000)}:all=1[mo]',
-          '[a1][a2][a3][a4][mo]amix=inputs=5:normalize=0,aformat=sample_rates=48000:channel_layouts=stereo,asplit=2[voice][key]',
-          f"[2:a]aformat=sample_rates=48000:channel_layouts=stereo,aloop=loop=2:size={int(34.909 * 48000)},atrim=0:{T},volume='if(between(t,{MOM_AT - .6:.2f},{V(23.2):.2f}),0.10,if(gt(t,{V(59.3):.2f}),0.50,0.40))':eval=frame,afade=t=in:d=1.0,afade=t=out:st={TOTAL - 2.0:.2f}:d=2.0[m]",
-          '[m][key]sidechaincompress=threshold=0.03:ratio=3:attack=25:release=400[md]',
-          f'[voice][md]amix=inputs=2:normalize=0,alimiter=limit=0.95,apad=whole_dur={T},atrim=0:{T}[o]']
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', HERE + '/vo_clean.wav', '-i', FT + 'mother.mov', '-i', HERE + '/music_cafe.wav', '-i', HERE + '/vo_fix_clean.wav', '-filter_complex', ';'.join(fl), '-map', '[o]', out], check=True)
+          '[a1][a2][a3][a4][mo]amix=inputs=5:normalize=0,aformat=sample_rates=48000:channel_layouts=stereo[voice]']
+    # no music bed (the song is added in Instagram); light Splice SFX only
+    SX = HERE + '/sfx/'; fx = [('whoosh', V(4.9) - .5, .30, 3.3), ('whoosh', V(29.3) - .5, .30, 3.3), ('whoosh', V(59.4) - .5, .30, 3.3),
+                              ('splash', V(51.6) + .3, .45, 3.4), ('typing', V(59.3) + .4, .35, 1.0), ('pin', V(59.3) + 1.55, .55, .95)]
+    ins = ['-i', HERE + '/vo_clean.wav', '-i', FT + 'mother.mov', '-i', HERE + '/music_cafe.wav', '-i', HERE + '/vo_fix_clean.wav']
+    labs = []
+    for k, (n, at, g, d) in enumerate(fx):
+        ins += ['-i', SX + n + '.wav']; fl.append(f'[{4 + k}:a]aformat=sample_rates=48000:channel_layouts=stereo,atrim=0:{d},afade=t=out:st={d - .2:.2f}:d=0.2,volume={g},adelay={int(at * 1000)}:all=1[x{k}]'); labs.append(f'[x{k}]')
+    fl.append(f"[voice]{''.join(labs)}amix=inputs={1 + len(fx)}:normalize=0,alimiter=limit=0.95,apad=whole_dur={T},atrim=0:{T}[o]")
+    subprocess.run(['ffmpeg', '-v', 'error', '-y'] + ins + ['-filter_complex', ';'.join(fl), '-map', '[o]', out], check=True)
 
 if __name__ == '__main__':
     prep()
