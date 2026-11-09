@@ -44,7 +44,7 @@ SUBS = [(0.75, 2.0, 'נוסעים בכביש 90?'), (2.41, 4.47, 'יש עציר�
         (29.35, 31.26, 'שתי בריכות מים אקולוגיות,'), (31.62, 33.06, 'נוף שעוצר את הנשימה,'), (33.56, 35.42, 'ועגלת קפה עם מאפים טריים,'),
         (35.83, 37.08, 'סנדוויצ\'ים מושקעים,'), (37.59, 39.68, 'וקפה שמחמם את הלב.'), (40.64, 43.3, 'את המצפה מימן עם ישראל, בגיוס המונים,'),
         (43.3, 45.96, 'ובנו אותו חבריו ליחידה,'), (46.40, 48.16, 'מכינות קדם־צבאיות,'), (48.64, 51.27, 'ונוער מכל הארץ ומכל העולם.'),
-        (51.78, 53.68, 'מקום פתוח לכל עם ישראל,'), (54.06, 56.08, 'לצעוד בשבילים שדוד אהב.'), (56.47, 59.08, 'אז בפעם הבאה בכביש 90,'), (59.54, 61.68, 'רושמים בוויז: בוסתן דוד.')]
+        (51.78, 53.68, 'מקום פתוח לכל עם ישראל,'), (53.95, 56.4, 'לצעוד בשבילים שדוד אהב.'), (56.47, 59.08, 'אז בפעם הבאה בכביש 90,'), (59.54, 61.68, 'רושמים בוויז: בוסתן דוד.')]
 
 def prep():
     for i, (a, b, kind, src, t0, sp) in enumerate(SHOTS):
@@ -175,16 +175,20 @@ def audio(out):
     fl = [f'[0:a]atrim=0.6:{P1_END},asetpts=PTS-STARTPTS,afade=t=out:st={P1_END - .6 - .08:.2f}:d=0.08,adelay={int(V(.6) * 1000)}:all=1[a1]',
           f'[0:a]atrim=23.4:{CUT[0]},asetpts=PTS-STARTPTS,afade=t=in:d=0.05,afade=t=out:st={CUT[0] - 23.4 - .06:.2f}:d=0.06,adelay={int(V(23.4) * 1000)}:all=1[a2]',
           f'[3:a]atrim=0.45:6.0,asetpts=PTS-STARTPTS,afade=t=in:d=0.04,afade=t=out:st=5.45:d=0.1,adelay={int(V(16.78) * 1000)}:all=1[a4]',
-          f'[0:a]atrim={CUT[1]}:{VO_END},asetpts=PTS-STARTPTS,afade=t=in:d=0.05,adelay={int(V(CUT[1]) * 1000)}:all=1[a3]',
+          f'[0:a]atrim={CUT[1]}:46.3,asetpts=PTS-STARTPTS,afade=t=in:d=0.05,afade=t=out:st={46.3 - CUT[1] - .06:.2f}:d=0.06,adelay={int(V(CUT[1]) * 1000)}:all=1[a3]',
+          f'[0:a]atrim=48.25:53.85,asetpts=PTS-STARTPTS,afade=t=in:d=0.05,afade=t=out:st={53.85 - 48.25 - .06:.2f}:d=0.06,adelay={int(V(48.25) * 1000)}:all=1[a5]',
+          f'[0:a]atrim=56.42:{VO_END},asetpts=PTS-STARTPTS,afade=t=in:d=0.05,adelay={int(V(56.42) * 1000)}:all=1[a6]',
+          f'[4:a]atrim=1.68:3.42,asetpts=PTS-STARTPTS,afade=t=in:d=0.04,afade=t=out:st=1.64:d=0.1,adelay={int(V(46.36) * 1000)}:all=1[a7]',
+          f'[4:a]atrim=5.0:7.62,asetpts=PTS-STARTPTS,afade=t=in:d=0.04,afade=t=out:st=2.52:d=0.1,adelay={int(V(53.9) * 1000)}:all=1[a8]',
           f'[1:a]aformat=sample_rates=48000:channel_layouts=mono,atrim=0:{MOM_D},asetpts=PTS-STARTPTS,highpass=f=80,loudnorm=I=-16:TP=-1.5,afade=t=in:d=0.15,afade=t=out:st={MOM_D - .3:.2f}:d=0.3,adelay={int(MOM_AT * 1000)}:all=1[mo]',
-          '[a1][a2][a3][a4][mo]amix=inputs=5:normalize=0,aformat=sample_rates=48000:channel_layouts=stereo[voice]']
+          '[a1][a2][a3][a4][a5][a6][a7][a8][mo]amix=inputs=9:normalize=0,aformat=sample_rates=48000:channel_layouts=stereo[voice]']
     # no music bed (the song is added in Instagram); light Splice SFX only
     SX = HERE + '/sfx/'; fx = [('whoosh', V(4.9) - .5, .30, 3.3), ('whoosh', V(29.3) - .5, .30, 3.3), ('whoosh', V(59.4) - .5, .30, 3.3),
                               ('splash', V(51.6) + .3, .45, 3.4), ('typing', V(59.3) + .4, .35, 1.0), ('pin', V(59.3) + 1.55, .55, .95)]
-    ins = ['-i', HERE + '/vo_clean.wav', '-i', FT + 'mother.mov', '-i', HERE + '/music_cafe.wav', '-i', HERE + '/vo_fix_clean.wav']
+    ins = ['-i', HERE + '/vo_clean.wav', '-i', FT + 'mother.mov', '-i', HERE + '/music_cafe.wav', '-i', HERE + '/vo_fix_clean.wav', '-i', HERE + '/vo_fix2_clean.wav']
     labs = []
     for k, (n, at, g, d) in enumerate(fx):
-        ins += ['-i', SX + n + '.wav']; fl.append(f'[{4 + k}:a]aformat=sample_rates=48000:channel_layouts=stereo,atrim=0:{d},afade=t=out:st={d - .2:.2f}:d=0.2,volume={g},adelay={int(at * 1000)}:all=1[x{k}]'); labs.append(f'[x{k}]')
+        ins += ['-i', SX + n + '.wav']; fl.append(f'[{5 + k}:a]aformat=sample_rates=48000:channel_layouts=stereo,atrim=0:{d},afade=t=out:st={d - .2:.2f}:d=0.2,volume={g},adelay={int(at * 1000)}:all=1[x{k}]'); labs.append(f'[x{k}]')
     fl.append(f"[voice]{''.join(labs)}amix=inputs={1 + len(fx)}:normalize=0,alimiter=limit=0.95,apad=whole_dur={T},atrim=0:{T}[o]")
     subprocess.run(['ffmpeg', '-v', 'error', '-y'] + ins + ['-filter_complex', ';'.join(fl), '-map', '[o]', out], check=True)
 
