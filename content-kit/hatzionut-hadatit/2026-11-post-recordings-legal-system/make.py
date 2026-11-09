@@ -12,21 +12,21 @@ for y in range(H):
         g = max(0, 1 - math.hypot((x - 800) / 900, (y - 300) / 900)); v = 1 - .35 * (y / H) ** 2
         px[x, y] = tuple(int((DEEP[i] + (TEAL[i] - DEEP[i]) * g * .9) * v) for i in range(3))
 im = bg.convert('RGBA'); d = ImageDraw.Draw(im)
-src = Image.open(HERE + '/source-screenshot.jpg').convert('RGB')
-ImageDraw.Draw(src).rectangle((52, 312, 205, 362), fill=(18, 18, 18))   # hide the Telegram player time/mute overlay
-from PIL import ImageFilter as _IF
-_r = (866, 318, 884, 366); patch = src.crop((_r[0] - 20, _r[1], _r[0] - 2, _r[3])); src.paste(patch, (_r[0], _r[1]))   # hide Telegram's menu dots
-src = src.crop((40, 316, 906, 772))   # TV frame only (no Telegram UI)
-cw = 960; card = src.resize((cw, int(cw * src.height / src.width)), Image.LANCZOS)
-m = Image.new('L', card.size, 0); ImageDraw.Draw(m).rounded_rectangle((0, 0, card.width - 1, card.height - 1), 26, fill=255)
+full = Image.open(HERE + '/source-screenshot.jpg').convert('RGB')
+# keep the Telegram look so it's clear this was posted on Amit Segal's channel: channel header + the post (video frame + text);
+# drop the unrelated pinned-message bar and the reactions/views row
+hdr = full.crop((0, 0, full.width, 150)); post = full.crop((0, 300, full.width, 1062))
+src = Image.new('RGB', (full.width, hdr.height + post.height), (0, 0, 0)); src.paste(hdr, (0, 0)); src.paste(post, (0, hdr.height))
+cw = 880; card = src.resize((cw, int(cw * src.height / src.width)), Image.LANCZOS)
+m = Image.new('L', card.size, 0); ImageDraw.Draw(m).rounded_rectangle((0, 0, card.width - 1, card.height - 1), 30, fill=255)
 sh = Image.new('L', (card.width + 80, card.height + 80), 0); sh.paste(m, (40, 52)); sh = sh.filter(ImageFilter.GaussianBlur(18))
-TOP = 150; im.paste((0, 0, 0, 120), (60 - 40, TOP - 40), sh); im.paste(card, (60, TOP), m)
-d.text((W - 66, TOP + card.height + 18), 'צילום מסך: חדשות 12', font=F(FD + 'Rubik-400.ttf', 26), fill=PALE, anchor='ra', direction='rtl')
-R = W - 90; y = TOP + card.height + 120
-d.rectangle((R - 6, y + 6, R, y + 228), fill=LT)
-fk = F(KB, 112)
+TOP = 60; X0 = (W - cw) // 2; im.paste((0, 0, 0, 120), (X0 - 40, TOP - 40), sh); im.paste(card, (X0, TOP), m)
+d.text((X0 + cw - 6, TOP + card.height + 16), 'פורסם בערוץ הטלגרם של עמית סגל', font=F(FD + 'Rubik-700.ttf', 32), fill=PALE, anchor='ra', direction='rtl')
+R = W - 90; y = TOP + card.height + 85
+d.rectangle((R - 6, y + 6, R, y + 196), fill=LT)
+fk = F(KB, 96)
 for i, l in enumerate(['חייבים לתקן את', 'מערכת המשפט הישראלית.']):
-    d.text((R - 30, y + i * 108), l, font=fk, fill=(255, 255, 255), anchor='ra', direction='rtl')
-y2 = y + 2 * 108 + 46; f2 = F(KB, 112); t = 'פשוט חייבים. זה בנפשנו.'; tw = d.textlength(t, font=f2, direction='rtl')
-d.rounded_rectangle((R - tw - 60, y2 + 12, R + 6, y2 + 128), 14, fill=LT); d.text((R - 26, y2), t, font=f2, fill=DEEP, anchor='ra', direction='rtl')
+    d.text((R - 30, y + i * 92), l, font=fk, fill=(255, 255, 255), anchor='ra', direction='rtl')
+y2 = y + 2 * 92 + 34; f2 = F(KB, 96); t = 'פשוט חייבים. זה בנפשנו.'; tw = d.textlength(t, font=f2, direction='rtl')
+d.rounded_rectangle((R - tw - 60, y2 + 10, R + 6, y2 + 110), 14, fill=LT); d.text((R - 26, y2), t, font=f2, fill=DEEP, anchor='ra', direction='rtl')
 im.convert('RGB').save(HERE + '/post.jpg', quality=95); print(y2 + 138)
