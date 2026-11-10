@@ -22,6 +22,6 @@ d.text((R - 30, y), 'איווט,', font=F(KB, 120), fill=(255, 255, 255), anchor
 f = F(KB, 120); a = 'איתם '; aw = d.textlength(a, font=f, direction='rtl'); y2 = y + 112
 d.text((R - 30, y2), a, font=f, fill=(255, 255, 255), anchor='ra', direction='rtl')
 b = 'אתה'; bw = d.textlength(b, font=f, direction='rtl'); bx = R - 30 - aw
-d.rounded_rectangle((bx - bw - 22, y2 + 14, bx + 10, y2 + 122), 12, fill=LT); d.text((bx - 6, y2), b, font=f, fill=DEEP, anchor='ra', direction='rtl')
+d.rounded_rectangle((bx - bw - 22, y2 + 14, bx + 10, y2 + 122), 12, fill=(214, 40, 48)); d.text((bx - 6, y2), b, font=f, fill=(255, 255, 255), anchor='ra', direction='rtl')
 d.text((R - 30, y2 + 112), 'רוצה למנות יו״ר כנסת?', font=f, fill=(255, 255, 255), anchor='ra', direction='rtl')
 im.convert('RGB').save(HERE + '/post.jpg', quality=95); print(y2 + 112 + 120)
