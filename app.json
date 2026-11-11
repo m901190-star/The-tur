@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "השקיה",
+    "slug": "tur-watering",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "turwatering",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tur.watering",
+      "infoPlist": {
+        "NSCalendarsFullAccessUsageDescription": "האפליקציה מוסיפה ליומן שלך תזכורות חוזרות להשקיית העציצים.",
+        "NSPhotoLibraryUsageDescription": "כדי לצרף תמונה לעציץ.",
+        "NSCameraUsageDescription": "כדי לצלם את העציץ."
+      }
+    },
+    "android": {
+      "package": "com.tur.watering",
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "האפליקציה מוסיפה ליומן שלך תזכורות חוזרות להשקיית העציצים."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "כדי לצרף תמונה לעציץ.",
+          "cameraPermission": "כדי לצלם את העציץ."
+        }
+      ]
+    ]
+  }
+}
