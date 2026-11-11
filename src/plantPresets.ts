@@ -9,6 +9,14 @@ export interface PlantPreset {
   light: LightLevel;
   potSize: PotSize;
   fertilizeEveryDays: number | null;
+  /**
+   * Millilitres of water per litre of substrate for a thorough watering. Most
+   * plants want about 150; thirsty ones more, succulents far less. This is what
+   * turns "a 70-litre planter" into an actual amount to pour.
+   */
+  mlPerLiterOfSoil: number;
+  /** Whether this normally lives outside, where the weather matters. */
+  outdoor: boolean;
   /** One line of care advice shown under the picker. */
   tip: string;
 }
@@ -20,6 +28,8 @@ export interface PlantPreset {
 export const PLANT_PRESETS: PlantPreset[] = [
   {
     species: 'מונסטרה',
+    mlPerLiterOfSoil: 150,
+    outdoor: false,
     waterMl: 500,
     intervalSummerDays: 7,
     intervalWinterDays: 12,
@@ -30,6 +40,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'פותוס',
+    mlPerLiterOfSoil: 140,
+    outdoor: false,
     waterMl: 250,
     intervalSummerDays: 7,
     intervalWinterDays: 14,
@@ -40,6 +52,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: "פיקוס בנג'מינה",
+    mlPerLiterOfSoil: 150,
+    outdoor: false,
     waterMl: 600,
     intervalSummerDays: 7,
     intervalWinterDays: 14,
@@ -50,6 +64,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'סנסיווריה (חרב הקיסר)',
+    mlPerLiterOfSoil: 90,
+    outdoor: false,
     waterMl: 200,
     intervalSummerDays: 18,
     intervalWinterDays: 35,
@@ -60,6 +76,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'זמיוקולקס (ZZ)',
+    mlPerLiterOfSoil: 90,
+    outdoor: false,
     waterMl: 250,
     intervalSummerDays: 18,
     intervalWinterDays: 30,
@@ -70,6 +88,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'אלוורה',
+    mlPerLiterOfSoil: 80,
+    outdoor: false,
     waterMl: 200,
     intervalSummerDays: 14,
     intervalWinterDays: 28,
@@ -80,6 +100,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'קקטוס',
+    mlPerLiterOfSoil: 60,
+    outdoor: false,
     waterMl: 100,
     intervalSummerDays: 21,
     intervalWinterDays: 45,
@@ -90,6 +112,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'ספטיפילום (שלום הבית)',
+    mlPerLiterOfSoil: 170,
+    outdoor: false,
     waterMl: 400,
     intervalSummerDays: 5,
     intervalWinterDays: 9,
@@ -100,6 +124,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'פילודנדרון',
+    mlPerLiterOfSoil: 150,
+    outdoor: false,
     waterMl: 350,
     intervalSummerDays: 7,
     intervalWinterDays: 12,
@@ -110,6 +136,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'דרצנה',
+    mlPerLiterOfSoil: 140,
+    outdoor: false,
     waterMl: 400,
     intervalSummerDays: 10,
     intervalWinterDays: 18,
@@ -120,6 +148,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'שרך',
+    mlPerLiterOfSoil: 180,
+    outdoor: false,
     waterMl: 350,
     intervalSummerDays: 3,
     intervalWinterDays: 6,
@@ -130,6 +160,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'קלתיאה',
+    mlPerLiterOfSoil: 170,
+    outdoor: false,
     waterMl: 300,
     intervalSummerDays: 4,
     intervalWinterDays: 8,
@@ -140,6 +172,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'אורכידאה',
+    mlPerLiterOfSoil: 120,
+    outdoor: false,
     waterMl: 150,
     intervalSummerDays: 7,
     intervalWinterDays: 10,
@@ -150,6 +184,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'יוקה',
+    mlPerLiterOfSoil: 120,
+    outdoor: true,
     waterMl: 350,
     intervalSummerDays: 14,
     intervalWinterDays: 28,
@@ -160,6 +196,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'עץ זית',
+    mlPerLiterOfSoil: 160,
+    outdoor: true,
     waterMl: 1500,
     intervalSummerDays: 5,
     intervalWinterDays: 14,
@@ -170,6 +208,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'עץ הדר בעציץ (לימון)',
+    mlPerLiterOfSoil: 200,
+    outdoor: true,
     waterMl: 2000,
     intervalSummerDays: 3,
     intervalWinterDays: 8,
@@ -180,6 +220,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'בוגנוויליה',
+    mlPerLiterOfSoil: 150,
+    outdoor: true,
     waterMl: 1200,
     intervalSummerDays: 4,
     intervalWinterDays: 12,
@@ -190,6 +232,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'גרניום',
+    mlPerLiterOfSoil: 160,
+    outdoor: true,
     waterMl: 500,
     intervalSummerDays: 3,
     intervalWinterDays: 8,
@@ -200,6 +244,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'בזיליקום',
+    mlPerLiterOfSoil: 190,
+    outdoor: true,
     waterMl: 300,
     intervalSummerDays: 1,
     intervalWinterDays: 3,
@@ -210,6 +256,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'נענע',
+    mlPerLiterOfSoil: 190,
+    outdoor: true,
     waterMl: 300,
     intervalSummerDays: 2,
     intervalWinterDays: 4,
@@ -220,6 +268,8 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'רוזמרין',
+    mlPerLiterOfSoil: 120,
+    outdoor: true,
     waterMl: 350,
     intervalSummerDays: 7,
     intervalWinterDays: 16,
@@ -229,7 +279,57 @@ export const PLANT_PRESETS: PlantPreset[] = [
     tip: 'צמח ים-תיכוני: שמש הרבה, מים מעט, ניקוז מעולה.',
   },
   {
+    species: 'ברוש',
+    waterMl: 3000,
+    intervalSummerDays: 5,
+    intervalWinterDays: 12,
+    light: 'full-sun',
+    potSize: 'large',
+    fertilizeEveryDays: 60,
+    mlPerLiterOfSoil: 150,
+    outdoor: true,
+    tip: 'באדנית הוא תלוי בך לגמרי. ברוש שמתחיל להחום מבפנים כבר התייבש — אין דרך חזרה לענפים האלה.',
+  },
+  {
+    species: 'במבוק / קנים',
+    waterMl: 3000,
+    intervalSummerDays: 2,
+    intervalWinterDays: 6,
+    light: 'partial',
+    potSize: 'large',
+    fertilizeEveryDays: 30,
+    mlPerLiterOfSoil: 200,
+    outdoor: true,
+    tip: 'הצמא שבכולם. באדנית בקיץ כמעט כל יום, וקצוות עלים מגולגלים הם הסימן הראשון.',
+  },
+  {
+    species: 'שיח נוי ים-תיכוני',
+    waterMl: 2000,
+    intervalSummerDays: 5,
+    intervalWinterDays: 12,
+    light: 'full-sun',
+    potSize: 'large',
+    fertilizeEveryDays: 45,
+    mlPerLiterOfSoil: 150,
+    outdoor: true,
+    tip: 'להשקות לעומק ובמרווחים, לא מעט וכל יום — ככה השורשים יורדים למטה.',
+  },
+  {
+    species: 'לבנדר',
+    waterMl: 800,
+    intervalSummerDays: 8,
+    intervalWinterDays: 20,
+    light: 'full-sun',
+    potSize: 'medium',
+    fertilizeEveryDays: 90,
+    mlPerLiterOfSoil: 110,
+    outdoor: true,
+    tip: 'מת מרטיבות הרבה יותר מאשר מיובש. ניקוז טוב חשוב לו יותר ממים.',
+  },
+  {
     species: 'סוקולנט',
+    mlPerLiterOfSoil: 70,
+    outdoor: false,
     waterMl: 100,
     intervalSummerDays: 14,
     intervalWinterDays: 30,

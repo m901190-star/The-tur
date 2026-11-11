@@ -16,7 +16,7 @@ import { colors, radius, rtlText, spacing, typography } from '../theme';
 export function PlantsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
-  const { plants } = usePlants();
+  const { plants, weather } = usePlants();
   const [query, setQuery] = useState('');
   const [location, setLocation] = useState<string | null>(null);
   const now = useMemo(() => new Date(), []);
@@ -30,7 +30,7 @@ export function PlantsScreen() {
 
   const visible = useMemo(() => {
     const needle = query.trim();
-    return sortByUrgency(plants, now).filter((plant) => {
+    return sortByUrgency(plants, now, weather).filter((plant) => {
       const matchesQuery =
         !needle ||
         plant.name.includes(needle) ||
@@ -39,7 +39,7 @@ export function PlantsScreen() {
       const matchesLocation = !location || plant.location.trim() === location;
       return matchesQuery && matchesLocation;
     });
-  }, [plants, query, location, now]);
+  }, [plants, query, location, now, weather]);
 
   const totalWater = visible.reduce((sum, plant) => sum + Math.max(0, plant.waterMl), 0);
 
@@ -108,6 +108,7 @@ export function PlantsScreen() {
                 key={plant.id}
                 plant={plant}
                 now={now}
+                weather={weather}
                 onPress={() => navigation.navigate('PlantDetail', { plantId: plant.id })}
               />
             ))}

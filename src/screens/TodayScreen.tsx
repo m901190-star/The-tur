@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EmptyState } from '../components/EmptyState';
 import { PlantCard } from '../components/PlantCard';
 import { SectionHeader } from '../components/SectionHeader';
+import { WeatherStrip } from '../components/WeatherStrip';
 import {
   fertilizeState,
   formatWater,
@@ -28,22 +29,26 @@ const HE_FULL_DATE = new Intl.DateTimeFormat('he-IL', {
 export function TodayScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
-  const { plants, markWatered, snooze } = usePlants();
+  const { plants, markWatered, snooze, settings, weather, weatherLoading, refreshWeather } =
+    usePlants();
   // Recomputed on pull-to-refresh so a session left open overnight still shows
   // the right day without the user restarting the app.
   const [now, setNow] = useState(() => new Date());
 
-  const refresh = useCallback(() => setNow(new Date()), []);
+  const refresh = useCallback(() => {
+    setNow(new Date());
+    void refreshWeather(true);
+  }, [refreshWeather]);
 
   const { due, upcoming, litres, fertilizeDue } = useMemo(() => {
-    const sorted = sortByUrgency(plants, now);
+    const sorted = sortByUrgency(plants, now, weather);
     return {
-      due: sorted.filter((plant) => needsWaterNow(plant, now)),
-      upcoming: sorted.filter((plant) => !needsWaterNow(plant, now)),
-      litres: totalWaterDue(plants, now),
+      due: sorted.filter((plant) => needsWaterNow(plant, now, weather)),
+      upcoming: sorted.filter((plant) => !needsWaterNow(plant, now, weather)),
+      litres: totalWaterDue(plants, now, weather),
       fertilizeDue: plants.filter((plant) => fertilizeState(plant, now).due),
     };
-  }, [plants, now]);
+  }, [plants, now, weather]);
 
   if (plants.length === 0) {
     return (
@@ -72,6 +77,14 @@ export function TodayScreen() {
       <Text style={styles.headline}>
         {due.length === 0 ? 'הכל מושקה' : `${due.length} עציצים צריכים מים`}
       </Text>
+
+      <WeatherStrip
+        snapshot={weather}
+        settings={settings}
+        loading={weatherLoading}
+        now={now}
+        onConfigure={() => navigation.navigate('Tabs', { screen: 'Settings' })}
+      />
 
       {due.length > 0 ? (
         <View style={styles.summary}>
@@ -102,6 +115,7 @@ export function TodayScreen() {
                 key={plant.id}
                 plant={plant}
                 now={now}
+                weather={weather}
                 onPress={() => navigation.navigate('PlantDetail', { plantId: plant.id })}
                 onWater={() => markWatered(plant.id)}
                 onSnooze={() => snooze(plant.id, 1)}
@@ -127,6 +141,7 @@ export function TodayScreen() {
                 key={plant.id}
                 plant={plant}
                 now={now}
+                weather={weather}
                 onPress={() => navigation.navigate('PlantDetail', { plantId: plant.id })}
               />
             ))}

@@ -7,8 +7,17 @@ import React, {
   useState,
 } from 'react';
 
+import { rescheduleNotifications } from '../lib/notifications';
 import * as storage from '../lib/storage';
-import { DEFAULT_SETTINGS, LogEntry, LogKind, Plant, Settings } from '../types';
+import { fetchWeather, isStale } from '../lib/weather';
+import {
+  DEFAULT_SETTINGS,
+  LogEntry,
+  LogKind,
+  Plant,
+  Settings,
+  WeatherSnapshot,
+} from '../types';
 
 export type NewPlant = Omit<Plant, 'id' | 'createdAt' | 'calendarEventId'>;
 
@@ -17,6 +26,11 @@ interface PlantsContextValue {
   log: LogEntry[];
   settings: Settings;
   ready: boolean;
+  /** Latest forecast, or null when weather is off or has never been fetched. */
+  weather: WeatherSnapshot | null;
+  weatherLoading: boolean;
+  /** Fetches a forecast; `force` ignores the cache's time-to-live. */
+  refreshWeather: (force?: boolean) => Promise<void>;
   addPlant: (draft: NewPlant) => Promise<Plant>;
   updatePlant: (id: string, patch: Partial<Plant>) => Promise<void>;
   removePlant: (id: string) => Promise<void>;
@@ -44,26 +58,69 @@ export function PlantsProvider({ children }: { children: React.ReactNode }) {
   const [plants, setPlants] = useState<Plant[]>([]);
   const [log, setLog] = useState<LogEntry[]>([]);
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const [weather, setWeather] = useState<WeatherSnapshot | null>(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [storedPlants, storedLog, storedSettings] = await Promise.all([
+      const [storedPlants, storedLog, storedSettings, storedWeather] = await Promise.all([
         storage.loadPlants(),
         storage.loadLog(),
         storage.loadSettings(),
+        storage.loadWeather(),
       ]);
       if (cancelled) return;
       setPlants(storedPlants);
       setLog(storedLog);
       setSettings(storedSettings);
+      setWeather(storedWeather);
       setReady(true);
     })();
     return () => {
       cancelled = true;
     };
   }, []);
+
+  const refreshWeather = useCallback(
+    async (force = false) => {
+      if (!settings.weatherEnabled) return;
+      if (settings.latitude === null || settings.longitude === null) return;
+      if (!force && !isStale(weather)) return;
+
+      setWeatherLoading(true);
+      try {
+        const snapshot = await fetchWeather(settings.latitude, settings.longitude);
+        setWeather(snapshot);
+        await storage.saveWeather(snapshot);
+      } catch {
+        // Offline, or the service is down. The app keeps using the last
+        // snapshot, and the plain seasonal schedule if there is none.
+      } finally {
+        setWeatherLoading(false);
+      }
+    },
+    [settings.weatherEnabled, settings.latitude, settings.longitude, weather],
+  );
+
+  // Refresh once the app knows where it is, and whenever that changes.
+  useEffect(() => {
+    if (!ready) return;
+    void refreshWeather();
+  }, [ready, refreshWeather]);
+
+  // The notification schedule is derived state: every change to the plants, the
+  // settings or the forecast moves the dates, so rebuild it from scratch.
+  useEffect(() => {
+    if (!ready) return;
+    void rescheduleNotifications(
+      plants,
+      settings,
+      new Date(),
+      settings.weatherEnabled ? weather : null,
+    );
+  }, [ready, plants, settings, weather]);
 
   const persistPlants = useCallback(async (next: Plant[]) => {
     setPlants(next);
@@ -181,6 +238,7 @@ export function PlantsProvider({ children }: { children: React.ReactNode }) {
     setPlants([]);
     setLog([]);
     setSettings(DEFAULT_SETTINGS);
+    setWeather(null);
   }, []);
 
   const value = useMemo<PlantsContextValue>(
@@ -189,6 +247,9 @@ export function PlantsProvider({ children }: { children: React.ReactNode }) {
       log,
       settings,
       ready,
+      weather: settings.weatherEnabled ? weather : null,
+      weatherLoading,
+      refreshWeather,
       addPlant,
       updatePlant,
       removePlant,
@@ -205,6 +266,9 @@ export function PlantsProvider({ children }: { children: React.ReactNode }) {
       log,
       settings,
       ready,
+      weather,
+      weatherLoading,
+      refreshWeather,
       addPlant,
       updatePlant,
       removePlant,

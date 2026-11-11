@@ -54,6 +54,7 @@ export function PlantDetailScreen() {
     logFor,
     settings,
     updatePlant,
+    weather,
   } = usePlants();
 
   const plant = getPlant(route.params.plantId);
@@ -106,7 +107,7 @@ export function PlantDetailScreen() {
     );
   }
 
-  const water = wateringState(plant, now);
+  const water = wateringState(plant, now, weather);
   const fertilize = fertilizeState(plant, now);
   const history = logFor(plant.id);
   const season = seasonForDate(now) === 'summer' ? 'קיץ' : 'חורף';
@@ -128,6 +129,13 @@ export function PlantDetailScreen() {
         <StatusPill state={water} />
       </View>
 
+      {water.weatherReason ? (
+        <View style={styles.weatherNote}>
+          <Ionicons name="rainy-outline" size={16} color={colors.water} />
+          <Text style={styles.weatherNoteText}>{water.weatherReason}</Text>
+        </View>
+      ) : null}
+
       <View style={styles.actions}>
         <AppButton
           label="השקיתי עכשיו"
@@ -142,7 +150,7 @@ export function PlantDetailScreen() {
         <Stat label="כמות מים" value={formatWater(plant.waterMl)} icon="water-outline" />
         <Stat
           label={`תדירות (${season})`}
-          value={`כל ${intervalDays(plant, now)} ימים`}
+          value={`כל ${intervalDays(plant, now, weather)} ימים`}
           icon="repeat-outline"
         />
         <Stat
@@ -161,7 +169,27 @@ export function PlantDetailScreen() {
         />
         <Stat label="מקום" value={plant.location || '—'} icon="home-outline" />
         <Stat label="אור" value={LIGHT_LABELS[plant.light]} icon="sunny-outline" />
-        <Stat label="גודל עציץ" value={POT_LABELS[plant.potSize]} icon="cube-outline" />
+        <Stat
+          label="נפח האדנית"
+          value={
+            plant.containerLiters
+              ? `${plant.containerLiters} ליטר`
+              : POT_LABELS[plant.potSize]
+          }
+          icon="cube-outline"
+        />
+        <Stat
+          label="צמחים באדנית"
+          value={
+            plant.plantCount > 1 ? `${plant.plantCount} · מתייבשת מהר יותר` : 'אחד'
+          }
+          icon="leaf-outline"
+        />
+        <Stat
+          label="מיקום"
+          value={plant.isOutdoor ? 'בחוץ · מושפע ממזג האוויר' : 'בבית'}
+          icon={plant.isOutdoor ? 'partly-sunny-outline' : 'bed-outline'}
+        />
         <Stat
           label="דישון"
           value={
@@ -267,6 +295,15 @@ const styles = StyleSheet.create({
   headerBlock: { gap: spacing.xs, alignItems: 'flex-end' },
   name: { ...typography.title, color: colors.text, ...rtlText },
   species: { ...typography.body, color: colors.textMuted, ...rtlText },
+  weatherNote: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.waterSoft,
+    borderRadius: radius.md,
+    padding: spacing.md,
+  },
+  weatherNoteText: { ...typography.small, color: colors.water, flex: 1, ...rtlText },
   actions: { flexDirection: 'row-reverse', gap: spacing.sm },
   grow: { flex: 1 },
   grid: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: spacing.sm },

@@ -13,7 +13,8 @@
       "infoPlist": {
         "NSCalendarsFullAccessUsageDescription": "האפליקציה מוסיפה ליומן שלך תזכורות חוזרות להשקיית העציצים.",
         "NSPhotoLibraryUsageDescription": "כדי לצרף תמונה לעציץ.",
-        "NSCameraUsageDescription": "כדי לצלם את העציץ."
+        "NSCameraUsageDescription": "כדי לצלם את העציץ.",
+        "NSLocationWhenInUseUsageDescription": "כדי להתאים את לוח ההשקיה לגשם ולחום באזור שלך."
       }
     },
     "android": {
@@ -21,7 +22,11 @@
       "edgeToEdgeEnabled": true,
       "permissions": [
         "android.permission.READ_CALENDAR",
-        "android.permission.WRITE_CALENDAR"
+        "android.permission.WRITE_CALENDAR",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.SCHEDULE_EXACT_ALARM"
       ]
     },
     "plugins": [
@@ -36,6 +41,18 @@
         {
           "photosPermission": "כדי לצרף תמונה לעציץ.",
           "cameraPermission": "כדי לצלם את העציץ."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "כדי להתאים את לוח ההשקיה לגשם ולחום באזור שלך."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#3E7C43"
         }
       ]
     ]

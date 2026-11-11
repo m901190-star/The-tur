@@ -20,17 +20,33 @@ import { AppButton } from '../components/AppButton';
 import { Chip } from '../components/Chip';
 import { Field, FieldGroup } from '../components/Field';
 import { upsertPlantEvent } from '../lib/calendar';
-import { addDays, suggestWaterMl } from '../lib/watering';
+import {
+  addDays,
+  suggestWaterForContainer,
+  suggestWaterMl,
+} from '../lib/watering';
 import { RootStackParamList } from '../navigation';
 import { PLANT_PRESETS, PlantPreset, searchPresets } from '../plantPresets';
 import { NewPlant, usePlants } from '../state/PlantsContext';
 import { colors, radius, rtlText, spacing, typography } from '../theme';
-import { LIGHT_LABELS, LightLevel, POT_LABELS, Plant, PotSize } from '../types';
+import {
+  LIGHT_LABELS,
+  LightLevel,
+  POT_DEFAULT_LITERS,
+  POT_LABELS,
+  Plant,
+  PotSize,
+} from '../types';
 
 interface FormState {
   name: string;
   species: string;
   location: string;
+  /** Substrate volume in litres, as typed. Empty falls back to the pot size. */
+  containerLiters: string;
+  /** How many plants share the container, as typed. */
+  plantCount: string;
+  isOutdoor: boolean;
   waterMl: string;
   intervalSummerDays: string;
   intervalWinterDays: string;
@@ -59,6 +75,9 @@ function emptyForm(): FormState {
     name: '',
     species: '',
     location: '',
+    containerLiters: '',
+    plantCount: '1',
+    isOutdoor: false,
     waterMl: String(suggestWaterMl('medium')),
     intervalSummerDays: '7',
     intervalWinterDays: '12',
@@ -82,6 +101,9 @@ function formFromPlant(plant: Plant): FormState {
     name: plant.name,
     species: plant.species,
     location: plant.location,
+    containerLiters: plant.containerLiters ? String(plant.containerLiters) : '',
+    plantCount: String(plant.plantCount || 1),
+    isOutdoor: plant.isOutdoor,
     waterMl: String(plant.waterMl),
     intervalSummerDays: String(plant.intervalSummerDays),
     intervalWinterDays: String(plant.intervalWinterDays),
@@ -132,18 +154,28 @@ export function PlantFormScreen() {
   }, [presetQuery, showAllPresets]);
 
   const applyPreset = useCallback((preset: PlantPreset) => {
-    setForm((current) => ({
+    setForm((current) => {
+      const liters = Number.parseInt(current.containerLiters.replace(/[^\d]/g, ''), 10);
+      // If the user already said how big the planter is, the preset's ratio
+      // beats its generic "typical pot" amount.
+      const waterMl =
+        Number.isFinite(liters) && liters > 0
+          ? suggestWaterForContainer(liters, preset.mlPerLiterOfSoil)
+          : preset.waterMl;
+      return {
       ...current,
       species: preset.species,
       // Keep whatever the user already typed as the plant's own name.
       name: current.name,
-      waterMl: String(preset.waterMl),
+      isOutdoor: preset.outdoor,
+      waterMl: String(waterMl),
       intervalSummerDays: String(preset.intervalSummerDays),
       intervalWinterDays: String(preset.intervalWinterDays),
       light: preset.light,
       potSize: preset.potSize,
       fertilizeEveryDays: preset.fertilizeEveryDays ? String(preset.fertilizeEveryDays) : '',
-    }));
+      };
+    });
   }, []);
 
   const pickPhoto = useCallback(async () => {
@@ -182,10 +214,17 @@ export function PlantFormScreen() {
         ? toPositiveInt(form.fertilizeEveryDays, 30)
         : null;
 
+      const containerLiters = form.containerLiters.trim()
+        ? toPositiveInt(form.containerLiters, POT_DEFAULT_LITERS[form.potSize])
+        : null;
+
       const draft: NewPlant = {
         name,
         species,
         location: form.location.trim(),
+        containerLiters,
+        plantCount: toPositiveInt(form.plantCount, 1),
+        isOutdoor: form.isOutdoor,
         waterMl: toPositiveInt(form.waterMl, suggestWaterMl(form.potSize)),
         intervalSummerDays: toPositiveInt(form.intervalSummerDays, 7),
         intervalWinterDays: toPositiveInt(form.intervalWinterDays, 12),
@@ -300,18 +339,72 @@ export function PlantFormScreen() {
           hint="משפיע על צריכת המים, וגם מאפשר לסנן לפי חדר."
         />
 
-        <FieldGroup label="גודל העציץ" hint="משנה את כמות המים שמוצעת כברירת מחדל.">
-          {POT_OPTIONS.map((option) => (
-            <Chip
-              key={option}
-              label={POT_LABELS[option]}
-              selected={form.potSize === option}
-              onPress={() =>
-                patch({ potSize: option, waterMl: String(suggestWaterMl(option)) })
-              }
-            />
-          ))}
+        <FieldGroup
+          label="איפה הוא עומד"
+          hint="רק לעציצים בחוץ מזג האוויר משנה — גשם לא מגיע לסלון."
+        >
+          <Chip
+            label="בבית"
+            selected={!form.isOutdoor}
+            onPress={() => patch({ isOutdoor: false })}
+          />
+          <Chip
+            label="בחוץ / מרפסת"
+            selected={form.isOutdoor}
+            onPress={() => patch({ isOutdoor: true })}
+          />
         </FieldGroup>
+
+        <View style={styles.pairRow}>
+          <View style={styles.pairItem}>
+            <Field
+              label="נפח האדנית"
+              value={form.containerLiters}
+              onChangeText={(value) => {
+                const liters = Number.parseInt(value.replace(/[^\d]/g, ''), 10);
+                const ratio = activePreset?.mlPerLiterOfSoil;
+                patch({
+                  containerLiters: value,
+                  ...(Number.isFinite(liters) && liters > 0
+                    ? { waterMl: String(suggestWaterForContainer(liters, ratio)) }
+                    : {}),
+                });
+              }}
+              keyboardType="number-pad"
+              suffix="ליטר"
+              placeholder="70"
+            />
+          </View>
+          <View style={styles.pairItem}>
+            <Field
+              label="כמה צמחים בה"
+              value={form.plantCount}
+              onChangeText={(value) => patch({ plantCount: value })}
+              keyboardType="number-pad"
+              placeholder="1"
+            />
+          </View>
+        </View>
+        <Text style={styles.blockHint}>
+          אדנית אחת עם שלושה צמחים מתייבשת מהר יותר מאדנית עם אחד, אז המספר
+          מקצר את התדירות. כמות המים נשארת של האדנית — אתה משקה אותה, לא כל
+          צמח בנפרד.
+        </Text>
+
+        {!form.containerLiters.trim() ? (
+          <FieldGroup label="גודל העציץ" hint="אם לא מילאת נפח מדויק למעלה.">
+            {POT_OPTIONS.map((option) => (
+              <Chip
+                key={option}
+                label={POT_LABELS[option]}
+                selected={form.potSize === option}
+                onPress={() =>
+                  patch({ potSize: option, waterMl: String(suggestWaterMl(option)) })
+                }
+              />
+            ))}
+          </FieldGroup>
+        ) : null}
 
         <Field
           label="כמות מים להשקיה"
@@ -319,7 +412,11 @@ export function PlantFormScreen() {
           onChangeText={(value) => patch({ waterMl: value })}
           keyboardType="number-pad"
           suffix="מ״ל"
-          hint="כוס רגילה היא בערך 250 מ״ל."
+          hint={
+            form.containerLiters.trim()
+              ? 'מחושב כ-15% מנפח האדנית — השקיה שמרטיבה את כל גוש השורשים בלי שהכול ייצא מהניקוז.'
+              : 'כוס רגילה היא בערך 250 מ״ל.'
+          }
         />
 
         <FieldGroup label="כמה אור הוא מקבל">

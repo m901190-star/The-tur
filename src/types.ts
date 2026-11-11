@@ -21,6 +21,19 @@ export interface Plant {
   intervalWinterDays: number;
   light: LightLevel;
   potSize: PotSize;
+  /**
+   * Substrate volume of the pot or planter, in litres. Set for a planter the
+   * user measured; null falls back to the coarse `potSize` bucket.
+   */
+  containerLiters: number | null;
+  /** How many plants share this container. Three cypresses in one planter
+   *  drink the same soil dry roughly three times as fast. */
+  plantCount: number;
+  /**
+   * Outdoors, the weather decides how fast the soil dries and rain counts as a
+   * watering. Indoors neither is true, so the weather adjustment is skipped.
+   */
+  isOutdoor: boolean;
   /** Days between fertilising, or null if the user does not fertilise it. */
   fertilizeEveryDays: number | null;
   /** ISO date string of the last watering, or null if never watered. */
@@ -51,15 +64,52 @@ export interface Settings {
   /** Device calendar the reminders are written to. */
   calendarId: string | null;
   calendarTitle: string | null;
-  /** Hour of day (0–23) the calendar reminder fires. */
+  /** Hour of day (0–23) the reminder fires, both in the calendar and as a push. */
   reminderHour: number;
+  /** Whether the app schedules its own notifications. */
+  notificationsEnabled: boolean;
+  /** Whether forecasts shift the watering schedule. */
+  weatherEnabled: boolean;
+  latitude: number | null;
+  longitude: number | null;
+  /** What to show the user for the coordinates above. */
+  locationLabel: string | null;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   calendarId: null,
   calendarTitle: null,
   reminderHour: 8,
+  notificationsEnabled: false,
+  weatherEnabled: true,
+  latitude: null,
+  longitude: null,
+  locationLabel: null,
 };
+
+/** One day of weather, past or forecast. */
+export interface DailyWeather {
+  /** Local calendar day, YYYY-MM-DD. */
+  date: string;
+  rainMm: number;
+  /** Chance of rain, 0–100. */
+  rainChance: number;
+  /**
+   * FAO-56 reference evapotranspiration in mm: how much water a standard crop
+   * loses that day. This is the number that says how fast a planter dries.
+   */
+  et0Mm: number;
+  maxTempC: number;
+}
+
+export interface WeatherSnapshot {
+  fetchedAt: string;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  /** Oldest first: a few past days, today, then the forecast. */
+  days: DailyWeather[];
+}
 
 export const LIGHT_LABELS: Record<LightLevel, string> = {
   'full-sun': 'שמש מלאה',
@@ -77,4 +127,11 @@ export const POT_DEFAULT_ML: Record<PotSize, number> = {
   small: 150,
   medium: 350,
   large: 700,
+};
+
+/** Rough substrate volume behind each pot-size bucket, in litres. */
+export const POT_DEFAULT_LITERS: Record<PotSize, number> = {
+  small: 2,
+  medium: 7,
+  large: 20,
 };

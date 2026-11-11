@@ -4,20 +4,21 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { formatRelativeDay, formatWater, intervalDays, wateringState } from '../lib/watering';
 import { colors, radius, rtlText, spacing, typography } from '../theme';
-import { Plant } from '../types';
+import { Plant, WeatherSnapshot } from '../types';
 import { AppButton } from './AppButton';
 import { StatusPill } from './StatusPill';
 
 interface Props {
   plant: Plant;
   now: Date;
+  weather?: WeatherSnapshot | null;
   onPress: () => void;
   onWater?: () => void;
   onSnooze?: () => void;
 }
 
-export function PlantCard({ plant, now, onPress, onWater, onSnooze }: Props) {
-  const state = wateringState(plant, now);
+export function PlantCard({ plant, now, weather = null, onPress, onWater, onSnooze }: Props) {
+  const state = wateringState(plant, now, weather);
   const subtitleParts = [plant.species, plant.location].filter(Boolean);
 
   return (
@@ -49,7 +50,7 @@ export function PlantCard({ plant, now, onPress, onWater, onSnooze }: Props) {
 
       <View style={styles.metaRow}>
         <Meta icon="water-outline" text={formatWater(plant.waterMl)} />
-        <Meta icon="repeat-outline" text={`כל ${intervalDays(plant, now)} ימים`} />
+        <Meta icon="repeat-outline" text={`כל ${intervalDays(plant, now, weather)} ימים`} />
         <Meta
           icon="time-outline"
           text={
@@ -59,6 +60,13 @@ export function PlantCard({ plant, now, onPress, onWater, onSnooze }: Props) {
           }
         />
       </View>
+
+      {state.weatherReason ? (
+        <View style={styles.weatherNote}>
+          <Ionicons name="rainy-outline" size={13} color={colors.water} />
+          <Text style={styles.weatherNoteText}>{state.weatherReason}</Text>
+        </View>
+      ) : null}
 
       {onWater || onSnooze ? (
         <View style={styles.actions}>
@@ -118,6 +126,16 @@ const styles = StyleSheet.create({
   },
   meta: { flexDirection: 'row-reverse', alignItems: 'center', gap: spacing.xs },
   metaText: { ...typography.small, color: colors.textMuted },
+  weatherNote: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.waterSoft,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  weatherNoteText: { ...typography.small, color: colors.water, flex: 1, ...rtlText },
   actions: { flexDirection: 'row-reverse', gap: spacing.sm },
   actionGrow: { flex: 1 },
 });

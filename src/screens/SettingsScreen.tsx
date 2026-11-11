@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -15,18 +15,47 @@ import {
   suggestCalendar,
   syncAllPlants,
 } from '../lib/calendar';
+import { ISRAELI_CITIES, detectLocation } from '../lib/location';
+import {
+  cancelAllNotifications,
+  countScheduled,
+  hasNotificationAccess,
+  requestNotificationAccess,
+} from '../lib/notifications';
+import { planNotifications } from '../lib/notificationPlan';
 import { usePlants } from '../state/PlantsContext';
 import { colors, radius, rtlText, spacing, typography } from '../theme';
 
 const REMINDER_HOURS = [6, 7, 8, 9, 17, 18, 19, 20];
 
+const HE_PUSH_TIME = new Intl.DateTimeFormat('he-IL', {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+});
+
 export function SettingsScreen() {
   const insets = useSafeAreaInsets();
-  const { plants, log, settings, updateSettings, updatePlant, resetEverything } = usePlants();
+  const {
+    plants,
+    log,
+    settings,
+    updateSettings,
+    updatePlant,
+    resetEverything,
+    weather,
+    refreshWeather,
+  } = usePlants();
 
   const [calendars, setCalendars] = useState<CalendarOption[]>([]);
   const [granted, setGranted] = useState<boolean | null>(null);
-  const [busy, setBusy] = useState<'none' | 'sync' | 'export' | 'load'>('none');
+  const [busy, setBusy] = useState<'none' | 'sync' | 'export' | 'load' | 'push' | 'place'>(
+    'none',
+  );
+  const [pushGranted, setPushGranted] = useState(false);
+  const [pending, setPending] = useState(0);
 
   const loadCalendars = useCallback(async () => {
     const options = await listWritableCalendars();
@@ -46,6 +75,68 @@ export function SettingsScreen() {
       cancelled = true;
     };
   }, [loadCalendars]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const allowed = await hasNotificationAccess();
+      const count = await countScheduled();
+      if (cancelled) return;
+      setPushGranted(allowed);
+      setPending(count);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [settings, plants, weather]);
+
+  const toggleNotifications = useCallback(async () => {
+    if (settings.notificationsEnabled) {
+      await updateSettings({ notificationsEnabled: false });
+      await cancelAllNotifications();
+      setPending(0);
+      return;
+    }
+
+    setBusy('push');
+    try {
+      const allowed = await requestNotificationAccess();
+      setPushGranted(allowed);
+      if (!allowed) {
+        Alert.alert(
+          'אין הרשאה להתראות',
+          'אפשר לאשר התראות בהגדרות המכשיר ולחזור לכאן. במדמה (simulator) התראות לא נשלחות בכלל.',
+        );
+        return;
+      }
+      // The provider reschedules whenever the settings change.
+      await updateSettings({ notificationsEnabled: true });
+    } finally {
+      setBusy('none');
+    }
+  }, [settings.notificationsEnabled, updateSettings]);
+
+  const useMyLocation = useCallback(async () => {
+    setBusy('place');
+    try {
+      const found = await detectLocation();
+      if (!found) {
+        Alert.alert(
+          'לא הצלחנו לאתר אותך',
+          'אפשר לאשר גישה למיקום בהגדרות המכשיר, או פשוט לבחור עיר מהרשימה.',
+        );
+        return;
+      }
+      await updateSettings({
+        latitude: found.latitude,
+        longitude: found.longitude,
+        locationLabel: found.label,
+      });
+      await refreshWeather(true);
+    } finally {
+      setBusy('none');
+    }
+  }, [updateSettings, refreshWeather]);
 
   const connect = useCallback(async () => {
     setBusy('load');
@@ -129,6 +220,12 @@ export function SettingsScreen() {
     );
   }, [resetEverything]);
 
+  const nextPush = useMemo(() => {
+    const planned = planNotifications(plants, settings, new Date(), weather);
+    if (planned.length === 0) return null;
+    return HE_PUSH_TIME.format(planned[0].fireAt);
+  }, [plants, settings, weather]);
+
   return (
     <ScrollView
       contentContainerStyle={[
@@ -183,7 +280,10 @@ export function SettingsScreen() {
         </View>
       )}
 
-      <SectionHeader title="שעת התזכורת" caption="באיזו שעה ביום האירוע ייפתח ביומן." />
+      <SectionHeader
+        title="שעת התזכורת"
+        caption="חלה גם על ההתראה מהאפליקציה וגם על האירוע ביומן."
+      />
       <View style={styles.hours}>
         {REMINDER_HOURS.map((hour) => (
           <Chip
@@ -194,6 +294,78 @@ export function SettingsScreen() {
           />
         ))}
       </View>
+
+      <SectionHeader
+        title="התראות מהאפליקציה"
+        caption="התראה אחת בבוקר עם כל מה שצריך מים, ולא התראה נפרדת לכל עציץ."
+      />
+      <AppButton
+        label={settings.notificationsEnabled ? 'כיבוי התראות' : 'הפעלת התראות'}
+        variant={settings.notificationsEnabled ? 'ghost' : 'primary'}
+        onPress={toggleNotifications}
+        busy={busy === 'push'}
+      />
+      {settings.notificationsEnabled ? (
+        <Text style={styles.hint}>
+          {pushGranted
+            ? `${pending} התראות מתוזמנות קדימה. הן מחושבות מחדש בכל פעם שאתה משקה, מוסיף עציץ או שמזג האוויר משתנה.`
+            : 'ההתראות מופעלות, אבל המכשיר עדיין לא אישר אותן.'}
+        </Text>
+      ) : null}
+      {settings.notificationsEnabled && pushGranted && nextPush ? (
+        <Text style={styles.hint}>ההתראה הבאה: {nextPush}</Text>
+      ) : null}
+
+      <SectionHeader
+        title="מזג אוויר"
+        caption="גשם שירד נחשב כהשקיה, וגל חום מקצר את המרווח. רק לעציצים שמסומנים ״בחוץ״."
+      />
+      <View style={styles.hours}>
+        <Chip
+          label="מופעל"
+          selected={settings.weatherEnabled}
+          onPress={() => updateSettings({ weatherEnabled: true })}
+        />
+        <Chip
+          label="מכובה"
+          selected={!settings.weatherEnabled}
+          onPress={() => updateSettings({ weatherEnabled: false })}
+        />
+      </View>
+
+      {settings.weatherEnabled ? (
+        <>
+          <AppButton
+            label="השתמש במיקום שלי"
+            variant="ghost"
+            onPress={useMyLocation}
+            busy={busy === 'place'}
+          />
+          <Text style={styles.hint}>או בחר עיר קרובה:</Text>
+          <View style={styles.hours}>
+            {ISRAELI_CITIES.map((city) => (
+              <Chip
+                key={city.label}
+                label={city.label}
+                selected={settings.locationLabel === city.label}
+                onPress={async () => {
+                  await updateSettings({
+                    latitude: city.latitude,
+                    longitude: city.longitude,
+                    locationLabel: city.label,
+                  });
+                  await refreshWeather(true);
+                }}
+              />
+            ))}
+          </View>
+          <Text style={styles.hint}>
+            {settings.locationLabel
+              ? `המיקום הנוכחי: ${settings.locationLabel}. נתוני מזג האוויר מגיעים מ-Open-Meteo, שירות חינמי שלא דורש חשבון ולא מקבל שום פרט מזהה מלבד הקואורדינטות.`
+              : 'עדיין לא הוגדר מיקום, ולכן ההשקיה עובדת לפי הלוח העונתי בלבד.'}
+          </Text>
+        </>
+      ) : null}
 
       <SectionHeader title="סנכרון" />
       <AppButton
