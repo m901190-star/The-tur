@@ -28,7 +28,7 @@ def head(txt, y, size, fill=(255, 255, 255)):
     d.text((R + 6, y + 7), txt, font=f, fill=(0, 0, 0, 160), anchor='ra', direction='rtl'); d.text((R, y), txt, font=f, fill=fill, anchor='ra', direction='rtl')
 head('עם ישראל לא נתן', 140, 118)
 head('לא לכם ולא לנו רוב', 270, 104)
-f = F(KB, 140); t = 'ממשלת אחדות?'; tw = d.textlength(t, font=f, direction='rtl')
+f = F(KB, 140); t = 'ממשלת אחדות!'; tw = d.textlength(t, font=f, direction='rtl')
 d.rectangle((R - tw - 50, 450, R + 14, 610), fill=LT); d.text((R - 18, 438), t, font=f, fill=DEEP, anchor='ra', direction='rtl')
 d.text((R, 655), 'בצלאל סמוטריץ׳', font=F(RUB, 34), fill=PALE, anchor='ra', direction='rtl')
 im.convert('RGB').save(HERE + '/thumbnail.jpg', quality=95); print('ok')
