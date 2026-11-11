@@ -49,6 +49,7 @@ function flatSnapshot(now: Date, values: Partial<DailyWeather>): WeatherSnapshot
       rainChance: 0,
       et0Mm: 5.5,
       maxTempC: 28,
+      minTempC: 18,
       ...values,
     });
   }

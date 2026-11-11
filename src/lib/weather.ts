@@ -3,15 +3,32 @@ import { seasonForDate, startOfDay, toDateKey } from './dates';
 
 const FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
 
-/** Days of history to pull, so rain that already fell still counts. */
-const PAST_DAYS = 3;
+/**
+ * Days of history to pull. Three would be enough for "did it rain recently",
+ * but the trailing weeks are what tell us what counts as normal *here* — see
+ * `localBaselineEt0`.
+ */
+const PAST_DAYS = 30;
 const FORECAST_DAYS = 7;
 
 /**
- * Reference evapotranspiration, in mm/day, that the plants' stated intervals
- * are assumed to have been chosen for. A typical Israeli summer day runs about
- * 5–6 mm; a winter day about 2. When the real ET0 differs, the interval moves
- * in proportion.
+ * The trailing window that defines the local norm. It stops short of the last
+ * few days so that the weather being judged is not also setting the standard
+ * it is judged against.
+ */
+const BASELINE_FROM = -PAST_DAYS;
+const BASELINE_TO = -4;
+
+/** Below this many usable days the trailing window is not a norm, just noise. */
+const MIN_BASELINE_DAYS = 10;
+
+/**
+ * Fallback norms, in mm/day, for when there is not enough local history yet:
+ * roughly a coastal Israeli summer and winter day. Only used until the
+ * trailing window fills in — a real location's norm can sit well away from
+ * these. The Judean hills, for instance, run hotter in evaporation terms than
+ * the coast despite being cooler, because the air is drier and the wind
+ * stronger.
  */
 export const BASELINE_ET0: Record<Season, number> = {
   summer: 5.5,
@@ -37,6 +54,7 @@ interface OpenMeteoResponse {
     precipitation_probability_max?: (number | null)[];
     et0_fao_evapotranspiration?: (number | null)[];
     temperature_2m_max?: (number | null)[];
+    temperature_2m_min?: (number | null)[];
   };
 }
 
@@ -59,6 +77,7 @@ export function parseForecast(
     rainChance: num(daily.precipitation_probability_max?.[index]),
     et0Mm: num(daily.et0_fao_evapotranspiration?.[index]),
     maxTempC: num(daily.temperature_2m_max?.[index]),
+    minTempC: num(daily.temperature_2m_min?.[index]),
   }));
 
   return {
@@ -86,6 +105,7 @@ export async function fetchWeather(
       'precipitation_probability_max',
       'et0_fao_evapotranspiration',
       'temperature_2m_max',
+      'temperature_2m_min',
     ].join(','),
     timezone: 'auto',
     past_days: String(PAST_DAYS),
@@ -152,6 +172,81 @@ export function maxTempAhead(snapshot: WeatherSnapshot, now: Date, ahead = 2): n
   return Math.max(...days.map((day) => day.maxTempC));
 }
 
+/**
+ * What evaporation normally looks like at this spot at this time of year,
+ * measured from the location's own recent weeks rather than assumed from a
+ * national average.
+ *
+ * This matters more than it sounds. A garden 600 m up on the edge of the
+ * Judean desert loses noticeably more water per day than one on the coast,
+ * even while running a degree or two cooler, because the air is drier and the
+ * wind stronger. Judging it against a coastal constant would mark every
+ * ordinary day there as a heatwave and shorten every interval for good —
+ * double-counting a climate the user already allowed for when they chose the
+ * interval. Against its own norm, only genuinely unusual weather moves
+ * anything.
+ *
+ * Returns null until there is enough history to be a norm rather than noise.
+ */
+export function localBaselineEt0(
+  snapshot: WeatherSnapshot,
+  now: Date = new Date(),
+): number | null {
+  const days = windowBetween(snapshot, now, BASELINE_FROM, BASELINE_TO).filter(
+    (day) => day.et0Mm > 0,
+  );
+  if (days.length < MIN_BASELINE_DAYS) return null;
+  return days.reduce((sum, day) => sum + day.et0Mm, 0) / days.length;
+}
+
+/** The norm this location is judged against, local if known, national if not. */
+export function baselineEt0For(
+  snapshot: WeatherSnapshot,
+  now: Date = new Date(),
+): number {
+  return localBaselineEt0(snapshot, now) ?? BASELINE_ET0[seasonForDate(now)];
+}
+
+/** Nights at or below this are a real risk to tender plants. */
+export const FROST_THRESHOLD_C = 2;
+
+export interface FrostRisk {
+  /** The coldest night coming up. */
+  minTempC: number;
+  date: string;
+  /** Days from now, 0 being tonight. */
+  daysAway: number;
+}
+
+/**
+ * The coldest night in the next few days, if it is cold enough to matter.
+ * Relevant well inland and at altitude, where a clear winter night can drop
+ * far below what the same date brings on the coast — and citrus in a container
+ * is among the first things to suffer.
+ */
+export function frostRisk(
+  snapshot: WeatherSnapshot | null,
+  now: Date = new Date(),
+  ahead = 3,
+): FrostRisk | null {
+  if (!snapshot) return null;
+  const days = windowBetween(snapshot, now, 0, ahead);
+  let coldest: DailyWeather | null = null;
+  for (const day of days) {
+    if (day.minTempC <= FROST_THRESHOLD_C && (!coldest || day.minTempC < coldest.minTempC)) {
+      coldest = day;
+    }
+  }
+  if (!coldest) return null;
+
+  const index = days.indexOf(coldest);
+  return {
+    minTempC: coldest.minTempC,
+    date: coldest.date,
+    daysAway: Math.max(0, index),
+  };
+}
+
 export interface WeatherAdjustment {
   /** Days added to (positive) or taken off (negative) the base interval. */
   deltaDays: number;
@@ -192,7 +287,7 @@ export function weatherAdjustment(
   const et0 = averageEt0(snapshot, now);
   if (!et0) return NO_ADJUSTMENT;
 
-  const baseline = BASELINE_ET0[seasonForDate(now)];
+  const baseline = baselineEt0For(snapshot, now);
   const demandFactor = clamp(baseline / et0, MIN_DEMAND_FACTOR, MAX_DEMAND_FACTOR);
   const scaled = baseIntervalDays * demandFactor;
 

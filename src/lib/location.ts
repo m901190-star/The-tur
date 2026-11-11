@@ -7,16 +7,24 @@ export interface Coordinates {
   label: string;
 }
 
-/** Fallback list for when the user would rather not share their location. */
+/**
+ * Fallback list for when the user would rather not share their location, or
+ * when the fix fails. Small places are worth listing explicitly: the public
+ * geocoders do not know most of them, and the weather a few kilometres away
+ * can be materially different in the hills.
+ */
 export const ISRAELI_CITIES: Coordinates[] = [
-  { label: 'תל אביב', latitude: 32.0853, longitude: 34.7818 },
+  { label: 'כפר אלדד', latitude: 31.627, longitude: 35.238 },
+  { label: 'תקוע', latitude: 31.637, longitude: 35.215 },
   { label: 'ירושלים', latitude: 31.7683, longitude: 35.2137 },
+  { label: 'גוש עציון', latitude: 31.6522, longitude: 35.1247 },
+  { label: 'תל אביב', latitude: 32.0853, longitude: 34.7818 },
   { label: 'חיפה', latitude: 32.794, longitude: 34.9896 },
   { label: 'באר שבע', latitude: 31.2518, longitude: 34.7913 },
-  { label: 'אילת', latitude: 29.5577, longitude: 34.9519 },
-  { label: 'טבריה', latitude: 32.7922, longitude: 35.5312 },
   { label: 'מודיעין', latitude: 31.8928, longitude: 35.0104 },
   { label: 'אשדוד', latitude: 31.8044, longitude: 34.6553 },
+  { label: 'טבריה', latitude: 32.7922, longitude: 35.5312 },
+  { label: 'אילת', latitude: 29.5577, longitude: 34.9519 },
 ];
 
 function formatCoords(latitude: number, longitude: number): string {

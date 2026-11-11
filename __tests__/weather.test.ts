@@ -1,6 +1,10 @@
 import {
   BASELINE_ET0,
+  FROST_THRESHOLD_C,
   MIN_USEFUL_RAIN_MM,
+  baselineEt0For,
+  frostRisk,
+  localBaselineEt0,
   averageEt0,
   describeToday,
   isStale,
@@ -59,6 +63,7 @@ function makeSnapshot(
       rainChance: 0,
       et0Mm: 5.5,
       maxTempC: 28,
+      minTempC: 18,
       ...values,
     };
   });
@@ -91,6 +96,7 @@ describe('parseForecast', () => {
           precipitation_probability_max: [80, 5],
           et0_fao_evapotranspiration: [1.98, 3.07],
           temperature_2m_max: [21, 21.7],
+          temperature_2m_min: [13.4, 11.2],
         },
       },
       32.08,
@@ -105,6 +111,7 @@ describe('parseForecast', () => {
       rainChance: 80,
       et0Mm: 1.98,
       maxTempC: 21,
+      minTempC: 13.4,
     });
     expect(snapshot.timezone).toBe('Asia/Jerusalem');
   });
@@ -299,5 +306,128 @@ describe('isStale', () => {
     expect(isStale(flatSnapshot(now, {}), now)).toBe(false);
     const old = makeSnapshot(now, { 0: {} }, at(2026, 7, 15, 2));
     expect(isStale(old, now)).toBe(true);
+  });
+});
+
+/** Fills the trailing weeks so the local norm has something to work from. */
+function withHistory(
+  now: Date,
+  historyEt0: number,
+  recent: Record<number, Partial<DailyWeather>> = {},
+): WeatherSnapshot {
+  const offsets: Record<number, Partial<DailyWeather>> = {};
+  for (let offset = -30; offset <= -4; offset += 1) {
+    offsets[offset] = { et0Mm: historyEt0 };
+  }
+  for (let offset = -3; offset <= 6; offset += 1) {
+    offsets[offset] = { et0Mm: historyEt0 };
+  }
+  for (const [offset, values] of Object.entries(recent)) {
+    offsets[Number(offset)] = { ...offsets[Number(offset)], ...values };
+  }
+  return makeSnapshot(now, offsets);
+}
+
+describe('localBaselineEt0', () => {
+  const now = at(2026, 11, 11);
+
+  it('is null until there is enough history to be a norm', () => {
+    expect(localBaselineEt0(flatSnapshot(now, { et0Mm: 4 }), now)).toBeNull();
+  });
+
+  it('averages the location own recent weeks', () => {
+    expect(localBaselineEt0(withHistory(now, 4.11), now)).toBeCloseTo(4.11, 2);
+  });
+
+  it('ignores the last few days, so today cannot set its own standard', () => {
+    // A three-day heatwave must not drag the norm up with it.
+    const snapshot = withHistory(now, 4, { 0: { et0Mm: 40 }, '-1': { et0Mm: 40 } });
+    expect(localBaselineEt0(snapshot, now)).toBeCloseTo(4, 2);
+  });
+
+  it('skips days with no reading', () => {
+    const snapshot = withHistory(now, 4);
+    snapshot.days[0].et0Mm = 0;
+    expect(localBaselineEt0(snapshot, now)).toBeCloseTo(4, 2);
+  });
+});
+
+describe('baselineEt0For', () => {
+  const now = at(2026, 11, 11);
+
+  it('prefers the local norm when there is one', () => {
+    expect(baselineEt0For(withHistory(now, 4.11), now)).toBeCloseTo(4.11, 2);
+  });
+
+  it('falls back to the seasonal constant without history', () => {
+    expect(baselineEt0For(flatSnapshot(now, {}), now)).toBe(BASELINE_ET0.winter);
+  });
+});
+
+describe('weatherAdjustment against a local norm', () => {
+  const now = at(2026, 11, 11);
+
+  it('leaves an ordinary day alone even where that day is dry by national standards', () => {
+    // A hillside that normally evaporates 4.11 mm/day is well above the coastal
+    // winter constant, but 4.11 is simply normal there.
+    const snapshot = withHistory(now, 4.11);
+    expect(weatherAdjustment(makePlant(), 7, snapshot, now).deltaDays).toBe(0);
+  });
+
+  it('still reacts to weather that is unusual for that place', () => {
+    const snapshot = withHistory(now, 4);
+    for (let offset = 0; offset <= 2; offset += 1) {
+      const day = snapshot.days.find(
+        (d) => d.date === toDateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset)),
+      );
+      if (day) {
+        day.et0Mm = 8;
+        day.maxTempC = 38;
+      }
+    }
+    const result = weatherAdjustment(makePlant(), 7, snapshot, now);
+    expect(result.deltaDays).toBeLessThan(0);
+    expect(result.reason).toContain('חם מהרגיל');
+  });
+
+  it('would have shortened the same ordinary day under the old national constant', () => {
+    // Guards the fix: without history the constant applies and 4.11 mm looks
+    // like a heatwave, which is exactly the double-counting we removed.
+    const noHistory = flatSnapshot(now, { et0Mm: 4.11 });
+    expect(weatherAdjustment(makePlant(), 7, noHistory, now).deltaDays).toBeLessThan(0);
+  });
+});
+
+describe('frostRisk', () => {
+  const now = at(2027, 1, 15);
+
+  it('is null without a snapshot', () => {
+    expect(frostRisk(null, now)).toBeNull();
+  });
+
+  it('is null on a mild week', () => {
+    expect(frostRisk(flatSnapshot(now, { minTempC: 9 }), now)).toBeNull();
+  });
+
+  it('reports the coldest night coming up', () => {
+    const snapshot = makeSnapshot(now, {
+      0: { minTempC: 6 },
+      1: { minTempC: 1 },
+      2: { minTempC: -2 },
+      3: { minTempC: 4 },
+    });
+    const risk = frostRisk(snapshot, now);
+    expect(risk?.minTempC).toBe(-2);
+    expect(risk?.daysAway).toBe(2);
+  });
+
+  it('catches a cold night tonight', () => {
+    const risk = frostRisk(makeSnapshot(now, { 0: { minTempC: FROST_THRESHOLD_C } }), now);
+    expect(risk?.daysAway).toBe(0);
+  });
+
+  it('looks no further than the window allows', () => {
+    const snapshot = makeSnapshot(now, { 0: { minTempC: 10 }, 5: { minTempC: -4 } });
+    expect(frostRisk(snapshot, now, 3)).toBeNull();
   });
 });

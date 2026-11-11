@@ -100,6 +100,8 @@ export interface DailyWeather {
    */
   et0Mm: number;
   maxTempC: number;
+  /** Night-time low. Drives the frost warning. */
+  minTempC: number;
 }
 
 export interface WeatherSnapshot {

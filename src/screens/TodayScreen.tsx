@@ -16,6 +16,7 @@ import {
   sortByUrgency,
   totalWaterDue,
 } from '../lib/watering';
+import { frostRisk } from '../lib/weather';
 import { RootStackParamList } from '../navigation';
 import { usePlants } from '../state/PlantsContext';
 import { colors, radius, rtlText, spacing, typography } from '../theme';
@@ -49,6 +50,12 @@ export function TodayScreen() {
       fertilizeDue: plants.filter((plant) => fertilizeState(plant, now).due),
     };
   }, [plants, now, weather]);
+
+  // Worth saying out loud only when something outside could actually be hit.
+  const frost = useMemo(() => {
+    if (!plants.some((plant) => plant.isOutdoor)) return null;
+    return frostRisk(weather, now);
+  }, [plants, weather, now]);
 
   if (plants.length === 0) {
     return (
@@ -91,6 +98,20 @@ export function TodayScreen() {
           <Ionicons name="water" size={18} color={colors.water} />
           <Text style={styles.summaryText}>
             סך הכל {formatWater(litres)} להיום
+          </Text>
+        </View>
+      ) : null}
+
+      {frost ? (
+        <View style={styles.frost}>
+          <Ionicons name="snow-outline" size={18} color={colors.water} />
+          <Text style={styles.frostText}>
+            {frost.daysAway === 0
+              ? `קור הלילה: ${Math.round(frost.minTempC)}°`
+              : `קור בעוד ${frost.daysAway} ${frost.daysAway === 1 ? 'יום' : 'ימים'}: ${Math.round(frost.minTempC)}°`}
+            {' — '}
+            השקיה בערב שלפני מגינה על השורשים, וכדאי לכסות צמחים רגישים כמו
+            הדרים.
           </Text>
         </View>
       ) : null}
@@ -186,5 +207,16 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   allDoneText: { ...typography.body, color: colors.primaryDark, flex: 1, ...rtlText },
+  frost: {
+    flexDirection: 'row-reverse',
+    gap: spacing.sm,
+    backgroundColor: colors.waterSoft,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginTop: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.water,
+  },
+  frostText: { ...typography.small, color: colors.water, flex: 1, ...rtlText },
   list: { gap: spacing.md },
 });
