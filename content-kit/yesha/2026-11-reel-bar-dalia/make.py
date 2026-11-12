@@ -8,11 +8,11 @@ SEC = '/tmp/claude-0/-home-user-The-tur/1a5819ee-0cc0-5045-b086-4a8a80216453/scr
 LOGO = HERE + '/../../clients/yesha/logo_white.png'
 W, H, FPS = 1080, 1920, 30; BLUE = (0x25, 0x66, 0xA2); WHITE = (255, 255, 255)
 VO_END = 66.4; TOTAL = VO_END + 2.6
-SHOTS = [(0.0, 4.3, 'img', 'p1.jpg', 0, (.5, .5)), (4.3, 8.8, 'vid', 'v20.mov', 1.0, 1), (8.8, 15.2, 'img', 'p5.jpg', 0, (.5, .32)),
-         (15.2, 21.0, 'vid', 'v6.mov', 0.0, 1), (21.0, 26.9, 'vid', 'v11.mov', 4.6, .9), (26.9, 33.4, 'img', 'p7-sheepfold.jpg', 0, (.5, .5)),
+SHOTS = [(0.0, 4.3, 'img', 'p1.jpg', 0, (.5, .5)), (4.3, 8.8, 'vid', 'v9.mov', 0.5, 1), (8.8, 15.2, 'img', 'p5.jpg', 0, (.5, .32)),
+         (15.2, 21.0, 'vid', 'v6.mov', 0.0, 1), (21.0, 26.9, 'vid', 'v11.mov', 4.5, .55), (26.9, 33.4, 'img', 'p7-sheepfold.jpg', 0, (.5, .5)),
          (33.4, 40.5, 'vid', 'v7.mov', 3.2, .6), (40.5, 45.1, 'img', 'p6.jpg', 0, (.5, .4)), (45.1, 48.8, 'vid', 'v3.mov', 0.0, 1),
-         (48.8, 51.0, 'vid', 'v4.mov', 0.0, 1), (51.0, 54.4, 'vid', 'v2.mov', 0.5, 1), (54.4, 58.4, 'img', 'p3.jpg', 0, (.5, .45)),
-         (58.4, 61.8, 'img', 'p2.jpg', 0, (.5, .5)), (61.8, 64.6, 'vid', 'v14.mov', 2.0, 1), (64.6, 99, 'vid', 'v12.mov', 1.0, 1)]
+         (48.8, 51.0, 'vid', 'v4.mov', 0.0, 1), (51.0, 54.4, 'vid', 'v15.mov', 0.5, 1), (54.4, 58.4, 'img', 'p3.jpg', 0, (.5, .45)),
+         (58.4, 61.8, 'img', 'p2.jpg', 0, (.5, .5)), (61.8, 64.6, 'vid', 'v18.mov', 1.0, 1), (64.6, 99, 'vid', 'v12.mov', 1.0, 1)]
 SUBS = [(0.47, 4.3, 'ממערב למחסום הבקעה, סמוך לכפר ברדלה,'), (4.3, 8.3, 'נמצאת חווה שמספרת סיפור של עבר, הווה ועתיד.'),
         (8.76, 13.2, 'על פי הידוע, במקום שכן בעבר כפר יהודי קטן'), (13.39, 15.1, 'בשם בר־דליה,'), (15.15, 18.2, 'שבו התגוררה משמרת הכהונה דליה,'),
         (18.35, 20.5, 'המוזכרת גם בגמרא.'), (21.06, 26.0, 'השם העתיק השתמר עד ימינו בשם הכפר ברדלה.'),
@@ -29,7 +29,7 @@ def prep():
         d = P + f's{i:02d}/'
         if os.path.exists(d + '0001.jpg'): continue
         os.makedirs(d, exist_ok=True); dur = (min(b, TOTAL) - a + .6) * sp
-        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(t0), '-t', f'{dur:.2f}', '-i', FT + src, '-vf', f'setpts=PTS/{sp},fps={FPS},scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,crop=1080:1920,eq=saturation=1.08:contrast=1.04', '-q:v', '3', d + '%04d.jpg'], check=True)
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(t0), '-t', f'{dur:.2f}', '-i', FT + src, '-vf', f'setpts=PTS/{sp},fps={FPS},' + ('crop=iw*0.62:ih*0.62:iw*0.19:ih*0.04,' if src == 'v11.mov' else '') + 'scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,crop=1080:1920,eq=saturation=1.08:contrast=1.04', '-q:v', '3', d + '%04d.jpg'], check=True)
 _ls, _img = {}, {}
 def photo(n):
     if n not in _img:
@@ -91,8 +91,8 @@ if __name__ == '__main__':
         ims = [frame(x).resize((180, 320)) for x in ts]; sh = Image.new('RGB', (8 * 184, 2 * 324), WHITE)
         for i, x in enumerate(ims): sh.paste(x, ((i % 8) * 184, (i // 8) * 324))
         sh.save(P + '../stills.jpg'); print(TOTAL); sys.exit()
-    ff = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-', '-i', HERE + '/vo_clean.wav',
-        '-filter_complex', f'[1:a]atrim=0:{VO_END},aformat=channel_layouts=stereo,apad=whole_dur={TOTAL}[a]', '-map', '0:v', '-map', '[a]', '-vf', 'scale=720:1280:flags=lanczos',
+    ff = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-', '-i', HERE + '/vo_clean.wav', '-i', HERE + '/../2026-11-reel-bustan-david/music.wav',
+        '-filter_complex', f"[1:a]atrim=0:{VO_END},aformat=sample_rates=48000:channel_layouts=stereo,apad=whole_dur={TOTAL},asplit=2[v][k];[2:a]aformat=sample_rates=48000:channel_layouts=stereo,aloop=loop=3:size={int(25.6*44100)},atrim=0:{TOTAL},volume='if(between(t,26.5,33.6),0.12,if(gt(t,{VO_END}),0.55,0.30))':eval=frame,afade=t=in:d=1,afade=t=out:st={TOTAL-2}:d=2[m];[m][k]sidechaincompress=threshold=0.03:ratio=3:attack=20:release=350[md];[v][md]amix=inputs=2:normalize=0,alimiter=limit=0.95[a]", '-map', '0:v', '-map', '[a]', '-vf', 'scale=720:1280:flags=lanczos',
         '-c:v', 'libx264', '-preset', 'slow', '-b:v', '2200k', '-maxrate', '3000k', '-bufsize', '6000k', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k', '-t', f'{TOTAL}', '-movflags', '+faststart', HERE + '/yesha-bar-dalia.mp4'], stdin=subprocess.PIPE)
     for i in range(int(round(TOTAL * FPS))): ff.stdin.write(frame(i / FPS).tobytes())
     ff.stdin.close(); ff.wait(); print('done', TOTAL)
