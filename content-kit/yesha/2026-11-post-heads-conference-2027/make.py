@@ -26,10 +26,10 @@ d.rectangle((R - lw - 40, 300, R + 4, 370), fill=BLUE); d.text((R - 18, 307), la
 fh = F(KB, 150)
 for i, l in enumerate(['חיזוק הביטחון', 'וההיערכות לשנת 2027']):
     y = 400 + i * 145; d.text((R + 6, y + 6), l, font=fh, fill=NAVY, anchor='ra', direction='rtl'); d.text((R, y), l, font=fh, fill=WHITE, anchor='ra', direction='rtl')
-# location pin icon + 'אריאל', then the rest of the line
-px, py = R - 16, 742
-d.ellipse((px - 16, py - 26, px + 16, py + 6), fill=WHITE); d.polygon([(px - 14, py - 4), (px + 14, py - 4), (px, py + 22)], fill=WHITE); d.ellipse((px - 7, py - 17, px + 7, py - 3), fill=BLUE)
-f40 = F(SEC, 40); d.text((R - 44, 715), 'אריאל', font=f40, fill=WHITE, anchor='ra', direction='rtl')
-aw = d.textlength('אריאל', font=f40, direction='rtl')
-d.text((R - 44 - aw - 14, 715), '· בהובלת הגמ״ר איו״ש ומועצת יש״ע', font=f40, fill=WHITE, anchor='ra', direction='rtl')
+d.text((R, 715), 'בהובלת הגמ״ר איו״ש ומועצת יש״ע', font=F(SEC, 40), fill=WHITE, anchor='ra', direction='rtl')
+# location: pin + 'אריאל', top-left (opposite the logo)
+f50 = F(SEC, 52); aw = d.textlength('אריאל', font=f50, direction='rtl'); X0 = 62
+d.text((X0, 92), 'אריאל', font=f50, fill=WHITE, anchor='la', direction='rtl')
+px, py = X0 + aw + 30, 128
+d.ellipse((px - 19, py - 31, px + 19, py + 7), fill=WHITE); d.polygon([(px - 17, py - 5), (px + 17, py - 5), (px, py + 26)], fill=WHITE); d.ellipse((px - 8, py - 20, px + 8, py - 4), fill=BLUE)
 im.convert('RGB').save(HERE + '/yesha-post-conference-1080x1350.jpg', quality=95); print(top, d.textlength('וההיערכות לשנת 2027', font=fh, direction='rtl'))
