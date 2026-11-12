@@ -19,6 +19,11 @@ export interface PlantPreset {
   outdoor: boolean;
   /** Whether a cold night damages it rather than merely slowing it down. */
   frostTender: boolean;
+  /**
+   * Whether wet soil makes a cold night worse rather than better. True for
+   * cacti and succulents, which rot when cold and wet at once.
+   */
+  keepDryInCold: boolean;
   /** One line of care advice shown under the picker. */
   tip: string;
 }
@@ -30,6 +35,7 @@ export interface PlantPreset {
 export const PLANT_PRESETS: PlantPreset[] = [
   {
     species: 'מונסטרה',
+    keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 150,
     outdoor: false,
@@ -43,6 +49,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'פותוס',
+    keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 140,
     outdoor: false,
@@ -56,6 +63,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: "פיקוס בנג'מינה",
+    keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 150,
     outdoor: false,
@@ -69,6 +77,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'סנסיווריה (חרב הקיסר)',
+    keepDryInCold: true,
     frostTender: true,
     mlPerLiterOfSoil: 90,
     outdoor: false,
@@ -82,6 +91,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'זמיוקולקס (ZZ)',
+    keepDryInCold: true,
     frostTender: true,
     mlPerLiterOfSoil: 90,
     outdoor: false,
@@ -95,6 +105,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'אלוורה',
+    keepDryInCold: true,
     frostTender: true,
     mlPerLiterOfSoil: 80,
     outdoor: false,
@@ -108,6 +119,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'קקטוס',
+    keepDryInCold: true,
     frostTender: true,
     mlPerLiterOfSoil: 60,
     outdoor: false,
@@ -121,6 +133,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'ספטיפילום (שלום הבית)',
+    keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 170,
     outdoor: false,
@@ -134,6 +147,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'פילודנדרון',
+    keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 150,
     outdoor: false,
@@ -147,6 +161,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'דרצנה',
+    keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 140,
     outdoor: false,
@@ -160,6 +175,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'שרך',
+    keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 180,
     outdoor: false,
@@ -173,6 +189,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'קלתיאה',
+    keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 170,
     outdoor: false,
@@ -186,6 +203,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'אורכידאה',
+    keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 120,
     outdoor: false,
@@ -199,6 +217,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'יוקה',
+    keepDryInCold: false,
     frostTender: false,
     mlPerLiterOfSoil: 120,
     outdoor: true,
@@ -212,6 +231,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'עץ זית',
+    keepDryInCold: false,
     frostTender: false,
     mlPerLiterOfSoil: 160,
     outdoor: true,
@@ -225,6 +245,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'עץ הדר בעציץ (לימון)',
+    keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 200,
     outdoor: true,
@@ -238,6 +259,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'בוגנוויליה',
+    keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 150,
     outdoor: true,
@@ -251,6 +273,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'גרניום',
+    keepDryInCold: false,
     frostTender: false,
     mlPerLiterOfSoil: 160,
     outdoor: true,
@@ -264,6 +287,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'בזיליקום',
+    keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 190,
     outdoor: true,
@@ -277,6 +301,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'נענע',
+    keepDryInCold: false,
     frostTender: false,
     mlPerLiterOfSoil: 190,
     outdoor: true,
@@ -290,6 +315,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'רוזמרין',
+    keepDryInCold: false,
     frostTender: false,
     mlPerLiterOfSoil: 120,
     outdoor: true,
@@ -303,6 +329,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'ברוש',
+    keepDryInCold: false,
     frostTender: false,
     waterMl: 3000,
     intervalSummerDays: 5,
@@ -316,6 +343,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'במבוק / קנים',
+    keepDryInCold: false,
     frostTender: true,
     waterMl: 3000,
     intervalSummerDays: 2,
@@ -329,6 +357,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'שיח נוי ים-תיכוני',
+    keepDryInCold: false,
     frostTender: false,
     waterMl: 2000,
     intervalSummerDays: 5,
@@ -342,6 +371,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'לבנדר',
+    keepDryInCold: false,
     frostTender: false,
     waterMl: 800,
     intervalSummerDays: 8,
@@ -355,6 +385,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'שפלרה מגוונת',
+    keepDryInCold: false,
     frostTender: true,
     waterMl: 4500,
     intervalSummerDays: 5,
@@ -368,6 +399,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'ביידנס',
+    keepDryInCold: false,
     frostTender: false,
     waterMl: 3400,
     intervalSummerDays: 2,
@@ -381,6 +413,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'סקבולה',
+    keepDryInCold: false,
     frostTender: true,
     waterMl: 3000,
     intervalSummerDays: 3,
@@ -394,6 +427,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'כתר קוצים',
+    keepDryInCold: true,
     frostTender: true,
     waterMl: 1200,
     intervalSummerDays: 10,
@@ -406,7 +440,36 @@ export const PLANT_PRESETS: PlantPreset[] = [
     tip: 'סוקולנט אמיתי — הסכנה היחידה היא יותר מדי מים. השרף חלבי ומגרה, כדאי כפפות בגיזום.',
   },
   {
+    species: 'פלקטרנטוס מגוון',
+    keepDryInCold: false,
+    frostTender: true,
+    waterMl: 300,
+    intervalSummerDays: 4,
+    intervalWinterDays: 9,
+    light: 'partial',
+    potSize: 'small',
+    fertilizeEveryDays: 30,
+    mlPerLiterOfSoil: 160,
+    outdoor: true,
+    tip: 'מתארך מהר ומתקרח בבסיס — קיטום הקצוות אחת לחודש משאיר אותו מלא. שמש ישירה בצהריים מחווירה את הלבן שבעלים.',
+  },
+  {
+    species: 'אופונטיה (אוזני ארנב)',
+    keepDryInCold: true,
+    frostTender: true,
+    waterMl: 150,
+    intervalSummerDays: 18,
+    intervalWinterDays: 40,
+    light: 'full-sun',
+    potSize: 'small',
+    fertilizeEveryDays: null,
+    mlPerLiterOfSoil: 60,
+    outdoor: true,
+    tip: 'צריך מצע מנקז לקקטוסים, לא אדמת גינה. הנקודות הכתומות הן גלוכידים — שערות זעירות שנתקעות בעור, לא לגעת בלי כפפות.',
+  },
+  {
     species: 'סוקולנט',
+    keepDryInCold: true,
     frostTender: true,
     mlPerLiterOfSoil: 70,
     outdoor: false,

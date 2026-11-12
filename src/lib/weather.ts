@@ -1,5 +1,5 @@
 import { DailyWeather, Plant, Season, WeatherSnapshot } from '../types';
-import { seasonForDate, startOfDay, toDateKey } from './dates';
+import { addDays, seasonForDate, startOfDay, toDateKey } from './dates';
 
 const FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
 
@@ -244,6 +244,69 @@ export function frostRisk(
     minTempC: coldest.minTempC,
     date: coldest.date,
     daysAway: Math.max(0, index),
+  };
+}
+
+export interface FrostDeferral {
+  /** The day to water instead. */
+  date: Date;
+  /** The cold night that pushed it, if one did. */
+  coldNight: FrostRisk | null;
+}
+
+/**
+ * Moves a watering away from a cold night, for the plants that must go into one
+ * dry.
+ *
+ * For most plants the opposite is true and wet soil is a help: water holds heat
+ * and gives it back overnight. For a cactus or succulent it is the thing that
+ * kills them — cold and wet at once rots the roots — so theirs waits instead.
+ *
+ * Soil watered on a given day is still wet through the night that follows, so a
+ * day only counts as safe when it and the next day are both mild. That also
+ * clears a run of cold nights rather than landing on the second one.
+ */
+export function deferPastFrost(
+  due: Date,
+  snapshot: WeatherSnapshot | null,
+  now: Date = new Date(),
+  ahead = 7,
+): FrostDeferral {
+  if (!snapshot) return { date: due, coldNight: null };
+
+  const days = windowBetween(snapshot, now, 0, ahead);
+  if (days.length === 0) return { date: due, coldNight: null };
+
+  const byDate = new Map(days.map((day) => [day.date, day]));
+  const coldOn = (date: Date): DailyWeather | null => {
+    const day = byDate.get(toDateKey(date));
+    return day && day.minTempC <= FROST_THRESHOLD_C ? day : null;
+  };
+
+  let target = startOfDay(due);
+  let blocker: DailyWeather | null = null;
+
+  // At most one step per day in the window, so this always terminates.
+  for (let step = 0; step <= days.length; step += 1) {
+    const tonight = coldOn(target);
+    const tomorrow = coldOn(addDays(target, 1));
+    if (!tonight && !tomorrow) break;
+    blocker = blocker ?? tonight ?? tomorrow;
+    target = addDays(target, 1);
+  }
+
+  if (!blocker || target.getTime() <= startOfDay(due).getTime()) {
+    return { date: due, coldNight: null };
+  }
+
+  const index = days.indexOf(blocker);
+  return {
+    date: target,
+    coldNight: {
+      minTempC: blocker.minTempC,
+      date: blocker.date,
+      daysAway: Math.max(0, index),
+    },
   };
 }
 

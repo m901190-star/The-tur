@@ -3,6 +3,7 @@ import {
   FROST_THRESHOLD_C,
   MIN_USEFUL_RAIN_MM,
   baselineEt0For,
+  deferPastFrost,
   frostRisk,
   localBaselineEt0,
   averageEt0,
@@ -35,6 +36,7 @@ function makePlant(overrides: Partial<Plant> = {}): Plant {
     plantCount: 1,
     isOutdoor: true,
     isFrostTender: true,
+    keepsDryInCold: false,
     fertilizeEveryDays: 60,
     lastWateredAt: null,
     lastFertilizedAt: null,
@@ -430,5 +432,60 @@ describe('frostRisk', () => {
   it('looks no further than the window allows', () => {
     const snapshot = makeSnapshot(now, { 0: { minTempC: 10 }, 5: { minTempC: -4 } });
     expect(frostRisk(snapshot, now, 3)).toBeNull();
+  });
+});
+
+describe('deferPastFrost', () => {
+  const now = at(2027, 1, 15);
+  const due = (offset: number) =>
+    new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
+
+  it('leaves the date alone without a snapshot', () => {
+    const target = due(3);
+    expect(deferPastFrost(target, null, now).date).toBe(target);
+    expect(deferPastFrost(target, null, now).coldNight).toBeNull();
+  });
+
+  it('leaves the date alone on a mild week', () => {
+    const snapshot = flatSnapshot(now, { minTempC: 11 });
+    expect(deferPastFrost(due(3), snapshot, now).coldNight).toBeNull();
+  });
+
+  it('pushes a watering that lands on the cold night to the morning after', () => {
+    const snapshot = makeSnapshot(now, {
+      0: { minTempC: 9 },
+      1: { minTempC: 9 },
+      2: { minTempC: 0 },
+      3: { minTempC: 8 },
+    });
+    const result = deferPastFrost(due(2), snapshot, now);
+    expect(result.date.getDate()).toBe(due(3).getDate());
+    expect(result.coldNight?.minTempC).toBe(0);
+  });
+
+  it('pushes a watering due before the cold night too', () => {
+    const snapshot = makeSnapshot(now, { 0: { minTempC: 9 }, 1: { minTempC: -1 } });
+    expect(deferPastFrost(due(0), snapshot, now).date.getDate()).toBe(due(2).getDate());
+  });
+
+  it('leaves a watering that already falls after the cold night', () => {
+    const snapshot = makeSnapshot(now, { 1: { minTempC: -2 }, 5: { minTempC: 10 } });
+    const target = due(5);
+    expect(deferPastFrost(target, snapshot, now).coldNight).toBeNull();
+  });
+
+  it('clears a run of cold nights, not just the first', () => {
+    const snapshot = makeSnapshot(now, {
+      1: { minTempC: 1 },
+      2: { minTempC: -1 },
+      3: { minTempC: 0 },
+      4: { minTempC: 7 },
+    });
+    expect(deferPastFrost(due(1), snapshot, now).date.getDate()).toBe(due(4).getDate());
+  });
+
+  it('ignores cold beyond the forecast window it is given', () => {
+    const snapshot = makeSnapshot(now, { 6: { minTempC: -3 } });
+    expect(deferPastFrost(due(6), snapshot, now, 3).coldNight).toBeNull();
   });
 });

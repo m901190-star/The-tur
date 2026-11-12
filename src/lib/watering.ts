@@ -7,7 +7,7 @@ import {
   WeatherSnapshot,
 } from '../types';
 import { addDays, daysBetween, seasonForDate, startOfDay } from './dates';
-import { weatherAdjustment } from './weather';
+import { deferPastFrost, weatherAdjustment } from './weather';
 
 export { MS_PER_DAY, addDays, daysBetween, seasonForDate, startOfDay } from './dates';
 
@@ -63,7 +63,12 @@ export function nextWateringDate(
   if (!plant.lastWateredAt) return null;
   const last = new Date(plant.lastWateredAt);
   if (Number.isNaN(last.getTime())) return null;
-  return addDays(last, intervalDays(plant, now, weather));
+  const due = addDays(last, intervalDays(plant, now, weather));
+  // A succulent must not go into a cold night with wet soil.
+  if (plant.isOutdoor && plant.keepsDryInCold) {
+    return deferPastFrost(due, weather, now).date;
+  }
+  return due;
 }
 
 export type DueStatus =
@@ -97,6 +102,17 @@ export function wateringState(
   const base = baseIntervalDays(plant, now);
   const { reason } = weatherAdjustment(plant, base, weather, now);
   const nextDate = nextWateringDate(plant, now, weather);
+
+  // When a cold night held the watering back, say so instead of the usual
+  // demand-and-rain explanation: it is the more important of the two.
+  let weatherReason = reason;
+  if (plant.isOutdoor && plant.keepsDryInCold && plant.lastWateredAt) {
+    const raw = addDays(new Date(plant.lastWateredAt), intervalDays(plant, now, weather));
+    const { coldNight } = deferPastFrost(raw, weather, now);
+    if (coldNight) {
+      weatherReason = `לילה קר (${Math.round(coldNight.minTempC)}°) — דחינו את ההשקיה לאחריו, קקטוס רטוב בקור נרקב`;
+    }
+  }
   const daysSinceWatering = plant.lastWateredAt
     ? Math.max(0, -daysBetween(now, new Date(plant.lastWateredAt)))
     : null;
@@ -107,7 +123,7 @@ export function wateringState(
       daysUntil: 0,
       nextDate: null,
       daysSinceWatering,
-      weatherReason: reason,
+      weatherReason,
     };
   }
 
@@ -118,7 +134,7 @@ export function wateringState(
   else if (daysUntil === 1) status = 'soon';
   else status = 'ok';
 
-  return { status, daysUntil, nextDate, daysSinceWatering, weatherReason: reason };
+  return { status, daysUntil, nextDate, daysSinceWatering, weatherReason };
 }
 
 /** True when the plant belongs on the "water today" list. */

@@ -44,6 +44,20 @@ export const GARDEN_SEED: SeedPlant[] = [
   { name: 'סקבולה סגולה', species: 'סקבולה', location: 'מרפסת', containerLiters: 30 },
   { name: 'גרניום אדום במרפסת', species: 'גרניום', location: 'מרפסת', containerLiters: 30 },
   { name: 'גרניום ורוד', species: 'גרניום', location: 'מרפסת', containerLiters: 30 },
+  {
+    name: 'פלקטרנטוס בחלון',
+    species: 'פלקטרנטוס מגוון',
+    location: 'אדן חלון',
+    containerLiters: 2,
+    notes: 'מתארך — לקטום קצוות אחת לחודש כדי שלא יתקרח בבסיס.',
+  },
+  {
+    name: 'קקטוס אוזני ארנב',
+    species: 'אופונטיה (אוזני ארנב)',
+    location: 'מרפסת',
+    containerLiters: 2,
+    notes: 'נראה שהוא באדמת גינה רגילה ועל תחתית — להחליף למצע קקטוסים מנקז ולרוקן את התחתית, אחרת ירקב בחורף.',
+  },
 ];
 
 export type SeededPlant = Omit<Plant, 'id' | 'createdAt' | 'calendarEventId'>;
@@ -65,6 +79,7 @@ export function buildSeedPlants(now: Date = new Date()): SeededPlant[] {
       // Every one of these was photographed outdoors.
       isOutdoor: true,
       isFrostTender: preset?.frostTender ?? false,
+      keepsDryInCold: preset?.keepDryInCold ?? false,
       waterMl: suggestWaterForContainer(seed.containerLiters, mlPerLiter),
       intervalSummerDays: preset?.intervalSummerDays ?? 7,
       intervalWinterDays: preset?.intervalWinterDays ?? 14,

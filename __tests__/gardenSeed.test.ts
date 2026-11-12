@@ -47,6 +47,16 @@ describe('garden seed', () => {
     expect(buildSeedPlants().every((plant) => plant.isOutdoor)).toBe(true);
   });
 
+  it('marks both succulents to stay dry in the cold, and nothing else', () => {
+    const built = buildSeedPlants();
+    const dry = built.filter((plant) => plant.keepsDryInCold).map((plant) => plant.species);
+    // The crown of thorns is a succulent too, so it gets the same handling.
+    expect(new Set(dry)).toEqual(new Set(['כתר קוצים', 'אופונטיה (אוזני ארנב)']));
+    // The lemon is frost-tender but wants the opposite treatment.
+    const lemon = built.find((plant) => plant.species.includes('לימון'));
+    expect(lemon?.keepsDryInCold).toBe(false);
+  });
+
   it('carries frost tenderness over from the preset', () => {
     const built = buildSeedPlants();
     const lemon = built.find((plant) => plant.species.includes('לימון'));

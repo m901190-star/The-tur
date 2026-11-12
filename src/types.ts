@@ -39,6 +39,12 @@ export interface Plant {
    * and most succulents are; a cypress is not. Only matters outdoors.
    */
   isFrostTender: boolean;
+  /**
+   * Wet soil plus a cold night rots this plant rather than protecting it, which
+   * is how cacti and succulents die in a wet winter. Inverts the usual advice
+   * to water before a cold snap, and holds the watering back until after it.
+   */
+  keepsDryInCold: boolean;
   /** Days between fertilising, or null if the user does not fertilise it. */
   fertilizeEveryDays: number | null;
   /** ISO date string of the last watering, or null if never watered. */

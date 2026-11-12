@@ -1,5 +1,7 @@
 import {
   baseIntervalDays,
+  nextWateringDate,
+  wateringState,
   containerLitersFor,
   crowdingFactor,
   intervalDays,
@@ -28,6 +30,7 @@ function makePlant(overrides: Partial<Plant> = {}): Plant {
     plantCount: 3,
     isOutdoor: true,
     isFrostTender: true,
+    keepsDryInCold: false,
     fertilizeEveryDays: 60,
     lastWateredAt: null,
     lastFertilizedAt: null,
@@ -180,5 +183,55 @@ describe('containerLitersFor', () => {
   it('falls back to the pot-size bucket', () => {
     expect(containerLitersFor(makePlant({ containerLiters: null, potSize: 'small' }))).toBe(2);
     expect(containerLitersFor(makePlant({ containerLiters: 0, potSize: 'large' }))).toBe(20);
+  });
+});
+
+describe('a succulent before a cold night', () => {
+  const winter = at(2027, 1, 15);
+
+  function coldSnapshot(): WeatherSnapshot {
+    const snapshot = flatSnapshot(winter, { et0Mm: 2, minTempC: 9 });
+    // Two nights from now it drops below freezing.
+    const target = new Date(winter.getFullYear(), winter.getMonth(), winter.getDate() + 2);
+    const day = snapshot.days.find((d) => d.date === toDateKey(target));
+    if (day) day.minTempC = -1;
+    return snapshot;
+  }
+
+  const cactus = (over: Partial<Plant> = {}) =>
+    makePlant({
+      species: 'אופונטיה (אוזני ארנב)',
+      containerLiters: 2,
+      plantCount: 1,
+      isOutdoor: true,
+      keepsDryInCold: true,
+      intervalSummerDays: 18,
+      intervalWinterDays: 40,
+      lastWateredAt: at(2026, 12, 8).toISOString(),
+      ...over,
+    });
+
+  it('holds the watering until after the cold has passed', () => {
+    const next = nextWateringDate(cactus(), winter, coldSnapshot())!;
+    const frostDay = new Date(winter.getFullYear(), winter.getMonth(), winter.getDate() + 2);
+    expect(next.getTime()).toBeGreaterThan(frostDay.getTime());
+  });
+
+  it('says why, in place of the usual demand explanation', () => {
+    const state = wateringState(cactus(), winter, coldSnapshot());
+    expect(state.weatherReason).toContain('נרקב');
+  });
+
+  it('does not hold back a plant that wants watering before the cold', () => {
+    const geranium = cactus({ keepsDryInCold: false });
+    const next = nextWateringDate(geranium, winter, coldSnapshot())!;
+    const plain = nextWateringDate(geranium, winter, null)!;
+    // The forecast may still shift it, but not past the cold night on purpose.
+    expect(next.getTime()).toBeLessThanOrEqual(plain.getTime() + 3 * 24 * 60 * 60 * 1000);
+  });
+
+  it('leaves an indoor succulent alone — no cold night reaches it', () => {
+    const indoor = cactus({ isOutdoor: false });
+    expect(wateringState(indoor, winter, coldSnapshot()).weatherReason).toBeNull();
   });
 });

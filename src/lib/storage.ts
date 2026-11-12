@@ -45,6 +45,8 @@ function normalisePlant(stored: Plant): Plant {
     isOutdoor: typeof stored.isOutdoor === 'boolean' ? stored.isOutdoor : false,
     isFrostTender:
       typeof stored.isFrostTender === 'boolean' ? stored.isFrostTender : false,
+    keepsDryInCold:
+      typeof stored.keepsDryInCold === 'boolean' ? stored.keepsDryInCold : false,
   };
 }
 

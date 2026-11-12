@@ -22,6 +22,12 @@ import { GARDEN_SEED, buildSeedPlants } from '../gardenSeed';
 import { usePlants } from '../state/PlantsContext';
 import { colors, radius, rtlText, spacing, typography } from '../theme';
 
+/** "הלימון" / "הלימון והשפלרה" / "הלימון, השפלרה ועוד 2" */
+function joinNames(names: string[]): string {
+  if (names.length <= 2) return names.join(' ו');
+  return `${names.slice(0, 2).join(', ')} ועוד ${names.length - 2}`;
+}
+
 const HE_FULL_DATE = new Intl.DateTimeFormat('he-IL', {
   weekday: 'long',
   day: 'numeric',
@@ -76,11 +82,14 @@ export function TodayScreen() {
     if (outdoor.length === 0) return null;
     const risk = frostRisk(weather, now);
     if (!risk) return null;
-    const tender = outdoor
-      .filter((plant) => plant.isFrostTender)
-      .map((plant) => plant.name || plant.species)
+    const label = (plant: (typeof outdoor)[number]) => plant.name || plant.species;
+    // The two groups need opposite instructions, so they are counted apart.
+    const cover = outdoor
+      .filter((plant) => plant.isFrostTender && !plant.keepsDryInCold)
+      .map(label)
       .filter(Boolean);
-    return { ...risk, tender };
+    const keepDry = outdoor.filter((plant) => plant.keepsDryInCold).map(label).filter(Boolean);
+    return { ...risk, cover, keepDry };
   }, [plants, weather, now]);
 
   if (plants.length === 0) {
@@ -134,17 +143,23 @@ export function TodayScreen() {
       {frost ? (
         <View style={styles.frost}>
           <Ionicons name="snow-outline" size={18} color={colors.water} />
-          <Text style={styles.frostText}>
-            {frost.daysAway === 0
-              ? `קור הלילה: ${Math.round(frost.minTempC)}°`
-              : `קור בעוד ${frost.daysAway} ${frost.daysAway === 1 ? 'יום' : 'ימים'}: ${Math.round(frost.minTempC)}°`}
-            {' — '}
-            השקיה בערב שלפני מרטיבה את האדמה, וקרקע לחה מחזיקה חום ומגינה על
-            השורשים.
-            {frost.tender.length > 0
-              ? ` כדאי לכסות: ${frost.tender.slice(0, 4).join(', ')}${frost.tender.length > 4 ? ` ועוד ${frost.tender.length - 4}` : ''}.`
-              : ''}
-          </Text>
+          <View style={styles.frostBody}>
+            <Text style={styles.frostHeading}>
+              {frost.daysAway === 0
+                ? `קור הלילה: ${Math.round(frost.minTempC)}°`
+                : `קור בעוד ${frost.daysAway} ${frost.daysAway === 1 ? 'יום' : 'ימים'}: ${Math.round(frost.minTempC)}°`}
+            </Text>
+            <Text style={styles.frostText}>
+              להשקות בערב שלפני: קרקע לחה מחזיקה חום ומגינה על השורשים
+              {frost.cover.length > 0 ? `, וכדאי גם לכסות את ${joinNames(frost.cover)}` : ''}.
+            </Text>
+            {frost.keepDry.length > 0 ? (
+              <Text style={styles.frostText}>
+                חוץ מ{joinNames(frost.keepDry)} — לקקטוסים ולסוקולנטים זה הפוך,
+                קור ורטיבות ביחד מרקיבים אותם. ההשקיה שלהם נדחתה עד שהקור עובר.
+              </Text>
+            ) : null}
+          </View>
         </View>
       ) : null}
 
@@ -249,6 +264,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.water,
   },
-  frostText: { ...typography.small, color: colors.water, flex: 1, ...rtlText },
+  frostBody: { flex: 1, gap: spacing.xs },
+  frostHeading: { ...typography.bodyStrong, color: colors.water, ...rtlText },
+  frostText: { ...typography.small, color: colors.water, ...rtlText },
   list: { gap: spacing.md },
 });

@@ -48,6 +48,7 @@ interface FormState {
   plantCount: string;
   isOutdoor: boolean;
   isFrostTender: boolean;
+  keepsDryInCold: boolean;
   waterMl: string;
   intervalSummerDays: string;
   intervalWinterDays: string;
@@ -80,6 +81,7 @@ function emptyForm(): FormState {
     plantCount: '1',
     isOutdoor: false,
     isFrostTender: false,
+    keepsDryInCold: false,
     waterMl: String(suggestWaterMl('medium')),
     intervalSummerDays: '7',
     intervalWinterDays: '12',
@@ -107,6 +109,7 @@ function formFromPlant(plant: Plant): FormState {
     plantCount: String(plant.plantCount || 1),
     isOutdoor: plant.isOutdoor,
     isFrostTender: plant.isFrostTender,
+    keepsDryInCold: plant.keepsDryInCold,
     waterMl: String(plant.waterMl),
     intervalSummerDays: String(plant.intervalSummerDays),
     intervalWinterDays: String(plant.intervalWinterDays),
@@ -172,6 +175,7 @@ export function PlantFormScreen() {
       name: current.name,
       isOutdoor: preset.outdoor,
       isFrostTender: preset.frostTender,
+      keepsDryInCold: preset.keepDryInCold,
       waterMl: String(waterMl),
       intervalSummerDays: String(preset.intervalSummerDays),
       intervalWinterDays: String(preset.intervalWinterDays),
@@ -230,6 +234,7 @@ export function PlantFormScreen() {
         plantCount: toPositiveInt(form.plantCount, 1),
         isOutdoor: form.isOutdoor,
         isFrostTender: form.isFrostTender,
+        keepsDryInCold: form.keepsDryInCold,
         waterMl: toPositiveInt(form.waterMl, suggestWaterMl(form.potSize)),
         intervalSummerDays: toPositiveInt(form.intervalSummerDays, 7),
         intervalWinterDays: toPositiveInt(form.intervalWinterDays, 12),
@@ -374,6 +379,24 @@ export function PlantFormScreen() {
               label="רגיש לקור"
               selected={form.isFrostTender}
               onPress={() => patch({ isFrostTender: true })}
+            />
+          </FieldGroup>
+        ) : null}
+
+        {form.isOutdoor ? (
+          <FieldGroup
+            label="התנהגות לפני לילה קר"
+            hint="לרוב הצמחים קרקע לחה מחזיקה חום ומגינה על השורשים. לקקטוסים וסוקולנטים זה הפוך — קור ורטיבות ביחד מרקיבים אותם, אז האפליקציה דוחה להם את ההשקיה עד שעובר הקור."
+          >
+            <Chip
+              label="להשקות לפני"
+              selected={!form.keepsDryInCold}
+              onPress={() => patch({ keepsDryInCold: false })}
+            />
+            <Chip
+              label="לשמור יבש (קקטוס/סוקולנט)"
+              selected={form.keepsDryInCold}
+              onPress={() => patch({ keepsDryInCold: true })}
             />
           </FieldGroup>
         ) : null}
