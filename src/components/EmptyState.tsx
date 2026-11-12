@@ -11,9 +11,21 @@ interface Props {
   body: string;
   actionLabel?: string;
   onAction?: () => void;
+  secondaryLabel?: string;
+  onSecondary?: () => void;
+  secondaryBusy?: boolean;
 }
 
-export function EmptyState({ icon = 'leaf-outline', title, body, actionLabel, onAction }: Props) {
+export function EmptyState({
+  icon = 'leaf-outline',
+  title,
+  body,
+  actionLabel,
+  onAction,
+  secondaryLabel,
+  onSecondary,
+  secondaryBusy,
+}: Props) {
   return (
     <View style={styles.wrapper}>
       <View style={styles.badge}>
@@ -23,6 +35,15 @@ export function EmptyState({ icon = 'leaf-outline', title, body, actionLabel, on
       <Text style={styles.body}>{body}</Text>
       {actionLabel && onAction ? (
         <AppButton label={actionLabel} onPress={onAction} style={styles.action} />
+      ) : null}
+      {secondaryLabel && onSecondary ? (
+        <AppButton
+          label={secondaryLabel}
+          variant="ghost"
+          busy={secondaryBusy}
+          onPress={onSecondary}
+          style={styles.action}
+        />
       ) : null}
     </View>
   );

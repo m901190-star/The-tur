@@ -47,6 +47,7 @@ interface FormState {
   /** How many plants share the container, as typed. */
   plantCount: string;
   isOutdoor: boolean;
+  isFrostTender: boolean;
   waterMl: string;
   intervalSummerDays: string;
   intervalWinterDays: string;
@@ -78,6 +79,7 @@ function emptyForm(): FormState {
     containerLiters: '',
     plantCount: '1',
     isOutdoor: false,
+    isFrostTender: false,
     waterMl: String(suggestWaterMl('medium')),
     intervalSummerDays: '7',
     intervalWinterDays: '12',
@@ -104,6 +106,7 @@ function formFromPlant(plant: Plant): FormState {
     containerLiters: plant.containerLiters ? String(plant.containerLiters) : '',
     plantCount: String(plant.plantCount || 1),
     isOutdoor: plant.isOutdoor,
+    isFrostTender: plant.isFrostTender,
     waterMl: String(plant.waterMl),
     intervalSummerDays: String(plant.intervalSummerDays),
     intervalWinterDays: String(plant.intervalWinterDays),
@@ -168,6 +171,7 @@ export function PlantFormScreen() {
       // Keep whatever the user already typed as the plant's own name.
       name: current.name,
       isOutdoor: preset.outdoor,
+      isFrostTender: preset.frostTender,
       waterMl: String(waterMl),
       intervalSummerDays: String(preset.intervalSummerDays),
       intervalWinterDays: String(preset.intervalWinterDays),
@@ -225,6 +229,7 @@ export function PlantFormScreen() {
         containerLiters,
         plantCount: toPositiveInt(form.plantCount, 1),
         isOutdoor: form.isOutdoor,
+        isFrostTender: form.isFrostTender,
         waterMl: toPositiveInt(form.waterMl, suggestWaterMl(form.potSize)),
         intervalSummerDays: toPositiveInt(form.intervalSummerDays, 7),
         intervalWinterDays: toPositiveInt(form.intervalWinterDays, 12),
@@ -354,6 +359,24 @@ export function PlantFormScreen() {
             onPress={() => patch({ isOutdoor: true })}
           />
         </FieldGroup>
+
+        {form.isOutdoor ? (
+          <FieldGroup
+            label="רגיש לקור"
+            hint="הדרים, שפלרה וסוקולנטים נפגעים מלילה קר; ברוש רק מאט. בגובה ובפנים הארץ זה ההבדל בין נזק לבין חורף רגיל."
+          >
+            <Chip
+              label="עמיד"
+              selected={!form.isFrostTender}
+              onPress={() => patch({ isFrostTender: false })}
+            />
+            <Chip
+              label="רגיש לקור"
+              selected={form.isFrostTender}
+              onPress={() => patch({ isFrostTender: true })}
+            />
+          </FieldGroup>
+        ) : null}
 
         <View style={styles.pairRow}>
           <View style={styles.pairItem}>

@@ -34,6 +34,11 @@ export interface Plant {
    * watering. Indoors neither is true, so the weather adjustment is skipped.
    */
   isOutdoor: boolean;
+  /**
+   * Damaged by a cold night rather than merely slowed by it. Citrus, schefflera
+   * and most succulents are; a cypress is not. Only matters outdoors.
+   */
+  isFrostTender: boolean;
   /** Days between fertilising, or null if the user does not fertilise it. */
   fertilizeEveryDays: number | null;
   /** ISO date string of the last watering, or null if never watered. */

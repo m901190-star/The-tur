@@ -32,6 +32,8 @@ interface PlantsContextValue {
   /** Fetches a forecast; `force` ignores the cache's time-to-live. */
   refreshWeather: (force?: boolean) => Promise<void>;
   addPlant: (draft: NewPlant) => Promise<Plant>;
+  /** Adds several plants in one write, for the garden starter list. */
+  addPlants: (drafts: NewPlant[]) => Promise<Plant[]>;
   updatePlant: (id: string, patch: Partial<Plant>) => Promise<void>;
   removePlant: (id: string) => Promise<void>;
   getPlant: (id: string) => Plant | undefined;
@@ -162,6 +164,21 @@ export function PlantsProvider({ children }: { children: React.ReactNode }) {
     [plants, persistPlants],
   );
 
+  const addPlants = useCallback(
+    async (drafts: NewPlant[]) => {
+      const createdAt = new Date().toISOString();
+      const created = drafts.map((draft) => ({
+        ...draft,
+        id: createId(),
+        createdAt,
+        calendarEventId: null,
+      }));
+      await persistPlants([...plants, ...created]);
+      return created;
+    },
+    [plants, persistPlants],
+  );
+
   const updatePlant = useCallback(
     async (id: string, patch: Partial<Plant>) => {
       await persistPlants(
@@ -251,6 +268,7 @@ export function PlantsProvider({ children }: { children: React.ReactNode }) {
       weatherLoading,
       refreshWeather,
       addPlant,
+      addPlants,
       updatePlant,
       removePlant,
       getPlant,
@@ -270,6 +288,7 @@ export function PlantsProvider({ children }: { children: React.ReactNode }) {
       weatherLoading,
       refreshWeather,
       addPlant,
+      addPlants,
       updatePlant,
       removePlant,
       getPlant,

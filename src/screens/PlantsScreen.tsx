@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -10,13 +10,24 @@ import { EmptyState } from '../components/EmptyState';
 import { PlantCard } from '../components/PlantCard';
 import { formatWater, sortByUrgency } from '../lib/watering';
 import { RootStackParamList } from '../navigation';
+import { GARDEN_SEED, buildSeedPlants } from '../gardenSeed';
 import { usePlants } from '../state/PlantsContext';
 import { colors, radius, rtlText, spacing, typography } from '../theme';
 
 export function PlantsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
-  const { plants, weather } = usePlants();
+  const { plants, weather, addPlants } = usePlants();
+  const [seeding, setSeeding] = useState(false);
+
+  const seedGarden = useCallback(async () => {
+    setSeeding(true);
+    try {
+      await addPlants(buildSeedPlants());
+    } finally {
+      setSeeding(false);
+    }
+  }, [addPlants]);
   const [query, setQuery] = useState('');
   const [location, setLocation] = useState<string | null>(null);
   const now = useMemo(() => new Date(), []);
@@ -94,6 +105,9 @@ export function PlantsScreen() {
             body="כל עציץ שתוסיף כאן יקבל תדירות השקיה משלו, וממנה נבנה היומן."
             actionLabel="הוספת עציץ"
             onAction={() => navigation.navigate('PlantForm')}
+            secondaryLabel={`הוספת הגינה שלי (${GARDEN_SEED.length} עציצים)`}
+            onSecondary={seedGarden}
+            secondaryBusy={seeding}
           />
         ) : visible.length === 0 ? (
           <EmptyState

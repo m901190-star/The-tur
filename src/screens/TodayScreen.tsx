@@ -18,6 +18,7 @@ import {
 } from '../lib/watering';
 import { frostRisk } from '../lib/weather';
 import { RootStackParamList } from '../navigation';
+import { GARDEN_SEED, buildSeedPlants } from '../gardenSeed';
 import { usePlants } from '../state/PlantsContext';
 import { colors, radius, rtlText, spacing, typography } from '../theme';
 
@@ -30,8 +31,26 @@ const HE_FULL_DATE = new Intl.DateTimeFormat('he-IL', {
 export function TodayScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
-  const { plants, markWatered, snooze, settings, weather, weatherLoading, refreshWeather } =
-    usePlants();
+  const {
+    plants,
+    markWatered,
+    snooze,
+    settings,
+    weather,
+    weatherLoading,
+    refreshWeather,
+    addPlants,
+  } = usePlants();
+  const [seeding, setSeeding] = useState(false);
+
+  const seedGarden = useCallback(async () => {
+    setSeeding(true);
+    try {
+      await addPlants(buildSeedPlants());
+    } finally {
+      setSeeding(false);
+    }
+  }, [addPlants]);
   // Recomputed on pull-to-refresh so a session left open overnight still shows
   // the right day without the user restarting the app.
   const [now, setNow] = useState(() => new Date());
@@ -53,8 +72,15 @@ export function TodayScreen() {
 
   // Worth saying out loud only when something outside could actually be hit.
   const frost = useMemo(() => {
-    if (!plants.some((plant) => plant.isOutdoor)) return null;
-    return frostRisk(weather, now);
+    const outdoor = plants.filter((plant) => plant.isOutdoor);
+    if (outdoor.length === 0) return null;
+    const risk = frostRisk(weather, now);
+    if (!risk) return null;
+    const tender = outdoor
+      .filter((plant) => plant.isFrostTender)
+      .map((plant) => plant.name || plant.species)
+      .filter(Boolean);
+    return { ...risk, tender };
   }, [plants, weather, now]);
 
   if (plants.length === 0) {
@@ -67,6 +93,9 @@ export function TodayScreen() {
           body="הוסף את העציץ הראשון שלך, ומכאן האפליקציה תגיד לך בכל יום מה צריך השקיה."
           actionLabel="הוספת עציץ"
           onAction={() => navigation.navigate('PlantForm')}
+          secondaryLabel={`הוספת הגינה שלי (${GARDEN_SEED.length} עציצים)`}
+          onSecondary={seedGarden}
+          secondaryBusy={seeding}
         />
       </ScrollView>
     );
@@ -110,8 +139,11 @@ export function TodayScreen() {
               ? `קור הלילה: ${Math.round(frost.minTempC)}°`
               : `קור בעוד ${frost.daysAway} ${frost.daysAway === 1 ? 'יום' : 'ימים'}: ${Math.round(frost.minTempC)}°`}
             {' — '}
-            השקיה בערב שלפני מגינה על השורשים, וכדאי לכסות צמחים רגישים כמו
-            הדרים.
+            השקיה בערב שלפני מרטיבה את האדמה, וקרקע לחה מחזיקה חום ומגינה על
+            השורשים.
+            {frost.tender.length > 0
+              ? ` כדאי לכסות: ${frost.tender.slice(0, 4).join(', ')}${frost.tender.length > 4 ? ` ועוד ${frost.tender.length - 4}` : ''}.`
+              : ''}
           </Text>
         </View>
       ) : null}

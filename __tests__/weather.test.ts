@@ -34,6 +34,7 @@ function makePlant(overrides: Partial<Plant> = {}): Plant {
     containerLiters: 70,
     plantCount: 1,
     isOutdoor: true,
+    isFrostTender: true,
     fertilizeEveryDays: 60,
     lastWateredAt: null,
     lastFertilizedAt: null,
