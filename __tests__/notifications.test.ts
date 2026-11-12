@@ -107,11 +107,19 @@ describe('planNotifications', () => {
 
   it('repeats on the plant own rhythm, not every day', () => {
     const plant = makePlant({ lastWateredAt: at(2026, 7, 14).toISOString() });
-    const days = planNotifications([plant], ON, earlyMorning).map((item) =>
-      item.fireAt.getDate(),
-    );
-    // Due on the 20th; if still unwatered, nudged again six days later.
-    expect(days).toEqual([20, 26]);
+    const planned = planNotifications([plant], ON, earlyMorning);
+    // Due on the 20th, then nudged every six days while it stays unwatered.
+    expect(planned[0].fireAt.getDate()).toBe(20);
+    const gaps = planned
+      .slice(1)
+      .map((item, index) =>
+        Math.round(
+          (item.fireAt.getTime() - planned[index].fireAt.getTime()) /
+            (24 * 60 * 60 * 1000),
+        ),
+      );
+    expect(gaps.every((gap) => gap === 6)).toBe(true);
+    expect(gaps.length).toBeGreaterThan(0);
   });
 
   it('stays inside the scheduling horizon', () => {
@@ -125,10 +133,23 @@ describe('planNotifications', () => {
   });
 
   it('caps how many notifications it queues at once', () => {
-    const plants = Array.from({ length: 30 }, (_, index) =>
+    const plants = Array.from({ length: 60 }, (_, index) =>
       makePlant({ id: `p${index}`, intervalSummerDays: 1, intervalWinterDays: 1 }),
     );
-    expect(planNotifications(plants, ON, earlyMorning).length).toBeLessThanOrEqual(20);
+    const planned = planNotifications(plants, ON, earlyMorning);
+    // Well inside the 64 pending notifications iOS allows an app.
+    expect(planned.length).toBeLessThanOrEqual(32);
+    expect(planned.length).toBeGreaterThan(20);
+  });
+
+  it('covers long enough that a fortnight away does not silence it', () => {
+    const plant = makePlant({ lastWateredAt: at(2026, 7, 14).toISOString() });
+    const planned = planNotifications([plant], ON, earlyMorning);
+    const last = planned[planned.length - 1];
+    const daysOut = Math.round(
+      (last.fireAt.getTime() - earlyMorning.getTime()) / (24 * 60 * 60 * 1000),
+    );
+    expect(daysOut).toBeGreaterThan(14);
   });
 
   it('honours a reminder hour the user moved to the evening', () => {

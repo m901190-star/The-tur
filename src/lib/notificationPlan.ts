@@ -2,11 +2,16 @@ import { Plant, Settings, WeatherSnapshot } from '../types';
 import { addDays, daysBetween, startOfDay } from './dates';
 import { formatWater, intervalDays, nextWateringDate } from './watering';
 
-/** How far ahead we lay down notifications before the next reschedule. */
-export const SCHEDULE_HORIZON_DAYS = 14;
+/**
+ * How far ahead reminders are laid down. The schedule is rebuilt whenever the
+ * app is opened, so this is really "how long the app may go unopened before the
+ * reminders run out" — a fortnight is not enough to cover a holiday, after
+ * which the app would go quiet without ever saying so.
+ */
+export const SCHEDULE_HORIZON_DAYS = 30;
 
 /** iOS caps pending local notifications at 64; stay well inside that. */
-export const MAX_SCHEDULED = 20;
+export const MAX_SCHEDULED = 32;
 
 export interface PlannedNotification {
   /** When it fires. */

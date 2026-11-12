@@ -2,12 +2,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useCallback, useMemo, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EmptyState } from '../components/EmptyState';
 import { PlantCard } from '../components/PlantCard';
 import { SectionHeader } from '../components/SectionHeader';
+import { SetupBanner } from '../components/SetupBanner';
 import { WeatherStrip } from '../components/WeatherStrip';
 import {
   fertilizeState,
@@ -16,6 +17,8 @@ import {
   sortByUrgency,
   totalWaterDue,
 } from '../lib/watering';
+import { detectLocation } from '../lib/location';
+import { requestNotificationAccess } from '../lib/notifications';
 import { frostRisk } from '../lib/weather';
 import { RootStackParamList } from '../navigation';
 import { GARDEN_SEED, buildSeedPlants } from '../gardenSeed';
@@ -46,8 +49,47 @@ export function TodayScreen() {
     weatherLoading,
     refreshWeather,
     addPlants,
+    updateSettings,
   } = usePlants();
   const [seeding, setSeeding] = useState(false);
+  const [enabling, setEnabling] = useState<'none' | 'push' | 'place'>('none');
+
+  const enableReminders = useCallback(async () => {
+    setEnabling('push');
+    try {
+      const allowed = await requestNotificationAccess();
+      if (!allowed) {
+        Alert.alert(
+          'אין הרשאה להתראות',
+          'אפשר לאשר התראות בהגדרות המכשיר ולחזור לכאן. בלי זה האפליקציה לא תוכל להזכיר לך כלום.',
+        );
+        return;
+      }
+      // The provider rebuilds the whole schedule when the settings change.
+      await updateSettings({ notificationsEnabled: true });
+    } finally {
+      setEnabling('none');
+    }
+  }, [updateSettings]);
+
+  const enableLocation = useCallback(async () => {
+    setEnabling('place');
+    try {
+      const found = await detectLocation();
+      if (!found) {
+        navigation.navigate('Tabs', { screen: 'Settings' });
+        return;
+      }
+      await updateSettings({
+        latitude: found.latitude,
+        longitude: found.longitude,
+        locationLabel: found.label,
+      });
+      await refreshWeather(true);
+    } finally {
+      setEnabling('none');
+    }
+  }, [updateSettings, refreshWeather, navigation]);
 
   const seedGarden = useCallback(async () => {
     setSeeding(true);
@@ -122,6 +164,29 @@ export function TodayScreen() {
       <Text style={styles.headline}>
         {due.length === 0 ? 'הכל מושקה' : `${due.length} עציצים צריכים מים`}
       </Text>
+
+      {!settings.notificationsEnabled ? (
+        <SetupBanner
+          title="התראות כבויות"
+          body="בלי זה האפליקציה לא תזכיר לך להשקות — תצטרך לפתוח אותה בעצמך כל פעם. הפעלה אחת, ומכאן התזכורות מגיעות לבד."
+          actionLabel="הפעלת תזכורות"
+          onPress={enableReminders}
+          busy={enabling === 'push'}
+        />
+      ) : null}
+
+      {settings.notificationsEnabled &&
+      settings.weatherEnabled &&
+      settings.latitude === null ? (
+        <SetupBanner
+          icon="location-outline"
+          title="חסר מיקום"
+          body="בלי מיקום ההשקיה עובדת לפי לוח עונתי בלבד — גשם וגל חום לא ישנו כלום."
+          actionLabel="שימוש במיקום שלי"
+          onPress={enableLocation}
+          busy={enabling === 'place'}
+        />
+      ) : null}
 
       <WeatherStrip
         snapshot={weather}
