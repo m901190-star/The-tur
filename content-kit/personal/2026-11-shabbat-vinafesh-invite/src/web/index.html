@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8">
+<link rel="stylesheet" href="fonts/rubik.css"><link rel="stylesheet" href="fonts/frank.css">
+<style>
+:root{--navy:#0d2750;--deep:#050f24;--gold:#e2bf68;--gold2:#f6e2a4;--sand:#d9c89a}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:var(--deep);font-family:'Frank Ruhl Libre',serif;color:#fff}
+#stage{position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse 85% 50% at 50% 46%,#173a72 0%,#0d2750 45%,var(--deep) 85%)}
+#pattern{position:absolute;inset:-300px;opacity:.07;background-image:radial-gradient(circle at 50% 50%,transparent 38%,#e2bf68 39%,transparent 41%),radial-gradient(circle at 0 0,transparent 38%,#e2bf68 39%,transparent 41%);background-size:120px 120px;-webkit-mask:radial-gradient(ellipse at center,#000 15%,transparent 70%)}
+#dust{position:absolute;inset:0}
+.d{position:absolute;border-radius:50%;background:#fff3c8;box-shadow:0 0 8px 2px rgba(226,191,104,.75)}
+#cam{position:absolute;left:0;top:0;width:1080px;height:1920px}
+#world{position:absolute;left:0;top:0;width:8640px;height:1920px}
+.panel{position:absolute;top:0;width:1080px;height:1920px}
+.inner{position:absolute;inset:0;transform-origin:50% 50%}
+svg#neon{position:absolute;left:0;top:0;width:8640px;height:1920px;overflow:visible;pointer-events:none;z-index:3}
+.halo{fill:none;stroke:#e9b949;stroke-width:28;stroke-linecap:round;opacity:.55;filter:url(#blur16)}
+.tube{fill:none;stroke:var(--gold);stroke-width:7;stroke-linecap:round;filter:drop-shadow(0 0 6px #f0c85a) drop-shadow(0 0 18px rgba(240,200,90,.8))}
+.core{fill:none;stroke:#fffbe8;stroke-width:2.4;stroke-linecap:round}
+.head{position:absolute;left:0;top:0;width:0;height:0;z-index:4}
+.head i{position:absolute;left:-26px;top:-26px;width:52px;height:52px;border-radius:50%;background:radial-gradient(circle,#fff 0%,#fff3c0 25%,rgba(240,200,90,.6) 50%,transparent 72%)}
+.head b{position:absolute;right:0;top:-2px;width:150px;height:4px;border-radius:4px;background:linear-gradient(90deg,transparent,rgba(255,244,200,.9))}
+h1,.h{position:absolute;left:40px;right:40px;text-align:center;font-weight:900;line-height:1.05;text-shadow:0 6px 40px rgba(0,0,0,.6);z-index:5}
+.w{display:inline-block;margin:0 .1em;will-change:transform,filter}
+.g{color:var(--gold2);text-shadow:0 0 18px rgba(240,200,90,.85),0 0 60px rgba(240,200,90,.45)}
+.kick{position:absolute;left:0;right:0;text-align:center;font-family:Rubik;font-weight:700;font-size:38px;letter-spacing:8px;color:var(--sand);z-index:5}
+.orn{position:absolute;left:340px;width:400px;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);z-index:5}
+.row{position:absolute;left:40px;right:0;height:120px;z-index:5}
+.row .t{position:absolute;right:150px;top:50%;transform:translateY(-50%);width:170px;text-align:center;direction:ltr;font-family:Rubik;font-weight:700;font-size:50px;color:var(--gold2);text-shadow:0 0 14px rgba(240,200,90,.6)}
+.row .x{position:absolute;right:340px;left:0;top:50%;transform:translateY(-50%);text-align:right;font-weight:900;font-size:56px;line-height:1.02;white-space:nowrap}
+.row .x small{display:block;font-family:Rubik;font-weight:400;font-size:30px;color:var(--sand);margin-top:6px;white-space:nowrap}
+.row .dot{position:absolute;right:104px;top:50%;width:30px;height:30px;margin-top:-15px;border-radius:50%;background:#0d2750;box-shadow:0 0 0 5px var(--gold),0 0 22px #f0c85a}
+.row .sep{position:absolute;left:30px;right:340px;bottom:0;height:1px;background:linear-gradient(90deg,transparent,rgba(226,191,104,.35))}
+.crest{position:absolute;left:90px;top:300px;width:900px;filter:drop-shadow(0 20px 60px rgba(0,0,0,.6));z-index:5}
+.info{position:absolute;left:80px;right:80px;padding:40px 50px;border-radius:36px;background:rgba(5,15,36,.65);box-shadow:inset 0 0 0 2px rgba(226,191,104,.5),0 30px 80px rgba(0,0,0,.5);text-align:center;z-index:5}
+.info .a{font-family:Rubik;font-weight:700;font-size:32px;letter-spacing:4px;color:var(--sand)}
+.info .b{font-weight:900;font-size:60px;line-height:1.1;margin-top:10px}
+.stamp{position:absolute;left:150px;right:150px;padding:26px 20px 30px;border:6px solid var(--gold);border-radius:24px;text-align:center;font-weight:900;font-size:76px;color:var(--gold2);transform:rotate(-6deg);box-shadow:0 0 30px rgba(240,200,90,.5),inset 0 0 30px rgba(240,200,90,.25);text-shadow:0 0 18px rgba(240,200,90,.7);z-index:5}
+.note{position:absolute;left:90px;right:90px;text-align:center;font-weight:500;font-size:50px;line-height:1.3;z-index:5}
+.flame{position:absolute;width:26px;height:44px;margin-left:-13px;border-radius:50% 50% 45% 45%/60% 60% 40% 40%;background:radial-gradient(ellipse at 50% 70%,#fff 0%,#ffe08a 35%,rgba(255,170,40,.6) 60%,transparent 75%);filter:blur(1px);z-index:6}
+#endc{position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,#1b4688 0%,#0d2750 50%,#050f24 100%);clip-path:circle(0px at 540px 960px)}
+#vign{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.6) 100%);pointer-events:none}
+#intro{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+#intro img{width:760px}
+#flash{position:absolute;inset:0;background:#fff4d6;opacity:0;mix-blend-mode:screen;pointer-events:none}
+</style></head><body>
+<div id="stage">
+  <div id="pattern"></div><div id="dust"></div>
+  <div id="cam"><div id="world">
+    <svg id="neon" viewBox="0 0 8640 1920"><defs><filter id="blur16" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="16"/></filter></defs><g id="paths"></g></svg>
+
+    <div class="panel" style="left:0"><div class="inner" id="in0">
+      <div class="kick" style="top:200px" id="k0">הזמנה</div>
+      <img class="crest" id="crest0" src="crest.png">
+      <div class="flame" id="fl1" style="left:350px;top:702px"></div><div class="flame" id="fl2" style="left:732px;top:702px"></div>
+      <h1 style="top:1280px;font-size:96px" id="h0">אתם מוזמנים <span class="g">לשבת התאחדות</span></h1>
+    </div></div>
+
+    <div class="panel" style="left:1080px"><div class="inner" id="in1">
+      <div class="kick" style="top:190px" id="k1">לוח זמנים</div>
+      <h1 style="top:240px;font-size:150px" id="h1">יום <span class="g">חמישי</span></h1>
+      <div class="orn" id="o1" style="top:430px"></div><div id="r1"></div>
+    </div></div>
+
+    <div class="panel" style="left:2160px"><div class="inner" id="in2">
+      <div class="kick" style="top:190px" id="k2">יום חמישי · המשך</div>
+      <h1 style="top:250px;font-size:124px" id="h2">והלילה <span class="g">עוד צעיר</span></h1>
+      <div class="orn" id="o2" style="top:430px"></div><div id="r2"></div>
+    </div></div>
+
+    <div class="panel" style="left:3240px"><div class="inner" id="in3">
+      <div class="kick" style="top:190px" id="k3">1.9 · כי טוב</div>
+      <h1 style="top:240px;font-size:150px" id="h3">יום <span class="g">שישי</span></h1>
+      <div class="orn" id="o3" style="top:430px"></div><div id="r3"></div>
+    </div></div>
+
+    <div class="panel" style="left:4320px"><div class="inner" id="in4">
+      <h1 style="top:220px;font-size:260px" id="h4"><span class="g">שבת</span></h1>
+      <h1 style="top:520px;font-size:100px" id="h4b">לו״ז נשמה יתירה</h1>
+      <div class="info" id="i1" style="top:760px"><div class="a">צאת שבת ר״ת</div><div class="b" style="font-family:Rubik;font-weight:700;direction:ltr;color:var(--gold2)">6:02</div></div>
+      <div class="info" id="i2" style="top:1060px"><div class="a">דף יומי ירושלמי</div><div class="b">סנהדרין י״ח</div></div>
+      <div class="info" id="i3" style="top:1360px"><div class="a">הפטרת השבת</div><div class="b" style="font-size:52px">מלאכים א פרק א<br>והמלך דוד זקן וכו׳ 🔞</div></div>
+    </div></div>
+
+    <div class="panel" style="left:5400px"><div class="inner" id="in5">
+      <div class="kick" style="top:300px" id="k5">לתשומת לב המשתתפים</div>
+      <div class="note" id="n1" style="top:420px">כל הזמנים נעשו בהתייעצות עם וועדת הרבנים של <span class="g" style="font-weight:900">״וינפש״</span> ובהכוונתם.</div>
+      <div class="note" id="n2" style="top:760px">יש להקפיד על לבוש מינימלי הולם.</div>
+      <div class="stamp" id="st" style="top:1080px">אין לשנות מהלו״ז כלל</div>
+    </div></div>
+    <div class="panel" style="left:6480px"><div class="inner" id="in6"></div></div>
+  </div></div>
+
+  <div id="endc">
+    <img class="crest" id="crestE" src="crest.png" style="left:140px;top:280px;width:800px">
+    <h1 style="top:1160px;font-size:150px" id="h6"><span class="g">יחי הצדיק !!</span></h1>
+    <h1 style="top:1350px;font-size:96px" id="h6b">יחי לעולם ועד</h1>
+  </div>
+  <div id="intro"><img id="introLogo" src="crest.png"></div>
+  <div id="vign"></div><div id="flash"></div>
+</div>
+<script src="gsap.min.js"></script>
+<script>
+const DATA = {
+ r1: [['15:30','הגעה והתארגנות בחדרים'],['16:30','מנחה'],['16:51','שקיעה'],['17:00','בנאות דשא'],['17:36','״איש את רעהו יכירו״'],['18:00','ואכלו מן הזבחים ומן הפסחים','הכול בהשגחת ״וינפש״']],
+ r2: [['19:00','מקלחות לילדים'],['20:00','קריאת שמע לילדים','פיפי ולישון'],['20:03','הילדים יוצאים מהמיטה'],['20:15','הקרנת סרט לילדים'],['20:20','ג׳קוזי נשים'],['20:23','ג׳קוזי גברים'],['21:23','ג׳קוזי משפחות'],['22:00','יציאה ליקב החלוצים אש קודש'],['3:00','יוסי משלם על הכול כולל שירות']],
+ r3: [['5:59','נץ החמה'],['7:07','הילדים קופצים'],['8:04','סוזק״ש מג״א'],['8:40','סוזק״ש גר״א'],['12:03','ארוחת בוקר'],['12:35','ברכמ״ז ושבע ברכות'],['13:00','ג׳קוזי משפחות','לנוהגים לפי שיטת ״וינפש״'],['16:19','הדלקת נרות וכניסת שבת'],['16:49','שקיעה','לנוהגים']]
+};
+const C = {p0:0, p1:5.0, p2:12.6, p3:22.4, p4:32.2, p5:38.6, end:44.2, total:49.0};
+const PW = 1080, LX = 1080 - 104 - 15; // dot centre x (local)
+const master = gsap.timeline({paused:true}), tl = gsap.timeline();
+let seed = 5; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const dust = document.getElementById('dust');
+for (let i = 0; i < 70; i++) { const d = document.createElement('div'); d.className = 'd'; const s = 2 + rnd() * 5;
+  Object.assign(d.style, {width:s+'px', height:s+'px', left:rnd()*1080+'px', top:rnd()*1920+'px', opacity:.15 + rnd()*.55}); dust.appendChild(d);
+  master.to(d, {x:(rnd()-.5)*160, y:-140 - rnd()*300, duration:C.total + 1.5, ease:'none'}, 0); }
+master.to('#pattern', {x:-120, y:-60, rotation:3, duration:C.total + 1.5, ease:'none'}, 0);
+// build rows
+const ROWS = {};
+for (const k of ['r1', 'r2', 'r3']) { const host = document.getElementById(k), n = DATA[k].length, sp = Math.min(150, 1300 / n), y0 = 480; ROWS[k] = [];
+  DATA[k].forEach(([t, x, s], i) => { const r = document.createElement('div'); r.className = 'row'; r.style.top = (y0 + i * sp) + 'px'; r.style.height = sp + 'px';
+    r.innerHTML = `<div class="sep"></div><div class="dot"></div><div class="t">${t}</div><div class="x">${x}${s ? `<small>(${s})</small>` : ''}</div>`; host.appendChild(r);
+    const xe = r.querySelector('.x'); let fs = 56; while (xe.scrollWidth > xe.clientWidth + 1 && fs > 36) { fs -= 2; xe.style.fontSize = fs + 'px'; }
+    ROWS[k].push({el:r, y:y0 + i * sp + sp / 2}); });
+}
+const NS = 'http://www.w3.org/2000/svg', G = document.getElementById('paths'), WORLD = document.getElementById('world');
+function neon(d) { const g = document.createElementNS(NS, 'g'); G.appendChild(g); const ps = [];
+  for (const c of ['halo', 'tube', 'core']) { const p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); p.setAttribute('class', c); g.appendChild(p); ps.push(p); }
+  const L = ps[1].getTotalLength(); ps.forEach(p => { p.style.strokeDasharray = L + ' ' + (L + 10); p.style.strokeDashoffset = L; }); return {ps, L, path:ps[1]}; }
+function head() { const h = document.createElement('div'); h.className = 'head'; h.innerHTML = '<b></b><i></i>'; WORLD.appendChild(h); gsap.set(h, {opacity:0}); return h; }
+function draw(d, at, dur, ease = 'power2.inOut') { const n = neon(d), h = head(), st = {u:0}, ef = gsap.parseEase(ease);
+  tl.to(n.ps, {strokeDashoffset:0, duration:dur, ease}, at); tl.set(h, {opacity:1, scale:1}, at);
+  tl.to(st, {u:1, duration:dur, ease:'none', onUpdate() { const u = ef(st.u) * n.L, p = n.path.getPointAtLength(u), q = n.path.getPointAtLength(Math.max(0, u - 2));
+    gsap.set(h, {x:p.x, y:p.y, rotation:Math.atan2(p.y - q.y, p.x - q.x) * 180 / Math.PI}); }}, at);
+  tl.to(h, {opacity:0, scale:.3, duration:.25}, at + dur); return n; }
+function words(id) { const el = document.getElementById(id); const out = [];
+  const split = (txt, cls, parent, ref) => { const fr = document.createDocumentFragment(); txt.split(/(\s+)/).forEach(t => { if (!t.trim()) { fr.appendChild(document.createTextNode(t)); return; }
+      const s = document.createElement('span'); s.className = cls; s.textContent = t; fr.appendChild(s); out.push(s); }); parent.replaceChild(fr, ref); };
+  for (const n of [...el.childNodes]) { if (n.nodeType === 3) split(n.textContent, 'w', el, n); else if (n.classList && n.classList.contains('g')) split(n.textContent, 'w g', el, n); }
+  return out; }
+function wordsIn(id, at, st = .18) { words(id).forEach((w, i) => tl.fromTo(w, {opacity:0, scale:1.35, filter:'blur(22px)'}, {opacity:1, scale:1, filter:'blur(0px)', duration:.5, ease:'power3.out'}, at + i * st)); }
+function out(sel, at) { tl.to(sel, {opacity:0, y:-40, filter:'blur(14px)', duration:.3, stagger:.02, ease:'power2.in'}, at); }
+const CAM = document.getElementById('cam');
+function camTo(i, at) { tl.to(WORLD, {x:-i * PW, duration:.6, ease:'power3.inOut'}, at - .3); tl.fromTo(CAM, {filter:'blur(0px)'}, {filter:'blur(6px)', duration:.3, yoyo:true, repeat:1, ease:'power1.in'}, at - .3); }
+function push(id, a, b) { tl.fromTo('#' + id, {scale:1}, {scale:1.03, duration:b - a, ease:'none'}, a); }
+function header(i, at) { tl.fromTo('#k' + i, {opacity:0, letterSpacing:'30px'}, {opacity:.95, letterSpacing:'8px', duration:.8, ease:'expo.out'}, at); wordsIn('h' + i, at + .15); tl.fromTo('#o' + i, {scaleX:0}, {scaleX:1, duration:.7, ease:'expo.out'}, at + .4); }
+function rows(k, at, step) { ROWS[k].forEach((r, i) => { const t = at + i * step;
+  tl.fromTo(r.el.querySelector('.dot'), {scale:0}, {scale:1, duration:.35, ease:'back.out(2.6)'}, t);
+  tl.fromTo(r.el.querySelector('.t'), {opacity:0, x:60}, {opacity:1, x:0, duration:.45, ease:'expo.out'}, t + .03);
+  tl.fromTo(r.el.querySelector('.x'), {opacity:0, x:-80, filter:'blur(10px)'}, {opacity:1, x:0, filter:'blur(0px)', duration:.5, ease:'expo.out'}, t + .08);
+  tl.fromTo(r.el.querySelector('.sep'), {scaleX:0, transformOrigin:'100% 50%'}, {scaleX:1, duration:.5, ease:'power2.out'}, t + .1); }); }
+const firstY = k => ROWS[k][0].y, lastY = k => ROWS[k][ROWS[k].length - 1].y;
+
+// P0 crest
+tl.fromTo('#k0', {opacity:0, letterSpacing:'40px'}, {opacity:.95, letterSpacing:'8px', duration:.9, ease:'expo.out'}, .1);
+tl.fromTo('#crest0', {opacity:0, scale:.85, filter:'blur(14px)'}, {opacity:1, scale:1, filter:'blur(0px)', duration:1.2, ease:'expo.out'}, .05);
+tl.fromTo('.flame', {opacity:0, scale:.4}, {opacity:.95, scale:1, duration:.5, ease:'back.out(2)'}, 1.0);
+tl.to('#fl1', {scaleY:1.18, scaleX:.9, duration:.18, yoyo:true, repeat:15, ease:'sine.inOut'}, 1.5);
+tl.to('#fl2', {scaleY:.88, scaleX:1.08, duration:.21, yoyo:true, repeat:13, ease:'sine.inOut'}, 1.5);
+const cx = 90 + 450, cy = 300 + 450 * 0.995, cr = 160;
+draw(`M-40,1840 C300,1840 ${cx - 260},${cy + 330} ${cx},${cy + cr}`, .2, .9, 'power2.out');
+draw(`M${cx},${cy + cr} A${cr},${cr} 0 1 1 ${cx + .1},${cy + cr}`, 1.1, 1.0, 'power2.inOut');
+tl.to('#flash', {opacity:.25, duration:.08, yoyo:true, repeat:1}, 2.1);
+wordsIn('h0', 1.8, .2); push('in0', 0, C.p1);
+draw(`M${cx},${cy + cr} C${cx + 120},${cy + cr + 500} 820,1840 ${PW + 40},1840`, C.p1 - .7, .7, 'power1.in');
+out('#h0 .w, #k0, .flame', C.p1 - .45); tl.to('#crest0', {opacity:0, scale:.95, duration:.4}, C.p1 - .45);
+
+// rows panels: line rises (P1, P3) or descends (P2)
+function listPanel(i, k, at, nextAt, up) { const X = i * PW, x = X + LX, top = firstY(k) - 40, bot = lastY(k) + 40;
+  camTo(i, at); push('in' + i, at, nextAt); header(i, at);
+  const step = Math.min(.62, (nextAt - at - 3.2) / ROWS[k].length);
+  if (up) { draw(`M${X - 40},1840 C${X + 500},1840 ${x},1840 ${x},${bot} V${top}`, at - .3, 1.0, 'power2.inOut'); rows(k, at + .9, step);
+    draw(`M${x},${top} C${x},${top - 160} ${X + 1040},420 ${X + PW + 40},400`, nextAt - .7, .7, 'power1.in'); }
+  else { draw(`M${X - 40},400 C${X + 500},400 ${x},${top - 160} ${x},${top}`, at - .3, .6, 'power2.out'); rows(k, at + .5, step);
+    draw(`M${x},${top} V${bot}`, at + .5, step * ROWS[k].length, 'none');
+    draw(`M${x},${bot} C${x},${bot + 120} ${X + 1040},1840 ${X + PW + 40},1840`, nextAt - .7, .7, 'power1.in'); }
+  out(`#in${i} .row, #h${i} .w, #k${i}, #o${i}`, nextAt - .45); }
+listPanel(1, 'r1', C.p1, C.p2, true);
+listPanel(2, 'r2', C.p2, C.p3, false);
+listPanel(3, 'r3', C.p3, C.p4, true);
+
+// P4 shabbat (enter from top)
+const X4 = 4 * PW; camTo(4, C.p4); push('in4', C.p4, C.p5);
+wordsIn('h4', C.p4 + .05); wordsIn('h4b', C.p4 + .6, .15);
+['#i1', '#i2', '#i3'].forEach((s, i) => tl.fromTo(s, {opacity:0, y:120, scale:.95}, {opacity:1, y:0, scale:1, duration:.8, ease:'expo.out'}, C.p4 + 1.1 + i * .55));
+draw(`M${X4 - 40},400 C${X4 + 100},400 ${X4 + 40},740 ${X4 + 40},900 V1600 C${X4 + 40},1760 ${X4 + 300},1840 ${X4 + 540},1840`, C.p4 - .3, 1.8, 'power2.inOut');
+draw(`M${X4 + 540},1840 C${X4 + 800},1840 ${X4 + 950},1840 ${X4 + PW + 40},1840`, C.p5 - .6, .6, 'power1.in');
+out('#h4 .w, #h4b .w, .info', C.p5 - .45);
+
+// P5 notes
+const X5 = 5 * PW; camTo(5, C.p5); push('in5', C.p5, C.end);
+tl.fromTo('#k5', {opacity:0, letterSpacing:'30px'}, {opacity:.95, letterSpacing:'8px', duration:.8, ease:'expo.out'}, C.p5);
+tl.fromTo('#n1', {opacity:0, y:40, filter:'blur(12px)'}, {opacity:1, y:0, filter:'blur(0px)', duration:.8, ease:'expo.out'}, C.p5 + .3);
+tl.fromTo('#n2', {opacity:0, y:40, filter:'blur(12px)'}, {opacity:1, y:0, filter:'blur(0px)', duration:.8, ease:'expo.out'}, C.p5 + 1.5);
+tl.fromTo('#st', {opacity:0, scale:2.4, rotation:-14}, {opacity:1, scale:1, rotation:-6, duration:.35, ease:'power4.in'}, C.p5 + 2.7);
+tl.to('#flash', {opacity:.3, duration:.06, yoyo:true, repeat:1}, C.p5 + 3.05);
+tl.fromTo('#in5', {x:0}, {x:10, duration:.05, yoyo:true, repeat:5, ease:'none'}, C.p5 + 3.05);
+draw(`M${X5 - 40},1840 C${X5 + 300},1840 ${X5 + 400},1560 ${X5 + 540},1560 C${X5 + 680},1560 ${X5 + 780},1840 ${X5 + 1040},1840`, C.p5 - .3, 1.6, 'power2.inOut');
+
+// END
+tl.to('#endc', {clipPath:'circle(1300px at 540px 960px)', duration:.4, ease:'power2.in'}, C.end - .2);
+tl.to('#flash', {opacity:.5, duration:.06, yoyo:true, repeat:1}, C.end + .2);
+tl.fromTo('#crestE', {scale:1.25, opacity:0}, {scale:1, opacity:1, duration:1.1, ease:'expo.out'}, C.end + .1);
+wordsIn('h6', C.end + .8, .25); wordsIn('h6b', C.end + 1.6, .2);
+tl.to('#crestE', {scale:1.04, duration:C.total - C.end, ease:'sine.inOut'}, C.end + 1.2);
+tl.set({}, {}, C.total);
+
+master.fromTo('#introLogo', {scale:0, rotation:-12}, {scale:1, rotation:0, duration:.5, ease:'back.out(2.2)'}, .05);
+master.to('#introLogo', {scale:1.04, duration:.22, ease:'sine.inOut'}, .55);
+master.to('#introLogo', {scale:0, opacity:0, duration:.22, ease:'back.in(2)'}, .78);
+master.add(tl, 1.0);
+window.DUR = master.duration();
+window.seek = t => { master.seek(t, false); };
+master.seek(0);
+</script></body></html>
