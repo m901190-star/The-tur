@@ -143,10 +143,83 @@ def audio3():
                   f"[3:a]aformat=sample_rates=48000:channel_layouts=stereo,aloop=loop=3:size={int(25.6*44100)},atrim=0:{TT},volume='if(between(t,{lo_a},{lo_b}),0.12,if(gt(t,{TT-2.6}),0.55,0.30))':eval=frame,afade=t=in:d=1,afade=t=out:st={TT-2}:d=2[m]",
                   '[m][k]sidechaincompress=threshold=0.03:ratio=3:attack=20:release=350[md]', '[v][md]amix=inputs=2:normalize=0,alimiter=limit=0.95[a]'])]
 
+# ---------- v4: map, Gemara, memorial and blocking beats ----------
+import importlib.util as _iu
+def _load(n):
+    sp_ = _iu.spec_from_file_location(n, HERE + '/map/' + n + '.py'); m = _iu.module_from_spec(sp_); sp_.loader.exec_module(m); return m
+MAPM, GEM = _load('make_map'), _load('make_gemara')
+def _memorial():
+    src = Image.open(PH + 'yehonatan-deutsch.jpg').convert('RGB')
+    bg = src.resize((int(src.width * H / src.height), H), Image.LANCZOS); x0 = (bg.width - W) // 2
+    from PIL import ImageFilter as _F
+    bg = ImageEnhance.Brightness(bg.crop((x0, 0, x0 + W, H)).filter(_F.GaussianBlur(35))).enhance(.32).convert('RGBA')
+    c = src.crop((180, 0, 1050, 698)); c = c.resize((960, int(960 * c.height / c.width)), Image.LANCZOS)
+    m = Image.new('L', c.size, 0); ImageDraw.Draw(m).rounded_rectangle((0, 0, c.width - 1, c.height - 1), 26, fill=255)
+    sh = Image.new('L', (c.width + 80, c.height + 80), 0); sh.paste(m, (40, 52)); sh = sh.filter(_F.GaussianBlur(20))
+    y = 520; bg.paste((0, 0, 0, 140), ((W - c.width) // 2 - 40, y - 40), sh); bg.paste(c, ((W - c.width) // 2, y), m)
+    d = ImageDraw.Draw(bg); yb = y + c.height + 60; f = F(KB, 120)
+    d.text((W / 2 + 5, yb + 5), 'יונתן דויטש הי״ד', font=f, fill=BLUE, anchor='ma', direction='rtl'); d.text((W / 2, yb), 'יונתן דויטש הי״ד', font=f, fill=WHITE, anchor='ma', direction='rtl')
+    d.line((W / 2 - 80, yb + 150, W / 2 + 80, yb + 150), fill=(0x27, 0xA4, 0xD1), width=4)
+    d.text((W / 2, yb + 175), 'נרצח בפיגוע בצומת מחולה', font=F(SEC, 46), fill=(214, 228, 239), anchor='ma', direction='rtl')
+    return bg.convert('RGB')
+MEM = _memorial()
+_P6 = None
+def p6_land(u, dur):
+    global _P6
+    if _P6 is None:
+        im = Image.open(PH + 'p6.jpg').convert('RGB'); top = im.crop((0, 300, im.width, 800))      # valley + fields above the dog
+        s_ = H / top.height; _P6 = ImageEnhance.Color(top.resize((int(top.width * s_), H), Image.LANCZOS)).enhance(1.1)
+    k = u / dur; x0 = int((_P6.width - W) * (.15 + .5 * k)); return _P6.crop((x0, 0, x0 + W, H))
+BEATS = [(4.3, 11.1, 'map'), (17.6, 23.0, 'gem'), (23.0, 29.5, 'mem'), (29.5, 34.0, 'fold'), (34.0, 41.2, 'block'), (54.5, 57.9, 'land')]
+def base4(T):
+    for a, b, k in BEATS:
+        if a <= T < b:
+            u = T - a
+            if k == 'map': return MAPM.frame(u * 4.5 / (b - a)), k
+            if k == 'gem': return GEM.frame(u), k
+            if k == 'mem':
+                z = 1 + .04 * u / (b - a); im = MEM.resize((int(W * z), int(H * z)), Image.BILINEAR); x0 = (im.width - W) // 2; y0 = (im.height - H) // 2
+                return im.crop((x0, y0, x0 + W, y0 + H)), k
+            if k == 'fold': return MAPM.frame(2.9 + u * 1.7 / (b - a)), 'map'
+            if k == 'block': return MAPM.frame(4.6 + u * 3.4 / (b - a)), k
+            if k == 'land': return shot(5, 26.9 + u * 6.5 / (b - a)), 'normal_land'
+    if T < H_END: return hook_base(T), 'hook'
+    return base(n2o(T)), 'normal'
+EDGES = sorted(set([x for a, b, _ in BEATS for x in (a, b)] + [H_END, J1]))
+def frame4(T):
+    f, kind = base4(T)
+    for e in EDGES:
+        if e <= T < e + .3 and e > 0: f = Image.blend(base4(e - .001)[0], f, (T - e) / .3); break
+    im = f.convert('RGBA')
+    if kind not in ('mem', 'map', 'gem', 'block'): im.alpha_composite(GRAD3)
+    if kind in ('map', 'gem', 'block'):
+        band = Image.new('RGBA', (W, H), (0, 0, 0, 0)); bd_ = ImageDraw.Draw(band)
+        for y in range(1480, H): bd_.line((0, y, W, y), fill=(6, 16, 30, int(210 * min(1, (y - 1480) / 120))))
+        im.alpha_composite(band)
+    global SUB_Y
+    SUB_Y = 1600 if kind in ('map', 'gem', 'block') else 1120
+    if T < H_END:
+        if T < 4.3: label3(im, T, .3, 4.3, 'צפון בקעת הירדן')
+        draw_subs(im, T, SUBS_H, 104 if T < 3.3 else 92)
+    elif kind != 'mem':
+        t = n2o(T)
+        if kind in ('normal', 'normal_land'):
+            for a, b, s_ in LABELS:
+                if s_ not in ('ברדלה · בקעת הירדן', 'יונתן דויטש הי״ד', 'בר־דליה'): label3(im, t, a, b, s_)
+            if 11.1 <= T < 17.6: label3(im, T, 11.4, 17.6, 'בר־דליה')
+        if t <= VO_END: draw_subs(im, t, [x for x in SUBS if 'ברדלה' not in x[2]])
+    if T > TOTAL3 - 2.6:
+        u = T - (TOTAL3 - 2.6); lg = Image.open(LOGO).convert('RGBA'); lg = lg.crop(lg.getchannel('A').getbbox()); lg = lg.resize((420, int(420 * lg.height / lg.width)), Image.LANCZOS)
+        lg.putalpha(lg.getchannel('A').point(lambda v: int(v * eo((u - .2) / .6)))); im.alpha_composite(lg, (int(W / 2 - 210), 1300))
+    else: im.alpha_composite(LG, (W - 60 - LG.width, 70))
+    if T < .4: im = Image.blend(Image.new('RGBA', (W, H), (0, 0, 0, 255)), im, T / .4)
+    return im.convert('RGB')
+frame3 = frame4
+
 if __name__ == '__main__':
     prep()
     if 'stills' in sys.argv:
-        ts = [1.5, 6, 9.5, 13, 18, 22, 25, 30, 37, 42, 47, 51, 56, 60, 64]
+        ts = [1.5, 6, 9.5, 13, 19, 22, 26, 31, 36, 40, 43, 48, 52, 56, 64]
         ims = [frame3(x).resize((180, 320)) for x in ts]; sh = Image.new('RGB', (8 * 184, 2 * 324), WHITE)
         for i, x in enumerate(ims): sh.paste(x, ((i % 8) * 184, (i // 8) * 324))
         sh.save(P + '../stills.jpg'); print(TOTAL3); sys.exit()
