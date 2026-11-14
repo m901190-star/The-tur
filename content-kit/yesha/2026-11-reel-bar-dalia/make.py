@@ -28,7 +28,7 @@ def prep():
         if kind != 'vid': continue
         d = P + f's{i:02d}/'
         if os.path.exists(d + '0001.jpg'): continue
-        os.makedirs(d, exist_ok=True); dur = (min(b, TOTAL) - a + .6) * sp
+        os.makedirs(d, exist_ok=True); dur = ((b - a) if a >= 100 else (min(b, TOTAL) - a)) * sp + .6
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(t0), '-t', f'{dur:.2f}', '-i', FT + src, '-vf', f'setpts=PTS/{sp},fps={FPS},' + ('crop=iw*0.62:ih*0.62:iw*0.19:ih*0.04,' if src == 'v11.mov' else '') + 'scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,crop=1080:1920,eq=saturation=1.08:contrast=1.04', '-q:v', '3', d + '%04d.jpg'], check=True)
 _ls, _img = {}, {}
 def photo(n):
@@ -37,7 +37,7 @@ def photo(n):
         _img[n] = ImageEnhance.Color(im.resize((int(im.width * s), int(im.height * s)), Image.LANCZOS)).enhance(1.06)
     return _img[n]
 def shot(i, t):
-    a, b, kind, src, t0, sp = SHOTS[i]; u = t - a; dur = max(.1, min(b, TOTAL) - a)
+    a, b, kind, src, t0, sp = SHOTS[i]; u = t - a; dur = max(.1, (b - a) if a >= 100 else min(b, TOTAL) - a)
     if kind == 'img':
         im = photo(src); z = 1 + .1 * u / dur; cx, cy = sp[0] * im.width, sp[1] * im.height
         cw, ch = min(im.width, int(W * 1.15 / z / 1.15 * im.width / (W * 1.15) * 1.15)), 0
@@ -84,15 +84,74 @@ def frame(t):
     else: im.alpha_composite(LG, (W - 60 - LG.width, 70))
     if t < .4: im = Image.blend(Image.new('RGBA', (W, H), (0, 0, 0, 255)), im, t / .4)
     return im.convert('RGB')
+# ---------- v3: new hook opening, all Bardala-village mentions removed, subtitles raised toward centre ----------
+# hook audio (vo_hook_clean.wav): 0.35-3.6 -> new 0.0 ; 5.0-12.2 -> new 3.55
+# old narration: 8.70-20.6 -> new 11.1 ; 26.9-66.4 -> new 23.0   (skips 'השם העתיק השתמר... ברדלה')
+SHOTS.append((200.0, 207.5, 'vid', 'v9.mov', 0.5, 1))            # hook: view from the farmhouse window
+H_END, J1, J2 = 11.1, 23.0, 2.4
+def n2o(T): return T - J2 if T < J1 else T + 3.9
+TOTAL3 = n2o(VO_END) * 0 + (VO_END - 3.9) + 2.6
+SUB_Y = 1120
+SUBS_H = [(0.05, 3.2, 'כפר יהודי מתקופת הגמרא חוזר לחיים.'), (3.66, 7.75, 'ממערב למחסום הבקעה נמצאת חווה'), (7.8, 10.75, 'שמספרת סיפור של עבר, הווה ועתיד.')]
+GRAD3 = Image.new('RGBA', (W, H), (0, 0, 0, 0)); g3 = ImageDraw.Draw(GRAD3)
+for y in range(H): g3.line((0, y, W, y), fill=(5, 14, 28, int(150 * max(0, 1 - abs(y - 1230) / 520) ** 1.2) + int(90 * max(0, (H * .14 - y) / (H * .14)))))
+def hook_base(T):
+    if T < 4.3: f = shot(0, T)
+    else: f = shot(len(SHOTS) - 1, 200.0 + (T - 4.3))
+    if 4.05 <= T < 4.55: f = Image.blend(shot(0, min(T, 4.29)), shot(len(SHOTS) - 1, 200.0 + max(0, T - 4.3)), (T - 4.05) / .5)
+    return f
+def draw_subs(im, T, subs, size=92):
+    d = ImageDraw.Draw(im)
+    for a, b, s in subs:
+        if a - .05 <= T < b + .2:
+            p = eo((T - a + .05) / .2); f = F(KB, size); lines = wrap(d, s, f, 940); y0 = SUB_Y - (len(lines) - 1) * (size * .95) / 2 + 20 * (1 - p)
+            for k, l in enumerate(lines):
+                y = y0 + k * size * .95
+                d.text((W / 2 + 6, y + 6), l, font=f, fill=BLUE, anchor='ma', direction='rtl'); d.text((W / 2, y), l, font=f, fill=WHITE, anchor='ma', direction='rtl')
+            return
+def label3(im, T, a, b, s):
+    if not (a <= T < b): return
+    d = ImageDraw.Draw(im); p = eo((T - a) / .4); f = F(SEC, 54); tw = d.textlength(s, font=f, direction='rtl')
+    lay = Image.new('RGBA', (int(tw) + 60, 90), (0, 0, 0, 0)); ld = ImageDraw.Draw(lay); ld.rounded_rectangle((0, 0, lay.width - 1, 89), 14, fill=BLUE); ld.text((lay.width / 2, 12), s, font=f, fill=WHITE, anchor='ma', direction='rtl')
+    lay.putalpha(lay.getchannel('A').point(lambda v: int(v * p))); im.alpha_composite(lay, (int(W / 2 - lay.width / 2), int(300 + 20 * (1 - p))))
+def frame3(T):
+    if T < H_END:
+        f = hook_base(T)
+        if T > H_END - .25: f = Image.blend(f, base(n2o(H_END)), (T - (H_END - .25)) / .25)
+        im = f.convert('RGBA'); im.alpha_composite(GRAD3); label3(im, T, .3, H_END, 'צפון בקעת הירדן'); draw_subs(im, T, SUBS_H, 104 if T < 3.3 else 92)
+    else:
+        t = n2o(T); f = base(t)
+        if J1 <= T < J1 + .25: f = Image.blend(base(n2o(J1 - .001)), f, (T - J1) / .25)
+        im = f.convert('RGBA'); im.alpha_composite(GRAD3)
+        for a, b, s in LABELS:
+            if s != 'ברדלה · בקעת הירדן': label3(im, t, a, b, s)
+        if t <= VO_END: draw_subs(im, t, [x for x in SUBS if 'ברדלה' not in x[2]])
+    if T > TOTAL3 - 2.6:
+        u = T - (TOTAL3 - 2.6); lg = Image.open(LOGO).convert('RGBA'); lg = lg.crop(lg.getchannel('A').getbbox()); lg = lg.resize((420, int(420 * lg.height / lg.width)), Image.LANCZOS)
+        lg.putalpha(lg.getchannel('A').point(lambda v: int(v * eo((u - .2) / .6)))); im.alpha_composite(lg, (int(W / 2 - 210), 1300))
+    else: im.alpha_composite(LG, (W - 60 - LG.width, 70))
+    if T < .4: im = Image.blend(Image.new('RGBA', (W, H), (0, 0, 0, 255)), im, T / .4)
+    return im.convert('RGB')
+def audio3():
+    TT = TOTAL3; lo_a, lo_b = 26.5 - 3.9, 33.6 - 3.9
+    return ['-i', HERE + '/vo_clean.wav', '-i', HERE + '/vo_hook_clean.wav', '-i', HERE + '/../2026-11-reel-bustan-david/music.wav', '-filter_complex',
+        ';'.join([f'[2:a]atrim=0.35:3.6,asetpts=PTS-STARTPTS,afade=t=out:st=3.15:d=0.1[h1]',
+                  f'[2:a]atrim=5.0:12.2,asetpts=PTS-STARTPTS,afade=t=in:d=0.05,afade=t=out:st=7.1:d=0.1,adelay=3550:all=1[h2]',
+                  f'[1:a]atrim=8.70:20.6,asetpts=PTS-STARTPTS,afade=t=in:d=0.05,afade=t=out:st=11.8:d=0.1,adelay=11100:all=1[o1]',
+                  f'[1:a]atrim=26.9:{VO_END},asetpts=PTS-STARTPTS,afade=t=in:d=0.05,adelay=23000:all=1[o2]',
+                  f'[h1][h2][o1][o2]amix=inputs=4:normalize=0,aformat=sample_rates=48000:channel_layouts=stereo,apad=whole_dur={TT},asplit=2[v][k]',
+                  f"[3:a]aformat=sample_rates=48000:channel_layouts=stereo,aloop=loop=3:size={int(25.6*44100)},atrim=0:{TT},volume='if(between(t,{lo_a},{lo_b}),0.12,if(gt(t,{TT-2.6}),0.55,0.30))':eval=frame,afade=t=in:d=1,afade=t=out:st={TT-2}:d=2[m]",
+                  '[m][k]sidechaincompress=threshold=0.03:ratio=3:attack=20:release=350[md]', '[v][md]amix=inputs=2:normalize=0,alimiter=limit=0.95[a]'])]
+
 if __name__ == '__main__':
     prep()
     if 'stills' in sys.argv:
-        ts = [2, 6, 11, 17, 24, 30, 37, 42, 46.5, 50, 53, 56, 60, 63, 67.5]
-        ims = [frame(x).resize((180, 320)) for x in ts]; sh = Image.new('RGB', (8 * 184, 2 * 324), WHITE)
+        ts = [1.5, 6, 9.5, 13, 18, 22, 25, 30, 37, 42, 47, 51, 56, 60, 64]
+        ims = [frame3(x).resize((180, 320)) for x in ts]; sh = Image.new('RGB', (8 * 184, 2 * 324), WHITE)
         for i, x in enumerate(ims): sh.paste(x, ((i % 8) * 184, (i // 8) * 324))
-        sh.save(P + '../stills.jpg'); print(TOTAL); sys.exit()
-    ff = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-', '-i', HERE + '/vo_clean.wav', '-i', HERE + '/../2026-11-reel-bustan-david/music.wav',
-        '-filter_complex', f"[1:a]atrim=0:{VO_END},aformat=sample_rates=48000:channel_layouts=stereo,apad=whole_dur={TOTAL},asplit=2[v][k];[2:a]aformat=sample_rates=48000:channel_layouts=stereo,aloop=loop=3:size={int(25.6*44100)},atrim=0:{TOTAL},volume='if(between(t,26.5,33.6),0.12,if(gt(t,{VO_END}),0.55,0.30))':eval=frame,afade=t=in:d=1,afade=t=out:st={TOTAL-2}:d=2[m];[m][k]sidechaincompress=threshold=0.03:ratio=3:attack=20:release=350[md];[v][md]amix=inputs=2:normalize=0,alimiter=limit=0.95[a]", '-map', '0:v', '-map', '[a]', '-vf', 'scale=720:1280:flags=lanczos',
-        '-c:v', 'libx264', '-preset', 'slow', '-b:v', '2200k', '-maxrate', '3000k', '-bufsize', '6000k', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k', '-t', f'{TOTAL}', '-movflags', '+faststart', HERE + '/yesha-bar-dalia.mp4'], stdin=subprocess.PIPE)
-    for i in range(int(round(TOTAL * FPS))): ff.stdin.write(frame(i / FPS).tobytes())
-    ff.stdin.close(); ff.wait(); print('done', TOTAL)
+        sh.save(P + '../stills.jpg'); print(TOTAL3); sys.exit()
+    ff = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-'] + audio3() +
+        ['-map', '0:v', '-map', '[a]', '-vf', 'scale=720:1280:flags=lanczos', '-c:v', 'libx264', '-preset', 'slow', '-b:v', '2200k', '-maxrate', '3000k', '-bufsize', '6000k',
+         '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k', '-t', f'{TOTAL3}', '-movflags', '+faststart', HERE + '/yesha-bar-dalia.mp4'], stdin=subprocess.PIPE)
+    for i in range(int(round(TOTAL3 * FPS))): ff.stdin.write(frame3(i / FPS).tobytes())
+    ff.stdin.close(); ff.wait(); print('done', TOTAL3)
