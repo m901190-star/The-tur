@@ -97,7 +97,7 @@ def frame(t):
             for s_, yy in [(-1, f[1] - 260), (1, f[1] + 180)]:
                 a2 = eo((u - 1.1) / .4); xL = bx - 220 + 120 * a2; d.line((bx - 260, yy, xL, yy), fill=(232, 242, 248), width=6); d.polygon([(xL + 14, yy), (xL - 10, yy - 14), (xL - 10, yy + 14)], fill=(232, 242, 248))
                 d.line((bx - 40, yy - 22, bx - 6, yy + 22), fill=(220, 60, 60), width=8); d.line((bx - 40, yy + 22, bx - 6, yy - 22), fill=(220, 60, 60), width=8)
-            label(im, 'בולמת רצף טריטוריאלי', W / 2, f[1] + 320, 60, fill=NAVY, bg=GOLD, alpha=eo((u - 1.5) / .4))
+            label(im, 'בולמת רצף טריטוריאלי', W / 2, 330, 60, fill=NAVY, bg=GOLD, alpha=eo((u - 1.5) / .4))
     if t > 3.1: label(im, 'חוות בר דליה', f[0], f[1] - 160, 62, fill=NAVY, bg=WHITE, alpha=eo((t - 3.1) / .4))
     return im.convert('RGB')
 if __name__ == '__main__':

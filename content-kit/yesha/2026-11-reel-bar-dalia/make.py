@@ -181,18 +181,12 @@ def base4(T):
             if k == 'block': return MAPM.frame(4.6 + u * 3.4 / (b - a)), k
             if k == 'land': return shot(5, 26.9 + u * 6.5 / (b - a)), 'normal_land'
     if T < H_END: return hook_base(T), 'hook'
-    return base(n2o(T)), 'normal'
+    return base(max(n2o(T), 8.8)), 'normal'          # never fall back into the cut opening shot (avoids a 1-frame flash)
 EDGES = sorted(set([x for a, b, _ in BEATS for x in (a, b)] + [H_END, J1]))
 def frame4(T):
     f, kind = base4(T)
     im = f.convert('RGBA')
-    if kind not in ('mem', 'map', 'gem', 'block'): im.alpha_composite(GRAD3)
-    if kind in ('map', 'gem', 'block'):
-        band = Image.new('RGBA', (W, H), (0, 0, 0, 0)); bd_ = ImageDraw.Draw(band)
-        for y in range(1480, H): bd_.line((0, y, W, y), fill=(6, 16, 30, int(210 * min(1, (y - 1480) / 120))))
-        im.alpha_composite(band)
-    global SUB_Y
-    SUB_Y = 1600 if kind in ('map', 'gem', 'block') else 1120
+    if kind != 'mem': im.alpha_composite(GRAD3)          # same subtitle backdrop everywhere -> subtitles never move
     if T < H_END:
         if T < 4.3: label3(im, T, .3, 4.3, 'צפון בקעת הירדן')
         draw_subs(im, T, SUBS_H, 104 if T < 3.3 else 92)
@@ -219,7 +213,7 @@ if __name__ == '__main__':
         for i, x in enumerate(ims): sh.paste(x, ((i % 8) * 184, (i // 8) * 324))
         sh.save(P + '../stills.jpg'); print(TOTAL3); sys.exit()
     ff = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-'] + audio3() +
-        ['-map', '0:v', '-map', '[a]', '-c:v', 'libx264', '-preset', 'slow', '-crf', '19', '-maxrate', '7M', '-bufsize', '14M', '-profile:v', 'high', '-r', '30',
+        ['-map', '0:v', '-map', '[a]', '-vf', 'scale=720:1280:flags=lanczos', '-c:v', 'libx264', '-preset', 'slow', '-crf', '20', '-maxrate', '4M', '-bufsize', '8M', '-profile:v', 'high', '-r', '30',
          '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k', '-t', f'{TOTAL3}', '-movflags', '+faststart', HERE + '/yesha-bar-dalia.mp4'], stdin=subprocess.PIPE)
     for i in range(int(round(TOTAL3 * FPS))): ff.stdin.write(frame3(i / FPS).tobytes())
     ff.stdin.close(); ff.wait(); print('done', TOTAL3)
