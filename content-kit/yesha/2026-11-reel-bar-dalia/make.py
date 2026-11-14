@@ -29,7 +29,7 @@ def prep():
         d = P + f's{i:02d}/'
         if os.path.exists(d + '0001.jpg'): continue
         os.makedirs(d, exist_ok=True); dur = ((b - a) if a >= 100 else (min(b, TOTAL) - a)) * sp + .6
-        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(t0), '-t', f'{dur:.2f}', '-i', FT + src, '-vf', f'setpts=PTS/{sp},fps={FPS},' + ('crop=iw*0.62:ih*0.62:iw*0.19:ih*0.04,' if src == 'v11.mov' else '') + 'scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,crop=1080:1920,eq=saturation=1.08:contrast=1.04', '-q:v', '3', d + '%04d.jpg'], check=True)
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(t0), '-t', f'{dur:.2f}', '-i', FT + src, '-vf', f'setpts=PTS/{sp},fps={FPS},' + ('crop=iw*0.62:ih*0.62:iw*0.19:ih*0.04,' if src == 'v11.mov' else '') + 'scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,crop=1080:1920,unsharp=5:5:0.7,eq=saturation=1.08:contrast=1.04', '-q:v', '2', d + '%04d.jpg'], check=True)
 _ls, _img = {}, {}
 def photo(n):
     if n not in _img:
@@ -52,8 +52,6 @@ def base(t):
     for i, (a, b, *_) in enumerate(SHOTS):
         if a <= t < b:
             f = shot(i, t)
-            if i + 1 < len(SHOTS) and b - t < .25: f = Image.blend(f, shot(i + 1, b + .001), (1 - (b - t) / .25) * .5)
-            if i > 0 and t - a < .25: f = Image.blend(shot(i - 1, a - .001), f, .5 + (t - a) / .5)
             return f
 GRAD = Image.new('RGBA', (W, H), (0, 0, 0, 0)); gd = ImageDraw.Draw(GRAD)
 for y in range(H): gd.line((0, y, W, y), fill=(5, 14, 28, int(170 * max(0, (y - H * .62) / (H * .38)) ** 1.4) + int(90 * max(0, (H * .14 - y) / (H * .14)))))
@@ -98,7 +96,6 @@ for y in range(H): g3.line((0, y, W, y), fill=(5, 14, 28, int(150 * max(0, 1 - a
 def hook_base(T):
     if T < 4.3: f = shot(0, T)
     else: f = shot(len(SHOTS) - 1, 200.0 + (T - 4.3))
-    if 4.05 <= T < 4.55: f = Image.blend(shot(0, min(T, 4.29)), shot(len(SHOTS) - 1, 200.0 + max(0, T - 4.3)), (T - 4.05) / .5)
     return f
 def draw_subs(im, T, subs, size=92):
     d = ImageDraw.Draw(im)
@@ -188,8 +185,6 @@ def base4(T):
 EDGES = sorted(set([x for a, b, _ in BEATS for x in (a, b)] + [H_END, J1]))
 def frame4(T):
     f, kind = base4(T)
-    for e in EDGES:
-        if e <= T < e + .3 and e > 0: f = Image.blend(base4(e - .001)[0], f, (T - e) / .3); break
     im = f.convert('RGBA')
     if kind not in ('mem', 'map', 'gem', 'block'): im.alpha_composite(GRAD3)
     if kind in ('map', 'gem', 'block'):
@@ -224,7 +219,7 @@ if __name__ == '__main__':
         for i, x in enumerate(ims): sh.paste(x, ((i % 8) * 184, (i // 8) * 324))
         sh.save(P + '../stills.jpg'); print(TOTAL3); sys.exit()
     ff = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-'] + audio3() +
-        ['-map', '0:v', '-map', '[a]', '-vf', 'scale=720:1280:flags=lanczos', '-c:v', 'libx264', '-preset', 'slow', '-b:v', '2200k', '-maxrate', '3000k', '-bufsize', '6000k',
+        ['-map', '0:v', '-map', '[a]', '-c:v', 'libx264', '-preset', 'slow', '-crf', '19', '-maxrate', '7M', '-bufsize', '14M', '-profile:v', 'high', '-r', '30',
          '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k', '-t', f'{TOTAL3}', '-movflags', '+faststart', HERE + '/yesha-bar-dalia.mp4'], stdin=subprocess.PIPE)
     for i in range(int(round(TOTAL3 * FPS))): ff.stdin.write(frame3(i / FPS).tobytes())
     ff.stdin.close(); ff.wait(); print('done', TOTAL3)
