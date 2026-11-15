@@ -19,10 +19,6 @@ cw = 900; s = cw / pad.width; card = pad.resize((cw, int(pad.height * s)), Image
 m = Image.new('L', card.size, 0); ImageDraw.Draw(m).rounded_rectangle((0, 0, card.width - 1, card.height - 1), 28, fill=255)
 sh = Image.new('L', (card.width + 80, card.height + 80), 0); sh.paste(m, (40, 52)); sh = sh.filter(ImageFilter.GaussianBlur(18))
 TOP = 70; X0 = (W - cw) // 2; im.paste((0, 0, 0, 120), (X0 - 40, TOP - 40), sh); im.paste(card, (X0, TOP), m)
-# 'תיקון' tag pinned on the card's top edge, above the struck word
-tf = F(KB, 54); tw = d.textlength('תיקון', font=tf, direction='rtl'); tx = X0 + (40 + 460) * s
-d.rounded_rectangle((tx - tw / 2 - 26, TOP - 34, tx + tw / 2 + 26, TOP + 40), 14, fill=RED)
-d.text((tx, TOP - 30), 'תיקון', font=tf, fill=(255, 255, 255), anchor='ma', direction='rtl')
 R = W - 90; y = TOP + card.height + 60
 d.rectangle((R - 6, y + 6, R, y + 262), fill=LT)
 fk = F(KB, 74)
