@@ -17,8 +17,8 @@
   "text_dark": "#2B5155"
  },
  "fonts": {
-  "bold": "Karantina",
-  "regular": "Karantina"
+  "bold": "Haim Classic v2 FM Bold (content-kit/fonts/HaimClassicv2FM-Bold.ttf; no Latin)",
+  "regular": "Haim Classic v2 FM Bold"
  },
  "logo": {
   "file": "logo.png",

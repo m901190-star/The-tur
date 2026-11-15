@@ -17,8 +17,8 @@
   "text_dark": "#174068"
  },
  "fonts": {
-  "bold": "Karantina",
-  "regular": "Karantina"
+  "bold": "Haim Classic v2 FM Bold (content-kit/fonts/HaimClassicv2FM-Bold.ttf; Hebrew + digits only, no Latin)",
+  "regular": "Haim Classic v2 FM Bold"
  },
  "logo": {
   "file": "logo_white.png",
@@ -53,7 +53,7 @@
   "Logo small in the top-right corner, over the photo (white logo).",
   "Dark gradient over the bottom third of the photo, behind the text.",
   "Label: a blue (#2566A2) box with white text, e.g. 'באור יום:', above the headline.",
-  "Headline: large, white, up to two lines, Karantina Bold with an offset blue drop shadow. A short factual sentence (e.g. 'אלפי מתפללים בקבר יוסף בשכם') — no exclamation marks, no emoji.",
+  "Headline: large, white, up to two lines, Haim Classic v2 FM Bold (replaces Karantina, per Moshe 2026-11-15) with an offset blue drop shadow. A short factual sentence (e.g. 'אלפי מתפללים בקבר יוסף בשכם') — no exclamation marks, no emoji.",
   "When no photo is available, use the text-only graphic style and leave a clear placeholder/instruction for the photo the user should add.",
   "Photos with identifiable people: mark with ⚠️ that usage rights/approval are needed before publishing.",
   "Open questions to the user (ask once, then record the answer here): is 'באור יום:' a fixed series or are there other labels; where photos come from; whether a photo credit is shown and where."
