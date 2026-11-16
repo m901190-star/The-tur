@@ -88,10 +88,35 @@ describe('seasonForDate', () => {
 });
 
 describe('intervalDays', () => {
-  it('picks the seasonal interval', () => {
+  it('reaches each stated interval at its own end of the year', () => {
     const plant = makePlant();
-    expect(intervalDays(plant, at(2026, 7, 1))).toBe(7);
-    expect(intervalDays(plant, at(2026, 12, 1))).toBe(14);
+    // Mid-July is the top of the curve, mid-January the bottom.
+    expect(intervalDays(plant, at(2026, 7, 15))).toBe(7);
+    expect(intervalDays(plant, at(2027, 1, 15))).toBe(14);
+  });
+
+  it('moves between them gradually, with no cliff at a month boundary', () => {
+    const plant = makePlant();
+    // The old model jumped from the summer figure to the winter one overnight
+    // on 1 November, though nothing outside had changed.
+    const lastOfOctober = intervalDays(plant, at(2026, 10, 31));
+    const firstOfNovember = intervalDays(plant, at(2026, 11, 1));
+    expect(Math.abs(firstOfNovember - lastOfOctober)).toBeLessThanOrEqual(1);
+
+    // And autumn sits between the two ends rather than counting as high summer.
+    const october = intervalDays(plant, at(2026, 10, 15));
+    expect(october).toBeGreaterThan(7);
+    expect(october).toBeLessThan(14);
+  });
+
+  it('rises and falls monotonically through the half-year', () => {
+    const plant = makePlant();
+    const days = [15, 15, 15, 15, 15, 15].map((d, index) =>
+      intervalDays(plant, at(2026, 7 + index, d)),
+    );
+    for (let index = 1; index < days.length; index += 1) {
+      expect(days[index]).toBeGreaterThanOrEqual(days[index - 1]);
+    }
   });
 
   it('falls back to the other season when one is missing', () => {

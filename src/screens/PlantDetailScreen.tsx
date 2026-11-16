@@ -14,13 +14,14 @@ import {
   formatRelativeDay,
   formatWater,
   intervalDays,
-  seasonForDate,
   wateringState,
 } from '../lib/watering';
 import { RootStackParamList } from '../navigation';
 import { usePlants } from '../state/PlantsContext';
 import { colors, radius, rtlText, spacing, typography } from '../theme';
 import { LIGHT_LABELS, LogEntry, POT_LABELS } from '../types';
+
+const HE_MONTH = new Intl.DateTimeFormat('he-IL', { month: 'long' });
 
 const HE_DATE_TIME = new Intl.DateTimeFormat('he-IL', {
   day: 'numeric',
@@ -110,7 +111,12 @@ export function PlantDetailScreen() {
   const water = wateringState(plant, now, weather);
   const fertilize = fertilizeState(plant, now);
   const history = logFor(plant.id);
-  const season = seasonForDate(now) === 'summer' ? 'קיץ' : 'חורף';
+  // The interval moves along a curve through the year, so naming the month is
+  // honest where naming a season would imply a step that no longer exists.
+  const month = HE_MONTH.format(now);
+  const interval = intervalDays(plant, now, weather);
+  // Litres per day, so the interval can be judged instead of taken on trust.
+  const dailyMl = Math.round(plant.waterMl / Math.max(1, interval));
 
   return (
     <ScrollView
@@ -127,6 +133,15 @@ export function PlantDetailScreen() {
         <Text style={styles.name}>{plant.name}</Text>
         {plant.species ? <Text style={styles.species}>{plant.species}</Text> : null}
         <StatusPill state={water} />
+      </View>
+
+      <View style={styles.rateNote}>
+        <Ionicons name="calculator-outline" size={16} color={colors.textMuted} />
+        <Text style={styles.rateText}>
+          יוצא {formatWater(dailyMl)} ליום. המספרים הם נקודת פתיחה — תקע אצבע
+          5 ס״מ לתוך האדמה לפני שאתה משקה, ואם היא עדיין לחה לחץ ״דחה ביום״.
+          כמה דחיות ישנו את הקצב.
+        </Text>
       </View>
 
       {water.weatherReason ? (
@@ -149,8 +164,8 @@ export function PlantDetailScreen() {
       <View style={styles.grid}>
         <Stat label="כמות מים" value={formatWater(plant.waterMl)} icon="water-outline" />
         <Stat
-          label={`תדירות (${season})`}
-          value={`כל ${intervalDays(plant, now, weather)} ימים`}
+          label={`תדירות (${month})`}
+          value={`כל ${interval} ימים`}
           icon="repeat-outline"
         />
         <Stat
@@ -295,6 +310,14 @@ const styles = StyleSheet.create({
   headerBlock: { gap: spacing.xs, alignItems: 'flex-end' },
   name: { ...typography.title, color: colors.text, ...rtlText },
   species: { ...typography.body, color: colors.textMuted, ...rtlText },
+  rateNote: {
+    flexDirection: 'row-reverse',
+    gap: spacing.sm,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.md,
+    padding: spacing.md,
+  },
+  rateText: { ...typography.small, color: colors.textMuted, flex: 1, ...rtlText },
   weatherNote: {
     flexDirection: 'row-reverse',
     alignItems: 'center',

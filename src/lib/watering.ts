@@ -6,19 +6,44 @@ import {
   Season,
   WeatherSnapshot,
 } from '../types';
-import { addDays, daysBetween, seasonForDate, startOfDay } from './dates';
+import { MS_PER_DAY, addDays, daysBetween, seasonForDate, startOfDay } from './dates';
 import { deferPastFrost, weatherAdjustment } from './weather';
 
 export { MS_PER_DAY, addDays, daysBetween, seasonForDate, startOfDay } from './dates';
 
 
-/** The plant's own stated interval for the season `now` falls in. */
+/** Peak of winter: the longest intervals of the year sit here. */
+const PEAK_WINTER_DAY = 15;
+const DAYS_IN_YEAR = 365.25;
+
+function dayOfYear(date: Date): number {
+  const start = new Date(date.getFullYear(), 0, 0);
+  return Math.round((startOfDay(date).getTime() - start.getTime()) / MS_PER_DAY);
+}
+
+/**
+ * Where the year sits between deep winter and high summer, 0 to 1: 0 in
+ * mid-January, 1 in mid-July, and everything in between on a smooth curve.
+ *
+ * The plant's two stated intervals are the two ends of that curve, not two
+ * boxes the year is sorted into. Sorting produced a cliff — the last day of
+ * October asked for water every three days and the first of November every
+ * eight, though nothing outside had changed — and it flattened autumn into
+ * high summer, giving a mild October the same interval as mid-July.
+ */
+export function seasonProgress(date: Date = new Date()): number {
+  const phase = Math.cos((2 * Math.PI * (dayOfYear(date) - PEAK_WINTER_DAY)) / DAYS_IN_YEAR);
+  return (1 - phase) / 2;
+}
+
+/** The plant's own interval for this point in the year. */
 export function seasonalIntervalDays(plant: Plant, now: Date = new Date()): number {
-  const seasonal =
-    seasonForDate(now) === 'summer' ? plant.intervalSummerDays : plant.intervalWinterDays;
-  const fallback = plant.intervalSummerDays || plant.intervalWinterDays || 7;
-  const value = seasonal > 0 ? seasonal : fallback;
-  return Math.max(1, Math.round(value));
+  const stated = (value: number, other: number) =>
+    value > 0 ? value : other > 0 ? other : 7;
+  const summer = stated(plant.intervalSummerDays, plant.intervalWinterDays);
+  const winter = stated(plant.intervalWinterDays, plant.intervalSummerDays);
+  const progress = seasonProgress(now);
+  return Math.max(1, Math.round(winter + (summer - winter) * progress));
 }
 
 /**
