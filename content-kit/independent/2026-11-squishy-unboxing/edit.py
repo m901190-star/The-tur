@@ -22,6 +22,7 @@ def caption(im, lines, u):
 def label(im):
     d = ImageDraw.Draw(im); f = F(SEC, 24); t = 'נוצר ב-AI · סאטירה'; tw = d.textlength(t, font=f, direction='rtl')
     d.rounded_rectangle((W - 24 - tw - 28, 120, W - 24, 162), 21, fill=(0, 0, 0, 150)); d.text((W - 24 - 14, 141), t, font=f, fill=(255, 255, 255, 235), anchor='rm', direction='rtl')
+SHOW_CAPS = False   # client: captions over the shots are distracting (toy signs carry the text)
 out = []
 for name, t0, dur, cap in SHOTS:
     V = frames(G + name, t0, dur)
@@ -29,7 +30,7 @@ for name, t0, dur, cap in SHOTS:
     if HOLD: V = np.concatenate([np.repeat(V[:1], int(HOLD * FPS), 0), V])
     for i, fr in enumerate(V):
         im = Image.fromarray(fr).convert('RGBA'); lay = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-        if cap: caption(lay, cap, i / FPS)
+        if cap and SHOW_CAPS: caption(lay, cap, i / FPS)
         label(lay); im.alpha_composite(lay); out.append(im.convert('RGB'))
 end = Image.open(G + 'still-end.png').convert('RGB'); s = max(W / end.width, H / end.height); end = end.resize((int(end.width * s), int(end.height * s)), Image.LANCZOS)
 ED = 3.5
