@@ -159,7 +159,8 @@ if __name__ == '__main__':
     if 'stills' in sys.argv:
         ts = [1.5, 3.3, 5.5, 9, 12, 16, 21, 27]; ims = [frame(x, V[min(int(x * FPS), len(V) - 1)]).resize((270, 480)) for x in ts]
         sh = Image.new('RGB', (4 * 274, 2 * 484)); [sh.paste(x, ((i % 4) * 274, (i // 4) * 484)) for i, x in enumerate(ims)]; sh.save(sys.argv[2]); sys.exit()
-    SFX = [('woosh2', .05, .30), ('pop', .12, .28), ('ding', 1.9, .30), ('whoosh', 3.65, .32), ('pop', 3.85, .25), ('whoosh', 6.1, .32), ('pop', 6.5, .25), ('pop', 6.95, .25),
+    SFX = []  # Moshe: SFX overpowered the speaker - removed
+    _OLD_SFX = [('woosh2', .05, .30), ('pop', .12, .28), ('ding', 1.9, .30), ('whoosh', 3.65, .32), ('pop', 3.85, .25), ('whoosh', 6.1, .32), ('pop', 6.5, .25), ('pop', 6.95, .25),
            ('pop', 7.4, .25), ('whoosh', 10.45, .32), ('pop', 13.2, .25), ('ding', 14.9, .32), ('pop', 16.7, .2), ('ding', 19.5, .28), ('whoosh', 22.95, .32), ('pop', 23.15, .25), ('swell', 23.35, .35)]
     ins, fl = [], []
     for i, (n, at, v) in enumerate(SFX):
