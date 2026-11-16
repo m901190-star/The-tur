@@ -12,6 +12,5 @@ m = Image.new('L', (W, H), 0); ImageDraw.Draw(m).rounded_rectangle((20, 20, W - 
 lay = Image.new('RGBA', (W, H), (0, 0, 0, 0)); lay.alpha_composite(cut, (40, H - 20 - cut.height))
 im.alpha_composite(Image.composite(lay, Image.new('RGBA', (W, H), (0, 0, 0, 0)), m))
 d = ImageDraw.Draw(im); xr = W - 70
-d.text((xr, 40), 'כהנא חי', font=F(250), fill=K, anchor='ra', direction='rtl')
-d.text((xr, 300), '(מתן, לא מאיר)', font=F(78), fill=K, anchor='ra', direction='rtl')
-im.save(HERE + '/bumper.png'); im.convert('RGB').save(HERE + '/bumper.jpg', quality=95); print(d.textbbox((xr, 40), 'כהנא חי', font=F(250), anchor='ra', direction='rtl'), cut.width)
+d.text((xr, H / 2 + 8), 'כהנא חי', font=F(280), fill=K, anchor='rm', direction='rtl')
+im.save(HERE + '/bumper.png'); im.convert('RGB').save(HERE + '/bumper.jpg', quality=95); print('ok')
