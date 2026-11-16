@@ -67,6 +67,7 @@ const POT_OPTIONS: PotSize[] = ['small', 'medium', 'large'];
 const LAST_WATERED_OPTIONS: { label: string; value: number | null }[] = [
   { label: 'היום', value: 0 },
   { label: 'אתמול', value: 1 },
+  { label: 'שלשום', value: 2 },
   { label: 'לפני 3 ימים', value: 3 },
   { label: 'לפני שבוע', value: 7 },
   { label: 'טרם הושקה', value: null },

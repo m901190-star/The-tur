@@ -39,6 +39,12 @@ interface PlantsContextValue {
   getPlant: (id: string) => Plant | undefined;
   /** Records a watering now and resets the plant's timer. */
   markWatered: (id: string, amountMl?: number) => Promise<void>;
+  /**
+   * Records that every plant was watered `daysAgo` days back. Watering the
+   * whole garden in one go is the normal way to do it, and confirming that
+   * one planter at a time is the kind of chore that stops an app being used.
+   */
+  markAllWatered: (daysAgo?: number) => Promise<void>;
   markFertilized: (id: string) => Promise<void>;
   /** Pushes the next watering out by `days` without recording one. */
   snooze: (id: string, days: number) => Promise<void>;
@@ -211,6 +217,27 @@ export function PlantsProvider({ children }: { children: React.ReactNode }) {
     [plants, updatePlant, appendLog],
   );
 
+  const markAllWatered = useCallback(
+    async (daysAgo = 0) => {
+      if (plants.length === 0) return;
+      const when = new Date();
+      when.setDate(when.getDate() - Math.max(0, Math.round(daysAgo)));
+      const at = when.toISOString();
+
+      await persistPlants(plants.map((plant) => ({ ...plant, lastWateredAt: at })));
+      const entries: LogEntry[] = plants.map((plant) => ({
+        id: createId(),
+        plantId: plant.id,
+        at,
+        kind: 'water' as LogKind,
+        amountMl: plant.waterMl,
+        note: null,
+      }));
+      await persistLog([...entries, ...log]);
+    },
+    [plants, log, persistPlants, persistLog],
+  );
+
   const markFertilized = useCallback(
     async (id: string) => {
       await updatePlant(id, { lastFertilizedAt: new Date().toISOString() });
@@ -273,6 +300,7 @@ export function PlantsProvider({ children }: { children: React.ReactNode }) {
       removePlant,
       getPlant,
       markWatered,
+      markAllWatered,
       markFertilized,
       snooze,
       logFor,
@@ -293,6 +321,7 @@ export function PlantsProvider({ children }: { children: React.ReactNode }) {
       removePlant,
       getPlant,
       markWatered,
+      markAllWatered,
       markFertilized,
       snooze,
       logFor,

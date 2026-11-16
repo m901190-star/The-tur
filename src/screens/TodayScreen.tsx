@@ -9,6 +9,7 @@ import { EmptyState } from '../components/EmptyState';
 import { PlantCard } from '../components/PlantCard';
 import { SectionHeader } from '../components/SectionHeader';
 import { SetupBanner } from '../components/SetupBanner';
+import { WaterAllRow } from '../components/WaterAllRow';
 import { WeatherStrip } from '../components/WeatherStrip';
 import {
   fertilizeState,
@@ -52,6 +53,7 @@ export function TodayScreen() {
     refreshWeather,
     addPlants,
     updateSettings,
+    markAllWatered,
   } = usePlants();
   const [seeding, setSeeding] = useState(false);
   const [enabling, setEnabling] = useState<'none' | 'push' | 'place' | 'ics'>('none');
@@ -238,6 +240,8 @@ export function TodayScreen() {
           busy={enabling === 'place'}
         />
       ) : null}
+
+      <WaterAllRow onConfirm={markAllWatered} />
 
       <WeatherStrip
         snapshot={weather}
