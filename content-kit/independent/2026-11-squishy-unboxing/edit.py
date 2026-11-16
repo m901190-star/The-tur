@@ -20,7 +20,7 @@ def caption(im, lines, u):
         d.rounded_rectangle((W / 2 - tw / 2 - 22, y - 6, W / 2 + tw / 2 + 22, y + 80), 14, fill=(255, 255, 255, int(235 * p)))
         d.text((W / 2, y), l, font=f, fill=NAVY + (int(255 * p),), anchor='ma', direction='rtl')
 def label(im):
-    d = ImageDraw.Draw(im); f = F(SEC, 24); t = 'נוצר ב-AI · סאטירה'; tw = d.textlength(t, font=f, direction='rtl')
+    d = ImageDraw.Draw(im); f = F(SEC, 24); t = 'נוצר ב-AI'; tw = d.textlength(t, font=f, direction='rtl')
     d.rounded_rectangle((W - 24 - tw - 28, 120, W - 24, 162), 21, fill=(0, 0, 0, 150)); d.text((W - 24 - 14, 141), t, font=f, fill=(255, 255, 255, 235), anchor='rm', direction='rtl')
 SHOW_CAPS = False   # client: captions over the shots are distracting (toy signs carry the text)
 out = []
@@ -39,9 +39,10 @@ for i in range(int(ED * FPS)):
     x0 = (e2.width - W) // 2; y0 = (e2.height - H) // 2; im = e2.crop((x0, y0, x0 + W, y0 + H)).convert('RGBA')
     lay = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay); p = eo((u - .3) / .4)
     if p > 0:
-        d.rectangle((0, 470, W, 760), fill=NAVY + (int(225 * p),))
-        d.text((W / 2, 520), 'הבטחות תקפות', font=F(KB, 66), fill=(255, 255, 255, int(255 * p)), anchor='ma', direction='rtl')
-        d.text((W / 2, 600), 'עד למוצאי הבחירות', font=F(KB, 66), fill=(255, 255, 255, int(255 * p)), anchor='ma', direction='rtl')
+        # client: small muted-blue line to the LEFT of the 'נוצר ב-AI' tag, not over the frame
+        fb = F(KB, 30); t = 'הבטחות תקפות עד למוצאי הבחירות'; tw = d.textlength(t, font=fb, direction='rtl')
+        xr = W - 24 - 123 - 10; d.rounded_rectangle((xr - tw - 32, 116, xr, 166), 22, fill=(30, 55, 105, int(200 * p)))
+        d.text((xr - 16, 141), t, font=fb, fill=(225, 233, 245, int(255 * p)), anchor='rm', direction='rtl')
     label(lay); im.alpha_composite(lay); out.append(im.convert('RGB'))
 if out:
     out[0] = out[0]
