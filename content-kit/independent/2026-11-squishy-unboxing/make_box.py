@@ -9,12 +9,12 @@ def F(p, s): return ImageFont.truetype(p, s, layout_engine=ImageFont.Layout.RAQM
 im = Image.new('RGBA', (W, H), WHITE); d = ImageDraw.Draw(im)
 d.rectangle((0, 0, W, 250), fill=NAVY); d.rectangle((0, 250, W, 262), fill=LB)
 d.text((W / 2, 30), 'המארז של גוש השינוי', font=F(KB, 140), fill=WHITE, anchor='ma', direction='rtl')
-d.text((W / 2, 178), 'מארז סקווישים · 5 יחידות', font=F(SEC, 44), fill=LB, anchor='ma', direction='rtl')
+d.text((W / 2, 178), 'מארז סקווישים · 4 יחידות', font=F(SEC, 44), fill=LB, anchor='ma', direction='rtl')
 # window
 WX0, WY0, WX1, WY1 = 70, 300, W - 70, 830
 d.rounded_rectangle((WX0, WY0, WX1, WY1), 30, fill=(232, 238, 246), outline=NAVY, width=10)
-for i in range(5):
-    x0 = WX0 + 30 + i * (WX1 - WX0 - 60) / 5; d.rounded_rectangle((x0 + 12, WY0 + 30, x0 + (WX1 - WX0 - 60) / 5 - 12, WY1 - 30), 24, outline=(190, 205, 225), width=5)
+for i in range(4):
+    x0 = WX0 + 30 + i * (WX1 - WX0 - 60) / 4; d.rounded_rectangle((x0 + 12, WY0 + 30, x0 + (WX1 - WX0 - 60) / 4 - 12, WY1 - 30), 24, outline=(190, 205, 225), width=5)
 # badge
 bx, by, r = W - 150, 210, 105
 d.ellipse((bx - r, by - r + 60, bx + r, by + r + 60), fill=RED); d.text((bx, by + 60), 'חדש!', font=F(KB, 64), fill=WHITE, anchor='mm', direction='rtl')
