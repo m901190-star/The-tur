@@ -5,12 +5,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 KB = HERE + '/../../fonts/HaimClassicv2FM-Bold.ttf'
 W, H = 1080, 1350; DEEP, TEAL, LT, PALE = (43, 81, 85), (80, 146, 153), (105, 180, 189), (173, 213, 217)
 def F(p, s): return ImageFont.truetype(p, s, layout_engine=ImageFont.Layout.RAQM)
-bg = Image.new('RGB', (W, H), DEEP); px = bg.load()
-for y in range(H):
-    for x in range(W):
-        g = max(0, 1 - math.hypot((x - 800) / 900, (y - 300) / 900)); v = 1 - .35 * (y / H) ** 2
-        px[x, y] = tuple(int((DEEP[i] + (TEAL[i] - DEEP[i]) * g * .9) * v) for i in range(3))
-im = bg.convert('RGBA'); d = ImageDraw.Draw(im)
+import sys; sys.path.insert(0, HERE); from bg import make_bg, credit
+im = make_bg(W, H); d = ImageDraw.Draw(im)
 src = Image.open(HERE + '/source-letter.jpg').convert('RGB')
 hl = Image.new('RGBA', src.size, (0, 0, 0, 0)); hd = ImageDraw.Draw(hl)
 for x0, yc in [(185, 875), (185, 914), (415, 953), (185, 1030), (1030, 1068)]:      # the two conditions
@@ -28,4 +24,4 @@ for i, l in enumerate(['יש למתן אפשרות', 'להיבחר ברוב צי
     d.text((R - 30, y + 8 + i * 86), l, font=fk, fill=(255, 255, 255), anchor='ra', direction='rtl')
 y2 = y + 2 * 86 + 48; f2 = F(KB, 64); t = 'הבחירה בידיים שלו.'; tw = d.textlength(t, font=f2, direction='rtl')
 d.rounded_rectangle((R - tw - 56, y2 - 4, R + 6, y2 + 86), 14, fill=LT); d.text((R - 26, y2 + 4), t, font=f2, fill=DEEP, anchor='ra', direction='rtl')
-im.convert('RGB').save(HERE + '/post.jpg', quality=95); print(y2 + 86)
+credit(im); im.convert('RGB').save(HERE + '/post.jpg', quality=95); print(y2 + 86)
