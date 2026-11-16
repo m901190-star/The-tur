@@ -31,9 +31,9 @@ d.rounded_rectangle((R - tw - 36, 60, R, 112), 10, fill=(255, 255, 255)); d.text
 def head(txt, y, size, fill=(255, 255, 255)):
     f = fit(txt, size, 610)
     d.text((R + 6, y + 7), txt, font=f, fill=(0, 0, 0, 160), anchor='ra', direction='rtl'); d.text((R, y), txt, font=f, fill=fill, anchor='ra', direction='rtl')
-head('להתמנות בקולותיהם', 150, 96)
-head('של תומכי טרור', 265, 104)
-t = 'זהו קו אדום'; f = fit(t, 132, 600); tw = d.textlength(t, font=f, direction='rtl')
+head('להתמנות בקולותיהם', 170, 96)
+head('של תומכי טרור', 262, 104)
+t = 'זה קו אדום'; f = fit(t, 132, 600); tw = d.textlength(t, font=f, direction='rtl')
 d.rectangle((R - tw - 50, 430, R + 14, 590), fill=(214, 40, 40)); d.text((R - 22, 444), t, font=f, fill=(255, 255, 255), anchor='ra', direction='rtl')
 d.text((R, 655), 'בצלאל סמוטריץ׳', font=F(RUB, 34), fill=PALE, anchor='ra', direction='rtl')
 im.convert('RGB').save(HERE + '/' + OUTN, quality=95); print('ok')
