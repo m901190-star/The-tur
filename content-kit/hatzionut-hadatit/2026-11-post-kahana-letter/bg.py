@@ -3,7 +3,7 @@ import os
 from PIL import Image, ImageDraw, ImageFont, ImageEnhance
 HERE = os.path.dirname(os.path.abspath(__file__))
 SEC = '/tmp/claude-0/-home-user-The-tur/1a5819ee-0cc0-5045-b086-4a8a80216453/scratchpad/shalev/fonts/SecularOne.ttf'
-CREDIT = 'צילום: [שם הצלם]'
+CREDIT = 'צילום: נועם מושקוביץ / דני שם טוב, דוברות הכנסת'
 def make_bg(W=1080, H=1350):
     ph = Image.open(HERE + '/knesset-bg.jpg').convert('RGB'); s = H / ph.height
     ph = ph.resize((int(ph.width * s), H), Image.LANCZOS); x0 = int((ph.width - W) * .62); ph = ph.crop((x0, 0, x0 + W, H))
