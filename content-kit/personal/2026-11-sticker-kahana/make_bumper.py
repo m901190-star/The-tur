@@ -10,9 +10,12 @@ cut = cut.crop((0, 0, cut.width, int(cut.height * .62)))                      # 
 g = ImageEnhance.Contrast(ImageOps.grayscale(cut.convert('RGB'))).enhance(1.35)
 cut = Image.merge('RGBA', (g, g, g, cut.getchannel('A')))
 s = (H + 40) / cut.height; cut = cut.resize((int(cut.width * s), int(cut.height * s)), Image.LANCZOS)
-base.alpha_composite(cut, (10, H - cut.height + 40))
-d = ImageDraw.Draw(base); xr = W - 60
-d.text((xr, H / 2 + 6), 'כהנא חי', font=F(232), fill=K, anchor='rm', direction='rtl')
+bk = ImageDraw.Draw(base); bk.polygon([(0, 0), (690, 0), (580, H), (0, H)], fill=K + (255,))   # black panel, diagonal edge into the yellow
+pm = Image.new('L', (W, H), 0); ImageDraw.Draw(pm).polygon([(0, 0), (690, 0), (580, H), (0, H)], fill=255)
+pl = Image.new('RGBA', (W, H), (0, 0, 0, 0)); pl.alpha_composite(cut, (-10, H - cut.height + 40))
+base.alpha_composite(Image.composite(pl, Image.new('RGBA', (W, H), (0, 0, 0, 0)), pm))
+d = ImageDraw.Draw(base); xr = W - 50
+d.text((1085, H / 2 + 6), 'כהנא חי', font=F(200), fill=K, anchor='mm', direction='rtl')
 d.rectangle((0, 0, W - 1, H - 1), outline=K, width=10)
 m = Image.new('L', (W, H), 0); ImageDraw.Draw(m).rounded_rectangle((0, 0, W - 1, H - 1), 22, fill=255)
 out = Image.new('RGBA', (W, H), (0, 0, 0, 0)); out.paste(base, (0, 0), m)
