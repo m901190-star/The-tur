@@ -9,7 +9,7 @@ def F(p, s): return ImageFont.truetype(p, s, layout_engine=ImageFont.Layout.RAQM
 im = Image.new('RGBA', (W, H), WHITE); d = ImageDraw.Draw(im)
 d.rectangle((0, 0, W, 250), fill=NAVY); d.rectangle((0, 250, W, 262), fill=LB)
 d.text((W / 2, 30), 'המארז של גוש השינוי', font=F(KB, 140), fill=WHITE, anchor='ma', direction='rtl')
-d.text((W / 2, 178), 'מארז סקווישים · 4 יחידות', font=F(SEC, 44), fill=LB, anchor='ma', direction='rtl')
+d.text((W / 2, 178), 'מועכים ערכים · 4 יחידות', font=F(SEC, 44), fill=LB, anchor='ma', direction='rtl')
 # window
 WX0, WY0, WX1, WY1 = 70, 300, W - 70, 830
 d.rounded_rectangle((WX0, WY0, WX1, WY1), 30, fill=(232, 238, 246), outline=NAVY, width=10)
