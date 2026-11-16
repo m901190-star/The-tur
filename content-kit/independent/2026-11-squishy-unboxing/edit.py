@@ -7,7 +7,7 @@ W, H, FPS = 720, 1280, 30; NAVY, RED = (24, 44, 104), (220, 40, 50)
 def F(p, s): return ImageFont.truetype(p, s, layout_engine=ImageFont.Layout.RAQM)
 def eo(x): x = max(0., min(1., x)); return 1 - (1 - x) ** 3
 SHOTS = [('shot-open.mp4', 0.0, 4.2, None), ('shot-bennett.mp4', 0.0, 5.0, ['לא אשב עם', 'המפלגות הערביות']),
-         ('shot-liberman.mp4', 0.0, 5.0, ['100% לחיילים!', '0% למשתמטים!']), ('shot-soldier.mp4', 0.0, 5.0, ['ברית המשרתים']),
+         ('shot-liberman.mp4', 0.0, 5.0, ['\u2066100%\u2069 לחיילים!', '\u20660%\u2069 למשתמטים!']), ('shot-soldier.mp4', 0.0, 5.0, ['ברית המשרתים']),
          ('shot-envelope.mp4', 0.0, 5.0, ['צו גיוס'])]
 def frames(path, t0, dur):
     raw = subprocess.run(['ffmpeg', '-v', 'error', '-ss', str(t0), '-t', str(dur), '-i', path, '-vf', f'scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={FPS}', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], capture_output=True).stdout
@@ -15,6 +15,7 @@ def frames(path, t0, dur):
 def caption(im, lines, u):
     d = ImageDraw.Draw(im); p = eo(u / .3); f = F(KB, 74)
     for k, l in enumerate(lines):
+        f = F(SEC, 70) if any(ch.isdigit() for ch in l) else F(KB, 74)     # Haim's 0 reads like ם
         y = 860 + k * 84 + 20 * (1 - p); tw = d.textlength(l, font=f, direction='rtl')
         d.rounded_rectangle((W / 2 - tw / 2 - 22, y - 6, W / 2 + tw / 2 + 22, y + 80), 14, fill=(255, 255, 255, int(235 * p)))
         d.text((W / 2, y), l, font=f, fill=NAVY + (int(255 * p),), anchor='ma', direction='rtl')
@@ -38,8 +39,8 @@ for i in range(int(ED * FPS)):
     lay = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay); p = eo((u - .3) / .4)
     if p > 0:
         d.rectangle((0, 470, W, 760), fill=NAVY + (int(225 * p),))
-        d.text((W / 2, 500), 'הבטחות תקפות', font=F(KB, 96), fill=(255, 255, 255, int(255 * p)), anchor='ma', direction='rtl')
-        d.text((W / 2, 615), 'עד למוצאי הבחירות', font=F(KB, 96), fill=(255, 255, 255, int(255 * p)), anchor='ma', direction='rtl')
+        d.text((W / 2, 520), 'הבטחות תקפות', font=F(KB, 66), fill=(255, 255, 255, int(255 * p)), anchor='ma', direction='rtl')
+        d.text((W / 2, 600), 'עד למוצאי הבחירות', font=F(KB, 66), fill=(255, 255, 255, int(255 * p)), anchor='ma', direction='rtl')
     label(lay); im.alpha_composite(lay); out.append(im.convert('RGB'))
 if out:
     out[0] = out[0]
@@ -53,7 +54,7 @@ for k in range(1, 5):
 TT = len(out) / FPS; ins, fl = [], []
 for i, (n, at, v) in enumerate(EV):
     ins += ['-i', HERE + f'/sfx/{n}.wav']; dur = 1.6 if n in ('paper', 'crinkle') else 1.2
-    fl.append(f'[{i + 1}:a]atrim=0:{dur},afade=t=out:st={dur - .3}:d=.3,aformat=sample_rates=48000:channel_layouts=stereo,volume={v},adelay={int(at * 1000)}:all=1[s{i}]')
+    fl.append(f'[{i + 1}:a]atrim=0:{dur},afade=t=out:st={dur - 0.3:.2f}:d=0.3,aformat=sample_rates=48000:channel_layouts=stereo,volume={v},adelay={int(at * 1000)}:all=1[s{i}]')
 fc = ';'.join(fl + [''.join(f'[s{i}]' for i in range(len(EV))) + f'amix=inputs={len(EV)}:normalize=0,apad=whole_dur={TT},atrim=0:{TT},loudnorm=I=-16:TP=-1.5[a]'])
 ff = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-'] + ins + ['-filter_complex', fc, '-map', '0:v', '-map', '[a]',
     '-t', f'{TT}', '-c:v', 'libx264', '-preset', 'slow', '-crf', '20', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-movflags', '+faststart', HERE + '/meuchim-arachim.mp4'], stdin=subprocess.PIPE)
