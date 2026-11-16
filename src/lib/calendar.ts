@@ -4,7 +4,9 @@ import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
 
 import { Plant, Settings } from '../types';
+import { errorCodeOf, useMcp } from './claudeRuntime';
 import { buildIcs, eventDescription, eventTitle, firstOccurrence } from './ics';
+import { IS_WEB } from './platform';
 import { intervalDays } from './watering';
 
 export interface CalendarOption {
@@ -168,6 +170,31 @@ export async function syncAllPlants(
 }
 
 /**
+ * Hands the browser the .ics as a download.
+ *
+ * On the web build this is not a convenience, it is the whole reminder
+ * mechanism: a page cannot schedule notifications in the background on iOS, so
+ * the schedule has to leave the app and live in the phone's own calendar.
+ * Opening the downloaded file on an iPhone offers to add the events, alerts and
+ * all.
+ */
+function downloadIcsInBrowser(contents: string): string {
+  const blob = new Blob([`\ufeff${contents}`], {
+    type: 'text/calendar;charset=utf-8',
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'plant-watering.ics';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  // Give the browser a moment to start the download before revoking.
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  return url;
+}
+
+/**
  * Writes an .ics file and opens the share sheet, so the schedule can be imported
  * into Google Calendar on the web or sent to someone watering for you.
  */
@@ -177,13 +204,18 @@ export async function shareIcsFile(
   now: Date = new Date(),
 ): Promise<string> {
   const contents = buildIcs(plants, { reminderHour: settings.reminderHour, now });
+
+  if (IS_WEB) {
+    return downloadIcsInBrowser(contents);
+  }
+
   const directory = FileSystem.Paths.cache;
   const file = new FileSystem.File(directory, 'plant-watering.ics');
   if (file.exists) file.delete();
   file.create();
   file.write(contents);
 
-  if (Platform.OS !== 'web' && (await Sharing.isAvailableAsync())) {
+  if (!IS_WEB && (await Sharing.isAvailableAsync())) {
     await Sharing.shareAsync(file.uri, {
       mimeType: 'text/calendar',
       dialogTitle: 'ייצוא לוח ההשקיה',
@@ -191,4 +223,100 @@ export async function shareIcsFile(
     });
   }
   return file.uri;
+}
+
+
+/** The connector's display name, which is also how a page addresses it. */
+const GOOGLE_CALENDAR = 'Google Calendar';
+
+function pad(value: number): string {
+  return String(value).padStart(2, '0');
+}
+
+/** Local time with no offset, which is what the connector asks for. */
+function localIso(date: Date): string {
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+    `T${pad(date.getHours())}:${pad(date.getMinutes())}:00`
+  );
+}
+
+export interface CalendarPushResult {
+  created: number;
+  failed: number;
+  /** Null when the whole run succeeded; otherwise what to tell the user. */
+  problem: string | null;
+  /** True when this page cannot reach the connector at all. */
+  unavailable: boolean;
+}
+
+/** What each failure code means for someone trying to get reminders working. */
+function explain(code: string): string {
+  switch (code) {
+    case 'server_not_connected':
+      return 'יומן Google לא מחובר. אפשר לחבר אותו בהגדרות של claude.ai, תחת Connectors, ואז לנסות שוב.';
+    case 'needs_reauth':
+      return 'החיבור ליומן Google פג. יש להתחבר מחדש בהגדרות של claude.ai, תחת Connectors.';
+    case 'selection_required':
+      return 'יש כמה חשבונות Google מחוברים. בחר אחד מהם כשתישאל, ואז נסה שוב.';
+    case 'not_in_manifest':
+    case 'approval_required':
+      return 'הגישה ליומן לא אושרה לדף הזה. אשר אותה כשתישאל, ואז נסה שוב.';
+    case 'blocked_by_policy':
+      return 'מדיניות הארגון חוסמת כתיבה ליומן מהדף הזה.';
+    case 'server_unavailable':
+    case 'rate_limited':
+      return 'יומן Google לא זמין כרגע. כדאי לנסות שוב בעוד רגע.';
+    default:
+      return 'הכתיבה ליומן נכשלה. כדאי לנסות שוב.';
+  }
+}
+
+/**
+ * Writes one recurring event per plant straight into the viewer's Google
+ * Calendar, which is how reminders reach a phone from a page that cannot
+ * schedule notifications itself. Each event carries the plant's own interval
+ * as an RRULE and a popup alert, so the schedule keeps running without the
+ * page being open.
+ *
+ * Call this only from a deliberate tap: it writes, and a second tap writes the
+ * events again.
+ */
+export async function pushToGoogleCalendar(
+  plants: Plant[],
+  settings: Settings,
+  now: Date = new Date(),
+): Promise<CalendarPushResult> {
+  const mcp = await useMcp();
+  if (!mcp) {
+    return { created: 0, failed: 0, problem: null, unavailable: true };
+  }
+
+  let created = 0;
+  let failed = 0;
+  let problem: string | null = null;
+
+  for (const plant of plants) {
+    const start = firstOccurrence(plant, settings.reminderHour, now);
+    const end = new Date(start.getTime() + 15 * 60 * 1000);
+    try {
+      await mcp.callTool(GOOGLE_CALENDAR, 'create_event', {
+        summary: eventTitle(plant),
+        description: eventDescription(plant, now),
+        startTime: localIso(start),
+        endTime: localIso(end),
+        recurrenceData: [`RRULE:FREQ=DAILY;INTERVAL=${intervalDays(plant, now)}`],
+        overrideReminders: [{ method: 'popup', minutes: 0 }],
+        ...(plant.location.trim() ? { location: plant.location.trim() } : {}),
+      });
+      created += 1;
+    } catch (error) {
+      failed += 1;
+      // Keep the first explanation: later plants usually fail the same way,
+      // and the first code is the one that names the fix.
+      problem = problem ?? explain(errorCodeOf(error));
+    }
+  }
+
+  return { created, failed, problem, unavailable: false };
 }

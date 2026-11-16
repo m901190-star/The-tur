@@ -17,8 +17,10 @@ import {
   sortByUrgency,
   totalWaterDue,
 } from '../lib/watering';
+import { pushToGoogleCalendar, shareIcsFile } from '../lib/calendar';
 import { detectLocation } from '../lib/location';
 import { requestNotificationAccess } from '../lib/notifications';
+import { IS_WEB } from '../lib/platform';
 import { frostRisk } from '../lib/weather';
 import { RootStackParamList } from '../navigation';
 import { GARDEN_SEED, buildSeedPlants } from '../gardenSeed';
@@ -52,7 +54,42 @@ export function TodayScreen() {
     updateSettings,
   } = usePlants();
   const [seeding, setSeeding] = useState(false);
-  const [enabling, setEnabling] = useState<'none' | 'push' | 'place'>('none');
+  const [enabling, setEnabling] = useState<'none' | 'push' | 'place' | 'ics'>('none');
+
+  // A web page cannot schedule a notification for next Tuesday, so on the
+  // browser build the reminders leave the app and live in the phone's calendar.
+  // Inside claude.ai that means writing them straight into Google Calendar;
+  // in an ordinary browser it means handing over an .ics file.
+  const exportToCalendar = useCallback(async () => {
+    if (plants.length === 0) return;
+    setEnabling('ics');
+    try {
+      const result = await pushToGoogleCalendar(plants, settings);
+
+      if (result.unavailable) {
+        await shareIcsFile(plants, settings);
+        await updateSettings({ calendarExported: true });
+        return;
+      }
+
+      if (result.created > 0) {
+        await updateSettings({ calendarExported: true });
+        Alert.alert(
+          'נוסף ליומן',
+          result.failed === 0
+            ? `${result.created} תזכורות חוזרות נכתבו ליומן Google שלך. הן יופיעו ביומן של האייפון כרגיל.`
+            : `${result.created} נוספו, ${result.failed} נכשלו. ${result.problem ?? ''}`,
+        );
+        return;
+      }
+
+      Alert.alert('לא נוסף ליומן', result.problem ?? 'נסה שוב בעוד רגע.');
+    } catch {
+      Alert.alert('הכתיבה ליומן נכשלה', 'נסה שוב מתוך מסך ההגדרות.');
+    } finally {
+      setEnabling('none');
+    }
+  }, [plants, settings, updateSettings]);
 
   const enableReminders = useCallback(async () => {
     setEnabling('push');
@@ -165,7 +202,16 @@ export function TodayScreen() {
         {due.length === 0 ? 'הכל מושקה' : `${due.length} עציצים צריכים מים`}
       </Text>
 
-      {!settings.notificationsEnabled ? (
+      {IS_WEB && !settings.calendarExported ? (
+        <SetupBanner
+          icon="calendar-outline"
+          title="התזכורות עוברות דרך היומן"
+          body="דף בדפדפן לא יכול לתזמן התראות לימים הבאים, אז לוח ההשקיה נכתב ליומן Google שלך — אירוע חוזר לכל עציץ, עם התראה. משם הוא מסתנכרן ליומן של האייפון."
+          actionLabel="כתיבת לוח ההשקיה ליומן"
+          onPress={exportToCalendar}
+          busy={enabling === 'ics'}
+        />
+      ) : !settings.notificationsEnabled ? (
         <SetupBanner
           title="התראות כבויות"
           body="בלי זה האפליקציה לא תזכיר לך להשקות — תצטרך לפתוח אותה בעצמך כל פעם. הפעלה אחת, ומכאן התזכורות מגיעות לבד."
@@ -175,7 +221,12 @@ export function TodayScreen() {
         />
       ) : null}
 
-      {settings.notificationsEnabled &&
+      {/* Not on the web build: a page served from a sandboxed frame cannot
+          reach the forecast service, so asking for a location there offers a
+          button that can do nothing. The control stays in Settings for a
+          browser that can reach it. */}
+      {!IS_WEB &&
+      settings.notificationsEnabled &&
       settings.weatherEnabled &&
       settings.latitude === null ? (
         <SetupBanner

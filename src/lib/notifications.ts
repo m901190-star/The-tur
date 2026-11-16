@@ -4,22 +4,34 @@ import { Platform } from 'react-native';
 
 import { Plant, Settings, WeatherSnapshot } from '../types';
 import { PlannedNotification, planNotifications } from './notificationPlan';
+import { SUPPORTS_LOCAL_NOTIFICATIONS } from './platform';
 
 export { SCHEDULE_HORIZON_DAYS, planNotifications } from './notificationPlan';
 export type { PlannedNotification } from './notificationPlan';
 
 const ANDROID_CHANNEL_ID = 'watering';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+/**
+ * A browser cannot schedule a local notification for next Tuesday, so the web
+ * build skips this module's side effects entirely rather than throwing on load
+ * and taking the page down with it. There, reminders go through the calendar
+ * export instead.
+ */
+const SUPPORTED = SUPPORTS_LOCAL_NOTIFICATIONS;
+
+if (SUPPORTED) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
 
 export async function requestNotificationAccess(): Promise<boolean> {
+  if (!SUPPORTED) return false;
   if (!Device.isDevice) {
     // Simulators never deliver local notifications; say so rather than
     // pretending the schedule is live.
@@ -41,6 +53,7 @@ export async function requestNotificationAccess(): Promise<boolean> {
 }
 
 export async function hasNotificationAccess(): Promise<boolean> {
+  if (!SUPPORTED) return false;
   try {
     const { granted } = await Notifications.getPermissionsAsync();
     return granted;
@@ -60,6 +73,7 @@ export async function rescheduleNotifications(
   now: Date = new Date(),
   weather: WeatherSnapshot | null = null,
 ): Promise<number> {
+  if (!SUPPORTED) return 0;
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();
   } catch {
@@ -97,6 +111,7 @@ export async function rescheduleNotifications(
 }
 
 export async function cancelAllNotifications(): Promise<void> {
+  if (!SUPPORTED) return;
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();
   } catch {
@@ -105,6 +120,7 @@ export async function cancelAllNotifications(): Promise<void> {
 }
 
 export async function countScheduled(): Promise<number> {
+  if (!SUPPORTED) return 0;
   try {
     const pending = await Notifications.getAllScheduledNotificationsAsync();
     return pending.length;

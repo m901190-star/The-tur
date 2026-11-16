@@ -18,21 +18,10 @@ interface Props {
 export function WeatherStrip({ snapshot, settings, loading, now, onConfigure }: Props) {
   if (!settings.weatherEnabled) return null;
 
-  if (settings.latitude === null || settings.longitude === null) {
-    return (
-      <Pressable
-        accessibilityRole="button"
-        onPress={onConfigure}
-        style={({ pressed }) => [styles.strip, styles.prompt, pressed && styles.pressed]}
-      >
-        <Ionicons name="location-outline" size={18} color={colors.water} />
-        <Text style={styles.promptText}>
-          הגדר מיקום כדי שהשקיה תתחשב בגשם ובחום
-        </Text>
-        <Ionicons name="chevron-back" size={16} color={colors.water} />
-      </Pressable>
-    );
-  }
+  // With no location there is nothing to report, and the setup banner above
+  // already asks for one — a second prompt saying the same thing just pushes
+  // the plants off the screen.
+  if (settings.latitude === null || settings.longitude === null) return null;
 
   if (!snapshot) {
     return (

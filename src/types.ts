@@ -85,6 +85,12 @@ export interface Settings {
   longitude: number | null;
   /** What to show the user for the coordinates above. */
   locationLabel: string | null;
+  /**
+   * Whether the watering schedule has been exported to a calendar. On the web
+   * build that export is the reminder mechanism, so it is prompted for until
+   * it has happened once — and not after.
+   */
+  calendarExported: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -96,6 +102,7 @@ export const DEFAULT_SETTINGS: Settings = {
   latitude: null,
   longitude: null,
   locationLabel: null,
+  calendarExported: false,
 };
 
 /** One day of weather, past or forecast. */
