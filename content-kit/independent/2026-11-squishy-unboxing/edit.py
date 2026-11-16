@@ -7,8 +7,8 @@ W, H, FPS = 720, 1280, 30; NAVY, RED = (24, 44, 104), (220, 40, 50)
 def F(p, s): return ImageFont.truetype(p, s, layout_engine=ImageFont.Layout.RAQM)
 def eo(x): x = max(0., min(1., x)); return 1 - (1 - x) ** 3
 SHOTS = [('shot-open.mp4', 0.0, 4.2, None), ('shot-bennett.mp4', 0.0, 5.0, ['לא אשב עם', 'המפלגות הערביות']),
-         ('shot-liberman.mp4', 0.0, 5.0, ['100% לחיילים!', '0% למשתמטים!']), ('shot-soldier.mp4', 0.0, 4.6, ['ברית המשרתים']),
-         ('shot-envelope.mp4', 0.0, 4.6, ['צו גיוס'])]
+         ('shot-liberman.mp4', 0.0, 5.0, ['100% לחיילים!', '0% למשתמטים!']), ('shot-soldier.mp4', 0.0, 5.0, ['ברית המשרתים']),
+         ('shot-envelope.mp4', 0.0, 5.0, ['צו גיוס'])]
 def frames(path, t0, dur):
     raw = subprocess.run(['ffmpeg', '-v', 'error', '-ss', str(t0), '-t', str(dur), '-i', path, '-vf', f'scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={FPS}', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], capture_output=True).stdout
     return np.frombuffer(raw, np.uint8).reshape(-1, H, W, 3)
@@ -24,6 +24,8 @@ def label(im):
 out = []
 for name, t0, dur, cap in SHOTS:
     V = frames(G + name, t0, dur)
+    HOLD = 1.0 if cap else 0.0                       # client: the text must be readable before the squeeze
+    if HOLD: V = np.concatenate([np.repeat(V[:1], int(HOLD * FPS), 0), V])
     for i, fr in enumerate(V):
         im = Image.fromarray(fr).convert('RGBA'); lay = Image.new('RGBA', (W, H), (0, 0, 0, 0))
         if cap: caption(lay, cap, i / FPS)
@@ -43,11 +45,11 @@ if out:
     out[0] = out[0]
 # ---- SFX: plastic crinkle on the opening, squeeze + squish on every squishy, paper crumple on the signs ----
 starts, t = [], 0.0
-for name, t0, dur, cap in SHOTS: starts.append(t); t += dur
+for name, t0, dur, cap in SHOTS: starts.append(t); t += dur + (1.0 if cap else 0.0)
 EV = [('crinkle', starts[0] + .2, .55)]
 for k in range(1, 5):
-    EV += [('squeeze', starts[k] + .9, .9), ('squish', starts[k] + 1.5, .8), ('squish', starts[k] + 3.1, .5)]
-    if k in (1, 2): EV.append(('paper', starts[k] + 1.2, .35))
+    EV += [('squeeze', starts[k] + 2.0, .9), ('squish', starts[k] + 2.5, .85), ('squish', starts[k] + 3.2, .6)]
+    if k in (1, 2): EV.append(('paper', starts[k] + 2.2, .4))
 TT = len(out) / FPS; ins, fl = [], []
 for i, (n, at, v) in enumerate(EV):
     ins += ['-i', HERE + f'/sfx/{n}.wav']; dur = 1.6 if n in ('paper', 'crinkle') else 1.2
