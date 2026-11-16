@@ -2,6 +2,9 @@ export type LightLevel = 'full-sun' | 'partial' | 'shade';
 
 export type PotSize = 'small' | 'medium' | 'large';
 
+/** How much of the pot the plant's foliage covers. */
+export type Canopy = 'sparse' | 'filling' | 'full';
+
 export type Season = 'summer' | 'winter';
 
 /** A single plant the user owns. */
@@ -29,6 +32,13 @@ export interface Plant {
   /** How many plants share this container. Three cypresses in one planter
    *  drink the same soil dry roughly three times as fast. */
   plantCount: number;
+  /**
+   * How much of the container's surface the foliage covers. A young tree in a
+   * large planter transpires a fraction of what a grown one does, and sizing
+   * its watering from the pot instead of the plant is how an oversized pot
+   * stays wet for weeks.
+   */
+  canopy: Canopy;
   /**
    * Outdoors, the weather decides how fast the soil dries and rain counts as a
    * watering. Indoors neither is true, so the weather adjustment is skipped.
@@ -135,6 +145,22 @@ export const LIGHT_LABELS: Record<LightLevel, string> = {
   'full-sun': 'שמש מלאה',
   partial: 'חצי צל',
   shade: 'צל',
+};
+
+export const CANOPY_LABELS: Record<Canopy, string> = {
+  sparse: 'צעיר ודליל',
+  filling: 'מתמלא',
+  full: 'מכסה את האדנית',
+};
+
+/**
+ * Crop coefficients: the share of reference evapotranspiration a plant with
+ * this much canopy actually draws, soil evaporation included.
+ */
+export const CANOPY_KC: Record<Canopy, number> = {
+  sparse: 0.45,
+  filling: 0.6,
+  full: 0.85,
 };
 
 export const POT_LABELS: Record<PotSize, string> = {

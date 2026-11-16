@@ -1,5 +1,5 @@
 import { GARDEN_SEED, buildSeedPlants } from '../src/gardenSeed';
-import { PLANT_PRESETS, findPreset } from '../src/plantPresets';
+import { PLANT_PRESETS } from '../src/plantPresets';
 import { baseIntervalDays, fertilizeState, suggestWaterForContainer } from '../src/lib/watering';
 
 describe('garden seed', () => {
@@ -31,16 +31,26 @@ describe('garden seed', () => {
     }
   });
 
-  it('builds plants whose water comes from the volume and the species ratio', () => {
+  it('sizes each dose to the plant rather than to its pot', () => {
     const built = buildSeedPlants();
     expect(built).toHaveLength(GARDEN_SEED.length);
     for (const [index, plant] of built.entries()) {
       const seed = GARDEN_SEED[index];
-      const preset = findPreset(seed.species)!;
-      expect(plant.waterMl).toBe(
-        suggestWaterForContainer(seed.containerLiters, preset.mlPerLiterOfSoil),
+      expect(plant.waterMl).toBeGreaterThan(0);
+      // Never more than the substrate can hold — the rest would run straight out.
+      expect(plant.waterMl).toBeLessThanOrEqual(
+        suggestWaterForContainer(seed.containerLiters),
       );
     }
+  });
+
+  it('gives a young tree in a big planter far less than the planter holds', () => {
+    const lemon = buildSeedPlants().find((plant) => plant.species.includes('לימון'))!;
+    expect(lemon.canopy).toBe('sparse');
+    expect(lemon.containerLiters).toBe(70);
+    // The pot could take about 10 litres; the tree drinks nothing like that.
+    expect(lemon.waterMl).toBeLessThan(5000);
+    expect(lemon.waterMl).toBeGreaterThan(1000);
   });
 
   it('marks every one of them as outdoors', () => {

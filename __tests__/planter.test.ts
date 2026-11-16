@@ -1,6 +1,10 @@
 import {
   baseIntervalDays,
+  dailyWaterUse,
   nextWateringDate,
+  potSurfaceArea,
+  seasonalEt0,
+  suggestWaterForPlant,
   wateringState,
   containerLitersFor,
   crowdingFactor,
@@ -31,6 +35,7 @@ function makePlant(overrides: Partial<Plant> = {}): Plant {
     isOutdoor: true,
     isFrostTender: true,
     keepsDryInCold: false,
+    canopy: 'full',
     fertilizeEveryDays: 60,
     lastWateredAt: null,
     lastFertilizedAt: null,
@@ -233,5 +238,68 @@ describe('a succulent before a cold night', () => {
   it('leaves an indoor succulent alone — no cold night reaches it', () => {
     const indoor = cactus({ isOutdoor: false });
     expect(wateringState(indoor, winter, coldSnapshot()).weatherReason).toBeNull();
+  });
+});
+
+describe('sizing a dose to the plant rather than to the pot', () => {
+  const november = at(2026, 11, 16);
+  const july = at(2026, 7, 15);
+
+  const tree = (over: Partial<Plant> = {}) =>
+    makePlant({
+      species: 'עץ הדר בעציץ (לימון)',
+      containerLiters: 70,
+      plantCount: 1,
+      canopy: 'sparse',
+      intervalSummerDays: 3,
+      intervalWinterDays: 8,
+      ...over,
+    });
+
+  it('estimates a pot surface that matches ordinary planters', () => {
+    // A 70-litre bowl is about half a metre across.
+    expect(potSurfaceArea(70)).toBeCloseTo(0.2, 1);
+    expect(potSurfaceArea(0)).toBe(0);
+  });
+
+  it('follows the year: more demand in July than in November', () => {
+    expect(seasonalEt0(july)).toBeGreaterThan(seasonalEt0(november));
+  });
+
+  it('gives a sparse young tree a fraction of what a full canopy gets', () => {
+    const sparse = dailyWaterUse(tree({ canopy: 'sparse' }), november);
+    const full = dailyWaterUse(tree({ canopy: 'full' }), november);
+    expect(full).toBeGreaterThan(sparse * 1.5);
+  });
+
+  it('prescribes litres a young lemon can actually drink, not a pot refill', () => {
+    const dose = suggestWaterForPlant(tree(), november);
+    // The planter holds roughly ten litres of available water. The tree uses
+    // about a quarter of a litre a day, so a week is two to three litres.
+    expect(dose).toBeGreaterThanOrEqual(1500);
+    expect(dose).toBeLessThanOrEqual(4000);
+  });
+
+  it('never prescribes more than the substrate can hold', () => {
+    const thirsty = tree({ canopy: 'full', plantCount: 4, intervalWinterDays: 60 });
+    expect(suggestWaterForPlant(thirsty, november)).toBeLessThanOrEqual(
+      suggestWaterForContainer(70),
+    );
+  });
+
+  it('scales the dose with the gap it has to cover', () => {
+    const often = suggestWaterForPlant(tree({ intervalWinterDays: 3 }), november);
+    const seldom = suggestWaterForPlant(tree({ intervalWinterDays: 12 }), november);
+    expect(seldom).toBeGreaterThan(often);
+  });
+
+  it('uses a measured forecast in place of the seasonal guess when given one', () => {
+    const mild = suggestWaterForPlant(tree(), november, 1.5);
+    const harsh = suggestWaterForPlant(tree(), november, 8);
+    expect(harsh).toBeGreaterThan(mild);
+  });
+
+  it('always gives a usable amount', () => {
+    expect(suggestWaterForPlant(tree({ containerLiters: 1 }), november)).toBeGreaterThanOrEqual(100);
   });
 });

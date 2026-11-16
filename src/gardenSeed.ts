@@ -1,5 +1,5 @@
 import { findPreset } from './plantPresets';
-import { DEFAULT_ML_PER_LITER, suggestWaterForContainer } from './lib/watering';
+import { suggestWaterForPlant } from './lib/watering';
 import { LightLevel, Plant, PotSize } from './types';
 
 /**
@@ -66,11 +66,10 @@ export type SeededPlant = Omit<Plant, 'id' | 'createdAt' | 'calendarEventId'>;
 export function buildSeedPlants(now: Date = new Date()): SeededPlant[] {
   return GARDEN_SEED.map((seed) => {
     const preset = findPreset(seed.species);
-    const mlPerLiter = preset?.mlPerLiterOfSoil ?? DEFAULT_ML_PER_LITER;
     const light: LightLevel = preset?.light ?? 'full-sun';
     const potSize: PotSize = preset?.potSize ?? 'large';
 
-    return {
+    const draft: SeededPlant = {
       name: seed.name,
       species: seed.species,
       location: seed.location,
@@ -80,7 +79,9 @@ export function buildSeedPlants(now: Date = new Date()): SeededPlant[] {
       isOutdoor: true,
       isFrostTender: preset?.frostTender ?? false,
       keepsDryInCold: preset?.keepDryInCold ?? false,
-      waterMl: suggestWaterForContainer(seed.containerLiters, mlPerLiter),
+      canopy: preset?.canopy ?? 'filling',
+      // Filled in below, once the plant exists to size it from.
+      waterMl: 0,
       intervalSummerDays: preset?.intervalSummerDays ?? 7,
       intervalWinterDays: preset?.intervalWinterDays ?? 14,
       light,
@@ -92,6 +93,14 @@ export function buildSeedPlants(now: Date = new Date()): SeededPlant[] {
       lastFertilizedAt: preset?.fertilizeEveryDays ? now.toISOString() : null,
       photoUri: null,
       notes: seed.notes ?? '',
+    };
+
+    return {
+      ...draft,
+      waterMl: suggestWaterForPlant(
+        { ...draft, id: '', createdAt: '', calendarEventId: null },
+        now,
+      ),
     };
   });
 }

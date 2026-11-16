@@ -22,7 +22,7 @@ import { Field, FieldGroup } from '../components/Field';
 import { upsertPlantEvent } from '../lib/calendar';
 import {
   addDays,
-  suggestWaterForContainer,
+  suggestWaterForPlant,
   suggestWaterMl,
 } from '../lib/watering';
 import { RootStackParamList } from '../navigation';
@@ -30,6 +30,8 @@ import { PLANT_PRESETS, PlantPreset, searchPresets } from '../plantPresets';
 import { NewPlant, usePlants } from '../state/PlantsContext';
 import { colors, radius, rtlText, spacing, typography } from '../theme';
 import {
+  Canopy,
+  CANOPY_LABELS,
   LIGHT_LABELS,
   LightLevel,
   POT_DEFAULT_LITERS,
@@ -48,6 +50,7 @@ interface FormState {
   plantCount: string;
   isOutdoor: boolean;
   isFrostTender: boolean;
+  canopy: Canopy;
   keepsDryInCold: boolean;
   waterMl: string;
   intervalSummerDays: string;
@@ -82,6 +85,7 @@ function emptyForm(): FormState {
     plantCount: '1',
     isOutdoor: false,
     isFrostTender: false,
+    canopy: 'filling',
     keepsDryInCold: false,
     waterMl: String(suggestWaterMl('medium')),
     intervalSummerDays: '7',
@@ -110,6 +114,7 @@ function formFromPlant(plant: Plant): FormState {
     plantCount: String(plant.plantCount || 1),
     isOutdoor: plant.isOutdoor,
     isFrostTender: plant.isFrostTender,
+    canopy: plant.canopy,
     keepsDryInCold: plant.keepsDryInCold,
     waterMl: String(plant.waterMl),
     intervalSummerDays: String(plant.intervalSummerDays),
@@ -121,6 +126,45 @@ function formFromPlant(plant: Plant): FormState {
     photoUri: plant.photoUri,
     lastWateredDaysAgo,
   };
+}
+
+const CANOPY_OPTIONS: Canopy[] = ['sparse', 'filling', 'full'];
+
+/**
+ * The dose the current form implies. Sized to what the plant drinks between
+ * waterings, which is why it needs the interval and the canopy and not just
+ * the pot.
+ */
+function suggestedDose(form: FormState): number | null {
+  const liters = Number.parseInt(form.containerLiters.replace(/[^\d]/g, ''), 10);
+  if (!Number.isFinite(liters) || liters <= 0) return null;
+  return suggestWaterForPlant(
+    {
+      id: '',
+      name: '',
+      species: form.species,
+      location: '',
+      waterMl: 0,
+      intervalSummerDays: toPositiveInt(form.intervalSummerDays, 7),
+      intervalWinterDays: toPositiveInt(form.intervalWinterDays, 12),
+      light: form.light,
+      potSize: form.potSize,
+      containerLiters: liters,
+      plantCount: toPositiveInt(form.plantCount, 1),
+      isOutdoor: form.isOutdoor,
+      isFrostTender: form.isFrostTender,
+      keepsDryInCold: form.keepsDryInCold,
+      canopy: form.canopy,
+      fertilizeEveryDays: null,
+      lastWateredAt: null,
+      lastFertilizedAt: null,
+      photoUri: null,
+      notes: '',
+      createdAt: '',
+      calendarEventId: null,
+    },
+    new Date(),
+  );
 }
 
 function toPositiveInt(value: string, fallback: number): number {
@@ -146,7 +190,17 @@ export function PlantFormScreen() {
   const [saving, setSaving] = useState(false);
 
   const patch = useCallback(
-    (changes: Partial<FormState>) => setForm((current) => ({ ...current, ...changes })),
+    (changes: Partial<FormState>) =>
+      setForm((current) => {
+        const next = { ...current, ...changes };
+        // The amount follows the pot, the canopy and the interval, unless the
+        // user has typed one themselves.
+        if (changes.waterMl === undefined) {
+          const dose = suggestedDose(next);
+          if (dose) next.waterMl = String(dose);
+        }
+        return next;
+      }),
     [],
   );
 
@@ -162,28 +216,24 @@ export function PlantFormScreen() {
 
   const applyPreset = useCallback((preset: PlantPreset) => {
     setForm((current) => {
-      const liters = Number.parseInt(current.containerLiters.replace(/[^\d]/g, ''), 10);
-      // If the user already said how big the planter is, the preset's ratio
-      // beats its generic "typical pot" amount.
-      const waterMl =
-        Number.isFinite(liters) && liters > 0
-          ? suggestWaterForContainer(liters, preset.mlPerLiterOfSoil)
-          : preset.waterMl;
-      return {
+      const next: FormState = {
       ...current,
       species: preset.species,
       // Keep whatever the user already typed as the plant's own name.
       name: current.name,
       isOutdoor: preset.outdoor,
       isFrostTender: preset.frostTender,
+      canopy: preset.canopy,
       keepsDryInCold: preset.keepDryInCold,
-      waterMl: String(waterMl),
+      waterMl: current.waterMl,
       intervalSummerDays: String(preset.intervalSummerDays),
       intervalWinterDays: String(preset.intervalWinterDays),
       light: preset.light,
       potSize: preset.potSize,
       fertilizeEveryDays: preset.fertilizeEveryDays ? String(preset.fertilizeEveryDays) : '',
       };
+      const dose = suggestedDose(next);
+      return dose ? { ...next, waterMl: String(dose) } : next;
     });
   }, []);
 
@@ -235,6 +285,7 @@ export function PlantFormScreen() {
         plantCount: toPositiveInt(form.plantCount, 1),
         isOutdoor: form.isOutdoor,
         isFrostTender: form.isFrostTender,
+        canopy: form.canopy,
         keepsDryInCold: form.keepsDryInCold,
         waterMl: toPositiveInt(form.waterMl, suggestWaterMl(form.potSize)),
         intervalSummerDays: toPositiveInt(form.intervalSummerDays, 7),
@@ -407,16 +458,7 @@ export function PlantFormScreen() {
             <Field
               label="נפח האדנית"
               value={form.containerLiters}
-              onChangeText={(value) => {
-                const liters = Number.parseInt(value.replace(/[^\d]/g, ''), 10);
-                const ratio = activePreset?.mlPerLiterOfSoil;
-                patch({
-                  containerLiters: value,
-                  ...(Number.isFinite(liters) && liters > 0
-                    ? { waterMl: String(suggestWaterForContainer(liters, ratio)) }
-                    : {}),
-                });
-              }}
+              onChangeText={(value) => patch({ containerLiters: value })}
               keyboardType="number-pad"
               suffix="ליטר"
               placeholder="70"
@@ -434,9 +476,22 @@ export function PlantFormScreen() {
         </View>
         <Text style={styles.blockHint}>
           אדנית אחת עם שלושה צמחים מתייבשת מהר יותר מאדנית עם אחד, אז המספר
-          מקצר את התדירות. כמות המים נשארת של האדנית — אתה משקה אותה, לא כל
-          צמח בנפרד.
+          מקצר את התדירות.
         </Text>
+
+        <FieldGroup
+          label="כמה מהאדנית הצמח מכסה"
+          hint="זה מה שקובע את כמות המים, לא גודל האדנית. עץ צעיר ודליל באדנית גדולה שותה חלק קטן ממה שעץ בוגר שותה — ואם משקים אותו לפי האדנית, היא לא מתייבשת לעולם."
+        >
+          {CANOPY_OPTIONS.map((option) => (
+            <Chip
+              key={option}
+              label={CANOPY_LABELS[option]}
+              selected={form.canopy === option}
+              onPress={() => patch({ canopy: option })}
+            />
+          ))}
+        </FieldGroup>
 
         {!form.containerLiters.trim() ? (
           <FieldGroup label="גודל העציץ" hint="אם לא מילאת נפח מדויק למעלה.">
@@ -461,7 +516,7 @@ export function PlantFormScreen() {
           suffix="מ״ל"
           hint={
             form.containerLiters.trim()
-              ? 'מחושב כ-15% מנפח האדנית — השקיה שמרטיבה את כל גוש השורשים בלי שהכול ייצא מהניקוז.'
+              ? 'מחושב ממה שהצמח באמת שותה עד ההשקיה הבאה — לפי העונה, גודל האדנית והכיסוי — ולעולם לא יותר ממה שהמצע מסוגל להחזיק. אפשר לדרוס ידנית.'
               : 'כוס רגילה היא בערך 250 מ״ל.'
           }
         />

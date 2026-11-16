@@ -47,6 +47,10 @@ function normalisePlant(stored: Plant): Plant {
       typeof stored.isFrostTender === 'boolean' ? stored.isFrostTender : false,
     keepsDryInCold:
       typeof stored.keepsDryInCold === 'boolean' ? stored.keepsDryInCold : false,
+    canopy:
+      stored.canopy === 'sparse' || stored.canopy === 'filling' || stored.canopy === 'full'
+        ? stored.canopy
+        : 'filling',
   };
 }
 

@@ -1,4 +1,5 @@
 import {
+  CANOPY_KC,
   Plant,
   POT_DEFAULT_LITERS,
   POT_DEFAULT_ML,
@@ -236,8 +237,9 @@ export function totalWaterDue(
 }
 
 /**
- * A thorough watering wets the whole root ball without most of it running
- * straight out of the drainage holes: roughly 15% of the substrate volume.
+ * The most a watering can usefully put in: the plant-available water a
+ * substrate holds, about a fifth of its volume. Past this the rest runs out of
+ * the drainage holes.
  */
 export const DEFAULT_ML_PER_LITER = 150;
 
@@ -248,6 +250,68 @@ export function suggestWaterForContainer(
   if (!(liters > 0)) return 0;
   // Round to the nearest 100 ml — nobody measures a planter to the millilitre.
   return Math.max(100, Math.round((liters * mlPerLiter) / 100) * 100);
+}
+
+/**
+ * Top surface of a container, in square metres, from its volume.
+ * Calibrated against ordinary planters: a 70-litre bowl is about 50 cm across.
+ */
+export function potSurfaceArea(liters: number): number {
+  if (!(liters > 0)) return 0;
+  return 0.0118 * Math.pow(liters, 2 / 3);
+}
+
+/** Reference evapotranspiration for this point in the year, mm/day. */
+export function seasonalEt0(now: Date = new Date()): number {
+  const winter = 2.0;
+  const summer = 5.5;
+  return winter + (summer - winter) * seasonProgress(now);
+}
+
+/**
+ * Litres the plant draws per day: evaporative demand over the pot's surface,
+ * scaled by how much of it the foliage covers.
+ */
+export function dailyWaterUse(
+  plant: Plant,
+  now: Date = new Date(),
+  et0?: number,
+): number {
+  const demand = et0 && et0 > 0 ? et0 : seasonalEt0(now);
+  const area = potSurfaceArea(containerLitersFor(plant));
+  const kc = CANOPY_KC[plant.canopy] ?? CANOPY_KC.filling;
+  // Several plants share the pot's surface but each adds foliage over it.
+  const crowding = Math.min(1.6, Math.sqrt(Math.max(1, plant.plantCount)));
+  return demand * kc * area * crowding;
+}
+
+/** Enough extra to wet the root ball evenly and carry salts down past it. */
+const LEACHING_MARGIN = 1.5;
+
+/**
+ * How much to pour, in millilitres.
+ *
+ * Sized to what the plant will actually drink before the next watering, not to
+ * the pot. Sizing it to the pot is right only when the roots fill the pot; for
+ * a young tree in a large planter it prescribes several times what the tree
+ * uses, and the planter never dries out — which is how citrus roots drown. The
+ * container's own capacity stays as the ceiling, since water past it just runs
+ * out of the bottom.
+ */
+export function suggestWaterForPlant(
+  plant: Plant,
+  now: Date = new Date(),
+  et0?: number,
+): number {
+  const liters = containerLitersFor(plant);
+  if (!(liters > 0)) return 0;
+
+  const interval = Math.max(1, seasonalIntervalDays(plant, now));
+  const needMl = dailyWaterUse(plant, now, et0) * interval * LEACHING_MARGIN * 1000;
+  const ceilingMl = suggestWaterForContainer(liters);
+
+  const chosen = Math.min(needMl, ceilingMl);
+  return Math.max(100, Math.round(chosen / 100) * 100);
 }
 
 export function suggestWaterMl(potSize: PotSize): number {

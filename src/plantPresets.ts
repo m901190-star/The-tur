@@ -1,4 +1,4 @@
-import { LightLevel, PotSize } from './types';
+import { Canopy, LightLevel, PotSize } from './types';
 
 export interface PlantPreset {
   species: string;
@@ -19,6 +19,8 @@ export interface PlantPreset {
   outdoor: boolean;
   /** Whether a cold night damages it rather than merely slowing it down. */
   frostTender: boolean;
+  /** How much of its pot a typical specimen covers. */
+  canopy: Canopy;
   /**
    * Whether wet soil makes a cold night worse rather than better. True for
    * cacti and succulents, which rot when cold and wet at once.
@@ -35,6 +37,7 @@ export interface PlantPreset {
 export const PLANT_PRESETS: PlantPreset[] = [
   {
     species: 'מונסטרה',
+    canopy: 'sparse',
     keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 150,
@@ -49,6 +52,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'פותוס',
+    canopy: 'full',
     keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 140,
@@ -63,6 +67,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: "פיקוס בנג'מינה",
+    canopy: 'sparse',
     keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 150,
@@ -77,6 +82,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'סנסיווריה (חרב הקיסר)',
+    canopy: 'sparse',
     keepDryInCold: true,
     frostTender: true,
     mlPerLiterOfSoil: 90,
@@ -91,6 +97,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'זמיוקולקס (ZZ)',
+    canopy: 'sparse',
     keepDryInCold: true,
     frostTender: true,
     mlPerLiterOfSoil: 90,
@@ -105,6 +112,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'אלוורה',
+    canopy: 'sparse',
     keepDryInCold: true,
     frostTender: true,
     mlPerLiterOfSoil: 80,
@@ -119,6 +127,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'קקטוס',
+    canopy: 'sparse',
     keepDryInCold: true,
     frostTender: true,
     mlPerLiterOfSoil: 60,
@@ -133,6 +142,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'ספטיפילום (שלום הבית)',
+    canopy: 'full',
     keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 170,
@@ -147,6 +157,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'פילודנדרון',
+    canopy: 'full',
     keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 150,
@@ -161,6 +172,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'דרצנה',
+    canopy: 'sparse',
     keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 140,
@@ -175,6 +187,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'שרך',
+    canopy: 'full',
     keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 180,
@@ -189,6 +202,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'קלתיאה',
+    canopy: 'full',
     keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 170,
@@ -203,6 +217,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'אורכידאה',
+    canopy: 'sparse',
     keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 120,
@@ -217,6 +232,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'יוקה',
+    canopy: 'sparse',
     keepDryInCold: false,
     frostTender: false,
     mlPerLiterOfSoil: 120,
@@ -231,6 +247,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'עץ זית',
+    canopy: 'sparse',
     keepDryInCold: false,
     frostTender: false,
     mlPerLiterOfSoil: 160,
@@ -245,6 +262,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'עץ הדר בעציץ (לימון)',
+    canopy: 'sparse',
     keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 200,
@@ -259,6 +277,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'בוגנוויליה',
+    canopy: 'sparse',
     keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 150,
@@ -273,6 +292,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'גרניום',
+    canopy: 'full',
     keepDryInCold: false,
     frostTender: false,
     mlPerLiterOfSoil: 160,
@@ -287,6 +307,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'בזיליקום',
+    canopy: 'full',
     keepDryInCold: false,
     frostTender: true,
     mlPerLiterOfSoil: 190,
@@ -301,6 +322,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'נענע',
+    canopy: 'full',
     keepDryInCold: false,
     frostTender: false,
     mlPerLiterOfSoil: 190,
@@ -315,6 +337,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'רוזמרין',
+    canopy: 'sparse',
     keepDryInCold: false,
     frostTender: false,
     mlPerLiterOfSoil: 120,
@@ -329,6 +352,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'ברוש',
+    canopy: 'sparse',
     keepDryInCold: false,
     frostTender: false,
     waterMl: 3000,
@@ -343,6 +367,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'במבוק / קנים',
+    canopy: 'full',
     keepDryInCold: false,
     frostTender: true,
     waterMl: 3000,
@@ -357,6 +382,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'שיח נוי ים-תיכוני',
+    canopy: 'sparse',
     keepDryInCold: false,
     frostTender: false,
     waterMl: 2000,
@@ -371,6 +397,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'לבנדר',
+    canopy: 'sparse',
     keepDryInCold: false,
     frostTender: false,
     waterMl: 800,
@@ -385,6 +412,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'שפלרה מגוונת',
+    canopy: 'sparse',
     keepDryInCold: false,
     frostTender: true,
     waterMl: 4500,
@@ -399,6 +427,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'ביידנס',
+    canopy: 'full',
     keepDryInCold: false,
     frostTender: false,
     waterMl: 3400,
@@ -413,6 +442,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'סקבולה',
+    canopy: 'full',
     keepDryInCold: false,
     frostTender: true,
     waterMl: 3000,
@@ -427,6 +457,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'כתר קוצים',
+    canopy: 'sparse',
     keepDryInCold: true,
     frostTender: true,
     waterMl: 1200,
@@ -441,6 +472,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'פלקטרנטוס מגוון',
+    canopy: 'full',
     keepDryInCold: false,
     frostTender: true,
     waterMl: 300,
@@ -455,6 +487,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'אופונטיה (אוזני ארנב)',
+    canopy: 'sparse',
     keepDryInCold: true,
     frostTender: true,
     waterMl: 150,
@@ -469,6 +502,7 @@ export const PLANT_PRESETS: PlantPreset[] = [
   },
   {
     species: 'סוקולנט',
+    canopy: 'sparse',
     keepDryInCold: true,
     frostTender: true,
     mlPerLiterOfSoil: 70,
