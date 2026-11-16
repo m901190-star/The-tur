@@ -120,14 +120,27 @@ def wrap(d, s, f, maxw):
         if d.textlength(t, font=f, direction='rtl') <= maxw: cur = t
         else: out.append(cur); cur = w
     return out + [cur]
+import re
+def runs(word):
+    return [(r, bool(re.match(r'[A-Za-z&]', r))) for r in re.findall(r'[A-Za-z&]+|[^A-Za-z&]+', word)]
+def mixed_line(d, cx, base, line, size, fill=WHITE):
+    fh, fl = F(HAIM, size), F(SEC, int(size * .95)); sp = d.textlength(' ', font=fh, direction='rtl')
+    items = []
+    for w in line.split():
+        rs = [(r, fl if lat else fh, lat) for r, lat in runs(w)]
+        items.append([(r, f, lat, d.textlength(r, font=f, **({} if lat else {'direction': 'rtl'}))) for r, f, lat in rs])
+    tot = sum(sum(x[3] for x in it) for it in items) + sp * (len(items) - 1); x = cx + tot / 2
+    for it in items:
+        for r, f, lat, w in it:
+            kw = {} if lat else {'direction': 'rtl'}
+            d.text((x + 5, base + 5), r, font=f, fill=NIGHT, anchor='rs', **kw); d.text((x, base), r, font=f, fill=fill, anchor='rs', **kw); x -= w
+        x -= sp
 def subs(im, t):
     d = ImageDraw.Draw(im)
     for a, b, s in SUBS:
         if a <= t < b + .15:
-            p = eob((t - a) / .25); f = F(HAIM, int(84 * (.85 + .15 * p))); lines = wrap(d, s, f, 900)
-            for k, l in enumerate(lines):
-                y = 1360 + k * 92
-                d.text((W / 2 + 5, y + 5), l, font=f, fill=NIGHT, anchor='ma', direction='rtl'); d.text((W / 2, y), l, font=f, fill=WHITE, anchor='ma', direction='rtl')
+            p = eob((t - a) / .25); size = int(84 * (.85 + .15 * p)); lines = wrap(d, s, F(HAIM, size), 900)
+            for k, l in enumerate(lines): mixed_line(d, W / 2, 1360 + size * .82 + k * 92, l, size)
             return
 def frame(t, src):
     im = background(t)
@@ -146,8 +159,14 @@ if __name__ == '__main__':
     if 'stills' in sys.argv:
         ts = [1.5, 3.3, 5.5, 9, 12, 16, 21, 27]; ims = [frame(x, V[min(int(x * FPS), len(V) - 1)]).resize((270, 480)) for x in ts]
         sh = Image.new('RGB', (4 * 274, 2 * 484)); [sh.paste(x, ((i % 4) * 274, (i // 4) * 484)) for i, x in enumerate(ims)]; sh.save(sys.argv[2]); sys.exit()
-    ff = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-', '-i', HERE + '/source.mov',
-        '-map', '0:v', '-map', '1:a', '-vf', 'scale=720:1280:flags=lanczos', '-c:v', 'libx264', '-preset', 'slow', '-crf', '20', '-maxrate', '4M', '-bufsize', '8M',
+    SFX = [('woosh2', .05, .30), ('pop', .12, .28), ('ding', 1.9, .30), ('whoosh', 3.65, .32), ('pop', 3.85, .25), ('whoosh', 6.1, .32), ('pop', 6.5, .25), ('pop', 6.95, .25),
+           ('pop', 7.4, .25), ('whoosh', 10.45, .32), ('pop', 13.2, .25), ('ding', 14.9, .32), ('pop', 16.7, .2), ('ding', 19.5, .28), ('whoosh', 22.95, .32), ('pop', 23.15, .25), ('swell', 23.35, .35)]
+    ins, fl = [], []
+    for i, (n, at, v) in enumerate(SFX):
+        ins += ['-i', HERE + f'/sfx/{n}.wav']; fl.append(f'[{i + 2}:a]aformat=sample_rates=48000:channel_layouts=stereo,volume={v},adelay={int(at * 1000)}:all=1[s{i}]')
+    fc = ';'.join(['[1:a]aformat=sample_rates=48000:channel_layouts=stereo[v]'] + fl + ['[v]' + ''.join(f'[s{i}]' for i in range(len(SFX))) + f'amix=inputs={len(SFX) + 1}:normalize=0,alimiter=limit=0.95[a]'])
+    ff = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-', '-i', HERE + '/source.mov'] + ins + ['-filter_complex', fc,
+        '-map', '0:v', '-map', '[a]', '-vf', 'scale=720:1280:flags=lanczos', '-c:v', 'libx264', '-preset', 'slow', '-crf', '20', '-maxrate', '4M', '-bufsize', '8M',
         '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k', '-t', str(DUR), '-movflags', '+faststart', HERE + '/rz-economy-motion.mp4'], stdin=subprocess.PIPE)
     for i in range(N): ff.stdin.write(frame(i / FPS, V[min(i, len(V) - 1)]).tobytes())
     ff.stdin.close(); ff.wait(); print('done')
