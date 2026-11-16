@@ -41,7 +41,19 @@ for i in range(int(ED * FPS)):
     label(lay); im.alpha_composite(lay); out.append(im.convert('RGB'))
 if out:
     out[0] = out[0]
-ff = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-', '-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=stereo',
-    '-shortest', '-c:v', 'libx264', '-preset', 'slow', '-crf', '20', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-movflags', '+faststart', HERE + '/meuchim-arachim.mp4'], stdin=subprocess.PIPE)
+# ---- SFX: plastic crinkle on the opening, squeeze + squish on every squishy, paper crumple on the signs ----
+starts, t = [], 0.0
+for name, t0, dur, cap in SHOTS: starts.append(t); t += dur
+EV = [('crinkle', starts[0] + .2, .55)]
+for k in range(1, 5):
+    EV += [('squeeze', starts[k] + .9, .9), ('squish', starts[k] + 1.5, .8), ('squish', starts[k] + 3.1, .5)]
+    if k in (1, 2): EV.append(('paper', starts[k] + 1.2, .35))
+TT = len(out) / FPS; ins, fl = [], []
+for i, (n, at, v) in enumerate(EV):
+    ins += ['-i', HERE + f'/sfx/{n}.wav']; dur = 1.6 if n in ('paper', 'crinkle') else 1.2
+    fl.append(f'[{i + 1}:a]atrim=0:{dur},afade=t=out:st={dur - .3}:d=.3,aformat=sample_rates=48000:channel_layouts=stereo,volume={v},adelay={int(at * 1000)}:all=1[s{i}]')
+fc = ';'.join(fl + [''.join(f'[s{i}]' for i in range(len(EV))) + f'amix=inputs={len(EV)}:normalize=0,apad=whole_dur={TT},atrim=0:{TT},loudnorm=I=-16:TP=-1.5[a]'])
+ff = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-'] + ins + ['-filter_complex', fc, '-map', '0:v', '-map', '[a]',
+    '-t', f'{TT}', '-c:v', 'libx264', '-preset', 'slow', '-crf', '20', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-movflags', '+faststart', HERE + '/meuchim-arachim.mp4'], stdin=subprocess.PIPE)
 for im in out: ff.stdin.write(im.tobytes())
 ff.stdin.close(); ff.wait(); print('done', len(out) / FPS)
