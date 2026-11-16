@@ -45,11 +45,11 @@ def frame(i):
         text_shadow(im,(W/2,690+dy),'there was no',F(84),a,'ms')
         # bar behind last line
         lay = Image.new('RGBA',(W,H),(0,0,0,0)); d = ImageDraw.Draw(lay)
-        u2 = eo((t-T_L2-0.25)/0.45); bw = int((d.textlength('Jewish settlement here', font=F(78))+50)*u2)
+        u2 = eo((t-T_L2-0.25)/0.45); bw = int((d.textlength('Jewish village here', font=F(78))+50)*u2)
         if bw>0: d.rectangle([W/2-bw/2,715,W/2+bw/2,815],fill=LBLUE+(int(235*a),))
         im.alpha_composite(lay)
         if t >= T_L2+0.4:
-            text_shadow(im,(W/2,795),'Jewish settlement here',F(78),eo((t-T_L2-0.4)/0.35),'ms')
+            text_shadow(im,(W/2,795),'Jewish village here',F(78),eo((t-T_L2-0.4)/0.35),'ms')
     return im.convert('RGB')
 P = subprocess.Popen(['ffmpeg','-y','-v','error','-f','rawvideo','-pix_fmt','rgb24','-s',f'{W}x{H}','-r',str(FPS),'-i','-',
   '-i',HERE+'/opening-music/guitar.wav','-i',HERE+'/opening-music/drone.wav','-i',HERE+'/opening-music/hit.wav',
