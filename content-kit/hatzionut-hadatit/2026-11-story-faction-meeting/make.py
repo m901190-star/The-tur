@@ -14,7 +14,7 @@ for y in range(H):
     if y < 260: gd.line((0, y, W, y), fill=NIGHT + (int(120 * (1 - y / 260)),))
 im.alpha_composite(g); d = ImageDraw.Draw(im)
 R = W - 80; y = 1395
-pill = 'היום'; pf = F(50); tw = d.textlength(pill, font=pf, direction='rtl')
+pill = 'משכן הכנסת'; pf = F(50); tw = d.textlength(pill, font=pf, direction='rtl')
 d.rounded_rectangle((R - tw - 56, y, R, y + 78), 39, fill=LT); d.text((R - 28, y + 13), pill, font=pf, fill=NIGHT, anchor='ra', direction='rtl')
 y += 112; d.rectangle((R - 6, y + 6, R, y + 196), fill=LT)
 for i, l in enumerate(['ישיבת סיעת', 'הציונות הדתית']):
