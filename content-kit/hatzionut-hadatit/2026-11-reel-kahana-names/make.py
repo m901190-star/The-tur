@@ -58,10 +58,11 @@ if __name__ == '__main__':
         ins += ['-i', HERE + f'/sfx/{n}.wav']; fl.append(f'[{i + 2}:a]aformat=sample_rates=48000:channel_layouts=stereo,volume={v},adelay={int(at * 1000)}:all=1[e{i}]')
     MI = len(EV) + 2
     fc = ';'.join(['[1:a]loudnorm=I=-16:TP=-1.5,aformat=sample_rates=48000:channel_layouts=stereo,asplit=2[v][k]'] + fl +
-        [f"[{MI}:a]aformat=sample_rates=48000:channel_layouts=stereo,aloop=loop=3:size={int(19.2*44100)},atrim=0:{TT},volume='if(lt(t,13.2),0.22,0.08)':eval=frame,afade=t=in:d=0.8,afade=t=out:st={TT-1.5}:d=1.5[m]",
-         '[m][k]sidechaincompress=threshold=0.04:ratio=4:attack=15:release=300[md]',
+        [f"[{MI + 1}:a]aformat=sample_rates=48000:channel_layouts=stereo,aloop=loop=4:size={int(17.5*48000)},atrim=0:{TT},volume='if(lt(t,13.2),0.55,0.35)':eval=frame,afade=t=in:d=1.2,afade=t=out:st={TT-2}:d=2[st]",
+         f"[{MI}:a]aformat=sample_rates=48000:channel_layouts=stereo,aloop=loop=3:size={int(19.2*44100)},atrim=0:{TT},volume='if(lt(t,13.2),0.22,0.08)':eval=frame,afade=t=in:d=0.8,afade=t=out:st={TT-1.5}:d=1.5[m]",
+         '[m][st]amix=inputs=2:normalize=0[mb]', '[mb][k]sidechaincompress=threshold=0.04:ratio=3:attack=20:release=350[md]',
          '[v][md]' + ''.join(f'[e{i}]' for i in range(len(EV))) + f'amix=inputs={len(EV) + 2}:normalize=0,alimiter=limit=0.95[a]'])
-    ff = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-', '-i', HERE + '/source.mp4'] + ins + ['-i', HERE + '/sfx/music.wav',
+    ff = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-', '-i', HERE + '/source.mp4'] + ins + ['-i', HERE + '/sfx/music.wav', '-i', HERE + '/sfx/strings.wav',
         '-filter_complex', fc, '-map', '0:v', '-map', '[a]', '-vf', 'scale=720:1280:flags=lanczos', '-c:v', 'libx264', '-preset', 'slow', '-crf', '20', '-maxrate', '4M', '-bufsize', '8M',
         '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k', '-t', str(TT), '-movflags', '+faststart', HERE + '/rz-kahana-names.mp4'], stdin=subprocess.PIPE)
     for i in range(N):
