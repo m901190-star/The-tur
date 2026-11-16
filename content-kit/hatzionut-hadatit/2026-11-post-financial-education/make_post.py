@@ -5,12 +5,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 KB = HERE + '/../../fonts/HaimClassicv2FM-Bold.ttf'
 W, H = 1080, 1350; DEEP, TEAL, LT = (43, 81, 85), (80, 146, 153), (105, 180, 189)
 def F(s): return ImageFont.truetype(KB, s, layout_engine=ImageFont.Layout.RAQM)
-bg = Image.new('RGB', (W, H), DEEP); px = bg.load()
-for y in range(H):
-    for x in range(W):
-        g = max(0, 1 - math.hypot((x - 800) / 900, (y - 300) / 900)); v = 1 - .35 * (y / H) ** 2
-        px[x, y] = tuple(int((DEEP[i] + (TEAL[i] - DEEP[i]) * g * .9) * v) for i in range(3))
-im = bg.convert('RGBA'); d = ImageDraw.Draw(im)
+import sys; sys.path.insert(0, HERE); from bg_chart import make_bg
+im = make_bg(W, H); d = ImageDraw.Draw(im)
 src = Image.open(HERE + '/article-with-photo.jpg').convert('RGB')
 cw = 760; card = src.resize((cw, int(cw * src.height / src.width)), Image.LANCZOS)
 m = Image.new('L', card.size, 0); ImageDraw.Draw(m).rounded_rectangle((0, 0, card.width - 1, card.height - 1), 26, fill=255)
