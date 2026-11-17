@@ -26,7 +26,7 @@ vig = Image.new('RGBA', (W, H), (0, 0, 0, 0)); vd = ImageDraw.Draw(vig)
 for y in range(H): vd.line((0, y, W, y), fill=(0, 0, 0, int(90 * (y / H) ** 2)))
 im.alpha_composite(vig); d = ImageDraw.Draw(im)
 R = 690
-lab = 'בחירת יו״ר הכנסת ה־26'; f = F(RUB, 30); tw = d.textlength(lab, font=f, direction='rtl')
+lab = 'בדיון על בחירת יושב ראש הכנסת'; f = F(RUB, 30); tw = d.textlength(lab, font=f, direction='rtl')
 d.rounded_rectangle((R - tw - 36, 60, R, 112), 10, fill=(255, 255, 255)); d.text((R - 18, 68), lab, font=f, fill=DEEP, anchor='ra', direction='rtl')
 def head(txt, y, size, fill=(255, 255, 255)):
     f = fit(txt, size, 610)
