@@ -9,7 +9,7 @@ SLIDES = [  # photo, crop box (None=centre), lines [(text, emoji)], y-centre
     ('01.jpg', (320, 0, 1280, 1200), [('היי, אני נעה.', ''), ('נעים להכיר', '🤩')], .42),
     ('02.jpg', None, [('גיל: צעירה מאוד.', ''), ('מבט: ממש רחוק', '☁️')], .38),
     ('04.jpg', None, [('מחפשת:', ''), ('משפחות רציניות בלבד', '🇮🇱')], .40),
-    ('07.jpg', None, [('כבר יש לי כביש משלי.', ''), ('לא כל אחת יכולה להגיד את זה', '💅')], .36),
+    ('07.jpg', None, [('אל תדאגו,', ''), ('אני לא קשה להשגה', '💁')], .36),
     ('08.jpg', 'aerial', [('מהזווית הזאת', ''), ('אני הכי פוטוגנית', '📸')], .20),
     ('05.jpg', None, [('יש לי כלב.', ''), ('בעצם… כמה', '🐶')], .30),
     ('09.jpg', None, [('הם מקבלים פה', ''), ('יחס של מלכים', '👑')], .58),
@@ -25,9 +25,9 @@ _ec = {}
 def emoji(e, size):
     k = (e, size)
     if k not in _ec:
-        f = ImageFont.truetype(EMO, 109); parts = []
+        f = ImageFont.truetype(EMO, 109, layout_engine=ImageFont.Layout.RAQM); parts = []
         for ch in [e] if e in ('🇮🇱',) else list(e.replace('️', '')):
-            t = Image.new('RGBA', (160, 160), (0, 0, 0, 0)); ImageDraw.Draw(t).text((10, 10), ch if ch != '☁' else '☁️', font=f, embedded_color=True)
+            t = Image.new('RGBA', (300, 160), (0, 0, 0, 0)); ImageDraw.Draw(t).text((10, 10), ch if ch != '☁' else '☁️', font=f, embedded_color=True)
             t = t.crop(t.getchannel('A').getbbox()); s = size / t.height; parts.append(t.resize((int(t.width * s), size), Image.LANCZOS))
         wsum = sum(p.width for p in parts) + 8 * (len(parts) - 1); out = Image.new('RGBA', (wsum, size), (0, 0, 0, 0)); x = 0
         for p in parts: out.alpha_composite(p, (x, 0)); x += p.width + 8
