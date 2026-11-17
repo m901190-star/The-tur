@@ -19,7 +19,12 @@ def seg(x, yy, t, col):
     d.text((x + 6, yy + 6), t, font=fh, fill=DEEP, anchor='rs', direction='rtl'); d.text((x, yy), t, font=fh, fill=col, anchor='rs', direction='rtl')
     return x - d.textlength(t, font=fh, direction='rtl')
 seg(R, y, 'כהנא בחר', (255, 255, 255))
-x = seg(R, y + 120, 'באחים ', (255, 255, 255)); seg(x, y + 120, 'המוסלמים', RED)
+import sys
+GREEN = (20, 153, 84); V = sys.argv[1] if len(sys.argv) > 1 else 'red'
+if V == 'green': x = seg(R, y + 120, 'באחים', GREEN); x = seg(x, y + 120, ' ', (255, 255, 255)); seg(x, y + 120, 'המוסלמים', RED)
+else: x = seg(R, y + 120, 'באחים ', (255, 255, 255)); seg(x, y + 120, 'המוסלמים', RED)
+LG = Image.open(HERE + '/../../clients/hatzionut-hadatit/logo.png').convert('RGBA'); LG = LG.crop(LG.getchannel('A').getbbox())
+LG = LG.resize((230, int(230 * LG.height / LG.width)), Image.LANCZOS); im.alpha_composite(LG, ((W - LG.width) // 2, H - LG.height - 45))
 t = 'על פני האחים שלו'; fb = F(104); tw = d.textlength(t, font=fb, direction='rtl'); yb = y + 150
 d.rectangle((R - tw - 50, yb, R + 18, yb + 150), fill=LT); d.text((R - 20, yb + 120), t, font=fb, fill=NIGHT, anchor='rs', direction='rtl')
-im.convert('RGB').save(HERE + '/post.jpg', quality=95); print(tw, d.textlength('באחים המוסלמים', font=fh, direction='rtl'))
+im.convert('RGB').save(HERE + f'/post-logo-{V}.jpg', quality=95); print(tw, d.textlength('באחים המוסלמים', font=fh, direction='rtl'))
