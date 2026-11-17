@@ -35,6 +35,6 @@ head('סמוטריץ׳', 150, 130)
 head('במליאה', 285, 104)
 t = 'הנאום המלא'; f = fit(t, 132, 600); tw = d.textlength(t, font=f, direction='rtl')
 d.rectangle((R - tw - 50, 430, R + 14, 590), fill=LT); d.text((R - 22, 444), t, font=f, fill=DEEP, anchor='ra', direction='rtl')
-pass  # name already in headline
+d.text((R, 640), 'יום ג׳, 17 בנובמבר 2026', font=F(RUB, 36), fill=PALE, anchor='ra', direction='rtl')
 #d.text((R, 655), 'בצלאל סמוטריץ׳', font=F(RUB, 34), fill=PALE, anchor='ra', direction='rtl')
 im.convert('RGB').save(HERE + '/' + OUTN, quality=95); print('ok')
