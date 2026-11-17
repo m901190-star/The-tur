@@ -13,10 +13,10 @@ def fit(txt, size, maxw):
     return f
 # the real frame from the event on the right (background kept), dimmed a little; fades into dark teal on the text side
 from PIL import ImageEnhance
-src = Image.open(HERE + '/source.jpg').convert('RGB').crop((0, 0, 1320, 555)); sc = 745 / src.height; src = src.resize((int(src.width * sc), 745), Image.LANCZOS)
+src = Image.open(HERE + '/source.jpg').convert('RGB').crop((180, 0, 1220, 555)); sc = 720 / src.height; src = src.resize((int(src.width * sc), 720), Image.LANCZOS)
 src = ImageEnhance.Brightness(ImageEnhance.Color(src).enhance(.9)).enhance(.82)
-im = Image.new('RGBA', (W, H), (16, 36, 40, 255)); X = 330   # pushes him to the right third
-im.paste(src, (X, 0))
+im = Image.new('RGBA', (W, H), (16, 36, 40, 255)); X = 0   # him centred in the right half
+im.paste(src, (409, 0))   # face (src x~605) lands at x~960
 fade = Image.new('RGBA', (W, H), (0, 0, 0, 0)); fd = ImageDraw.Draw(fade)
 for x in range(W):
     a = int(255 * min(1, max(0, (880 - x) / 330)) ** 1.1) if x < 880 else 0
