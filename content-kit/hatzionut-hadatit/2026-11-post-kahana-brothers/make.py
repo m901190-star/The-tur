@@ -14,8 +14,12 @@ ov = Image.new('RGBA', (W, H)); od = ImageDraw.Draw(ov)
 for y in range(H): od.line((0, y, W, y), fill=NIGHT + (int(255 * min(1, max(0, (y - 560) / 360)) ** 1.2),))
 im.alpha_composite(ov); d = ImageDraw.Draw(im); R = W - 70
 fh = F(118); y = 870
-for i, l in enumerate(['כהנא בחר', 'באחים המוסלמים']):
-    yy = y + i * 120; d.text((R + 6, yy + 6), l, font=fh, fill=DEEP, anchor='rs', direction='rtl'); d.text((R, yy), l, font=fh, fill=(255, 255, 255), anchor='rs', direction='rtl')
+RED = (226, 54, 54)
+def seg(x, yy, t, col):
+    d.text((x + 6, yy + 6), t, font=fh, fill=DEEP, anchor='rs', direction='rtl'); d.text((x, yy), t, font=fh, fill=col, anchor='rs', direction='rtl')
+    return x - d.textlength(t, font=fh, direction='rtl')
+seg(R, y, 'כהנא בחר', (255, 255, 255))
+x = seg(R, y + 120, 'באחים ', (255, 255, 255)); seg(x, y + 120, 'המוסלמים', RED)
 t = 'על פני האחים שלו'; fb = F(104); tw = d.textlength(t, font=fb, direction='rtl'); yb = y + 150
 d.rectangle((R - tw - 50, yb, R + 18, yb + 150), fill=LT); d.text((R - 20, yb + 120), t, font=fb, fill=NIGHT, anchor='rs', direction='rtl')
 im.convert('RGB').save(HERE + '/post.jpg', quality=95); print(tw, d.textlength('באחים המוסלמים', font=fh, direction='rtl'))
