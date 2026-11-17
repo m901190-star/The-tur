@@ -18,7 +18,7 @@ RED = (226, 54, 54)
 def seg(x, yy, t, col):
     d.text((x + 6, yy + 6), t, font=fh, fill=DEEP, anchor='rs', direction='rtl'); d.text((x, yy), t, font=fh, fill=col, anchor='rs', direction='rtl')
     return x - d.textlength(t, font=fh, direction='rtl')
-seg(R, y, 'כהנא בחר', (255, 255, 255))
+seg(R, y, 'כהנא שוב בחר', (255, 255, 255))
 import sys
 GREEN = (20, 153, 84); V = sys.argv[1] if len(sys.argv) > 1 else 'red'
 if V == 'green': x = seg(R, y + 120, 'באחים', GREEN); x = seg(x, y + 120, ' ', (255, 255, 255)); seg(x, y + 120, 'המוסלמים', RED)
