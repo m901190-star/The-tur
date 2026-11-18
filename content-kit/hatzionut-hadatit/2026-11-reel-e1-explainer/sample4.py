@@ -20,6 +20,15 @@ def paflag(d, x, y, s=1.0):
     d.line((x, y, x, y - 70 * s), fill=WHITE, width=4); fx, fy = x + 2, y - 70 * s; w, h = 56 * s, 40 * s
     d.rectangle((fx, fy, fx + w, fy + h / 3), fill=(0, 0, 0)); d.rectangle((fx, fy + h / 3, fx + w, fy + 2 * h / 3), fill=WHITE); d.rectangle((fx, fy + 2 * h / 3, fx + w, fy + h), fill=(0, 122, 61))
     d.polygon([(fx, fy), (fx + w * .42, fy + h / 2), (fx, fy + h)], fill=(206, 17, 38)); d.rectangle((fx, fy, fx + w, fy + h), outline=(255, 255, 255), width=1)
+ABBAS = HERE + '/src/abbas.jpg'
+def abbas_badge(d, x, y, r=46):
+    cx, cy = x + 70, y - 60
+    if os.path.exists(ABBAS):
+        ph = ImageOps.fit(Image.open(ABBAS).convert('RGB'), (2 * r, 2 * r), Image.LANCZOS, centering=(.5, .3)); m = Image.new('L', (2 * r, 2 * r), 0); ImageDraw.Draw(m).ellipse((0, 0, 2 * r, 2 * r), fill=255)
+        d._image.paste(ph, (int(cx - r), int(cy - r)), m)
+    else:
+        d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=(60, 60, 60)); T(d, (cx, cy), 'אבו\nמאזן', F(RUB, 22), sh=False, align='center')
+    d.ellipse((cx - r, cy - r, cx + r, cy + r), outline=RED, width=6)
 def pa_zone(im, v, lat, lon, rad_px):
     x, y = v.xy(lat, lon); lay = Image.new('RGBA', (W, H)); ld = ImageDraw.Draw(lay)
     ld.ellipse((x - rad_px, y - rad_px, x + rad_px, y + rad_px), fill=RED + (70,)); lay = lay.filter(ImageFilter.GaussianBlur(rad_px * .35)); im.alpha_composite(lay)
@@ -49,7 +58,7 @@ d.polygon([(xb + 12 * math.cos(a), yb + 12 * math.sin(a)), (xb - L * math.cos(a 
 def places(d, v):
     for n, c, s_ in [('רמאללה', RED, 'l'), ('בית לחם', RED, 'l'), ('ירושלים', GOLD, 'l'), ('מעלה אדומים', LT, 'b')]:
         x, y = pin(d, v, *PL[n], c, 13); label(d, v, *PL[n], n, s_, 46, dot=False)
-        if c == RED: paflag(d, x + 4, y - 12, .8)
+        if c == RED: abbas_badge(d, x, y)
         else: flag(d, x + 4, y - 12, .8)
     for n in ('רמאללה', 'בית לחם'):
         x, y = v.xy(*PL[n]); T(d, (x - 24, y + 50), 'שטח הרשות הפלסטינית', F(RUB, 26), fill=(255, 200, 190), anchor='rm', stroke_width=3, stroke_fill=NIGHT)
