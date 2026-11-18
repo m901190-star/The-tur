@@ -60,8 +60,6 @@ def places(d, v):
         x, y = pin(d, v, *PL[n], c, 13); label(d, v, *PL[n], n, s_, 46, dot=False)
         if c == RED: abbas_badge(d, x, y)
         else: flag(d, x + 4, y - 12, .8)
-    for n in ('רמאללה', 'בית לחם'):
-        x, y = v.xy(*PL[n]); T(d, (x - 24, y + 50), 'שטח הרשות הפלסטינית', F(RUB, 26), fill=(255, 200, 190), anchor='rm', stroke_width=3, stroke_fill=NIGHT)
 places(d, v); headline(d, [('בלי E1', RED), ('רצף פלסטיני', WHITE)], 150, 84)
 lower(d, 'רצף מרמאללה עד בית לחם:\nבדיוק מה שמדינה פלסטינית צריכה'); OUT.append(('04', finish2(im)))
 # 5 vivid
