@@ -133,7 +133,7 @@ def s5(t, D):
         def chipn(l, d): d.rounded_rectangle((cx - 140 * s_, cy - 48 * s_, cx + 140 * s_, cy + 48 * s_), 48 * s_, fill=GOLD, outline=WHITE, width=5); T(d, (cx, cy), 'נחסם', F(KB, int(64 * s_)), fill=NIGHT, sh=False)
         im.alpha_composite(alpha_layer(chipn, 1))
     headline_a(im, [('עם E1', GOLD), ('הרצף נחתך', WHITE)], 150, 84, eo(t / .4), hl=1 if t > 2.2 else None)
-    lower_a(im, 'לכן קוראים לזה "בולם":\nזה בולם מדינה פלסטינית', eo((t - .55 * D) / .4))
+    lower_a(im, 'זה בולם את הרעיון\nשל הקמת מדינה פלסטינית', eo((t - .55 * D) / .4))
     corner_tag(ImageDraw.Draw(im), 'הגבולות להמחשה')
     shake = 10 * math.sin(t * 60) * max(0, 1 - abs(t - 1.8) / .25) if 1.55 < t < 2.05 else 0
     return im, shake
