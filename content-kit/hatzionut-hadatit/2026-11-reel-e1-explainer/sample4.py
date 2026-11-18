@@ -1,7 +1,7 @@
 """More colourful variant samples (frames 3, 5, 6) to compare with v3."""
 import os; os.environ['E1_VIVID'] = '1'
 HERE = os.path.dirname(os.path.abspath(__file__))
-src = open(HERE + '/sketch3.py').read(); exec(src[:src.index('OUT = []')])
+src = open(HERE + '/sketch3.py').read(); exec(src[:src.index('OUT = ' + '[]')])
 def finish2(im): return finish(im, .18)
 def flag(d, x, y, s=1.0):
     d.line((x, y, x, y - 70 * s), fill=WHITE, width=4); fx, fy = x + 2, y - 70 * s
@@ -16,29 +16,51 @@ def chipbar(d, y, items):
     for t, col, fg in items:
         f = hf(t, 40) if any(c.isdigit() for c in t) else F(RUB, 38); tw = d.textlength(t, font=f, direction='rtl')
         d.rounded_rectangle((x - tw - 44, y - 32, x, y + 32), 32, fill=col); T(d, (x - 22 - tw / 2, y), t, f, fill=fg, sh=False); x -= tw + 64
+def paflag(d, x, y, s=1.0):
+    d.line((x, y, x, y - 70 * s), fill=WHITE, width=4); fx, fy = x + 2, y - 70 * s; w, h = 56 * s, 40 * s
+    d.rectangle((fx, fy, fx + w, fy + h / 3), fill=(0, 0, 0)); d.rectangle((fx, fy + h / 3, fx + w, fy + 2 * h / 3), fill=WHITE); d.rectangle((fx, fy + 2 * h / 3, fx + w, fy + h), fill=(0, 122, 61))
+    d.polygon([(fx, fy), (fx + w * .42, fy + h / 2), (fx, fy + h)], fill=(206, 17, 38)); d.rectangle((fx, fy, fx + w, fy + h), outline=(255, 255, 255), width=1)
+def pa_zone(im, v, lat, lon, rad_px):
+    x, y = v.xy(lat, lon); lay = Image.new('RGBA', (W, H)); ld = ImageDraw.Draw(lay)
+    ld.ellipse((x - rad_px, y - rad_px, x + rad_px, y + rad_px), fill=RED + (70,)); lay = lay.filter(ImageFilter.GaussianBlur(rad_px * .35)); im.alpha_composite(lay)
 OUT = []
 # 3 vivid
 v = View(31.787, 35.262, 1.75); im = mapbase(v); d = ImageDraw.Draw(im)
 path(im, v, ROUTE1, (255, 255, 255, 240), 8, glow=False); poly(im, v, E1, GOLD + (170,), WHITE, 6)
 lay = Image.new('RGBA', (W, H)); ld = ImageDraw.Draw(lay); ld.polygon([v.xy(*p) for p in E1], fill=GOLD + (120,)); lay = lay.filter(ImageFilter.GaussianBlur(30)); im.alpha_composite(lay); poly(im, v, E1, GOLD + (170,), WHITE, 6); d = ImageDraw.Draw(im)
 cx = sum(v.xy(*p)[0] for p in E1) / 5; cy = sum(v.xy(*p)[1] for p in E1) / 5; T(d, (cx, cy), 'E1', F(SEC, 110), fill=NIGHT, sh=False)
-x, y = pin(d, v, *PL['ירושלים'], GOLD); label(d, v, *PL['ירושלים'], 'ירושלים', 'b', 54, dot=False)
+x, y = pin(d, v, *PL['ירושלים'], GOLD); flag(d, x + 6, y - 14, .9); label(d, v, *PL['ירושלים'], 'ירושלים', 'b', 54, dot=False)
 x, y = pin(d, v, *PL['מעלה אדומים'], LT); flag(d, x + 6, y - 14, .9); label(d, v, *PL['מעלה אדומים'], 'מעלה אדומים', 'b', 54, dot=False, dx=-90)
 pin(d, v, *PL['הר הצופים'], WHITE, 10); label(d, v, *PL['הר הצופים'], 'הר הצופים', 'top', 40, dot=False)
 x, y = v.xy(31.792, 35.300); T(d, (x + 20, y - 40), 'כביש 1', F(SEC, 34), fill=WHITE, stroke_width=4, stroke_fill=NIGHT)
 headline(d, [('השטח הריק בין ירושלים', WHITE), ('למעלה אדומים', GOLD)], 180, 84, hl=1)
 chipbar(d, 1650, [('מחבר את מעלה אדומים לירושלים', TEAL, WHITE)])
 OUT.append(('03', finish2(im)))
+# 4 vivid: corridor with PA
+def mapPA(v, cut):
+    im = mapbase(v, .05)
+    for n in ('רמאללה', 'בית לחם'): pa_zone(im, v, *PL[n], 120)
+    if cut: path(im, v, CORR[:3], RED + (255,), 18); path(im, v, CORR[4:], RED + (255,), 18)
+    else: path(im, v, CORR, RED + (255,), 18)
+    d = ImageDraw.Draw(im); return im, d
+v = View(31.80, 35.25, .78)
+im, d = mapPA(v, False); P = [v.xy(*p) for p in CORR]; (xa, ya), (xb, yb) = P[-2], P[-1]; import math; a = math.atan2(yb - ya, xb - xa); L = 54
+d.polygon([(xb + 12 * math.cos(a), yb + 12 * math.sin(a)), (xb - L * math.cos(a - .5), yb - L * math.sin(a - .5)), (xb - L * math.cos(a + .5), yb - L * math.sin(a + .5))], fill=RED)
+def places(d, v):
+    for n, c, s_ in [('רמאללה', RED, 'l'), ('בית לחם', RED, 'l'), ('ירושלים', GOLD, 'l'), ('מעלה אדומים', LT, 'b')]:
+        x, y = pin(d, v, *PL[n], c, 13); label(d, v, *PL[n], n, s_, 46, dot=False)
+        if c == RED: paflag(d, x + 4, y - 12, .8)
+        else: flag(d, x + 4, y - 12, .8)
+    for n in ('רמאללה', 'בית לחם'):
+        x, y = v.xy(*PL[n]); T(d, (x - 24, y + 50), 'שטח הרשות הפלסטינית', F(RUB, 26), fill=(255, 200, 190), anchor='rm', stroke_width=3, stroke_fill=NIGHT)
+places(d, v); headline(d, [('בלי E1', RED), ('רצף פלסטיני', WHITE)], 150, 84)
+lower(d, 'רצף מרמאללה עד בית לחם:\nבדיוק מה שמדינה פלסטינית צריכה'); OUT.append(('04', finish2(im)))
 # 5 vivid
-v = View(31.80, 35.25, .78); im = mapbase(v, .05); d = ImageDraw.Draw(im)
-path(im, v, CORR[:3], RED + (255,), 18); path(im, v, CORR[4:], RED + (255,), 18)
+im, d = mapPA(v, True)
 lay = Image.new('RGBA', (W, H)); ld = ImageDraw.Draw(lay); ld.polygon([v.xy(*p) for p in E1], fill=GOLD + (200,)); lay = lay.filter(ImageFilter.GaussianBlur(40)); im.alpha_composite(lay); poly(im, v, E1, GOLD + (240,), WHITE, 6); d = ImageDraw.Draw(im)
 cx = sum(v.xy(*p)[0] for p in E1) / 5; cy = sum(v.xy(*p)[1] for p in E1) / 5
 d.rounded_rectangle((cx - 160, cy - 50, cx + 160, cy + 50), 50, fill=GOLD, outline=WHITE, width=5); T(d, (cx, cy), 'נחסם', F(KB, 66), fill=NIGHT, sh=False)
-for n, c, s in [('רמאללה', RED, 'l'), ('בית לחם', RED, 'l'), ('ירושלים', GOLD, 'l'), ('מעלה אדומים', LT, 'b')]:
-    pin(d, v, *PL[n], c, 13); label(d, v, *PL[n], n, s, 46, dot=False)
-x, y = v.xy(*PL['מעלה אדומים']); flag(d, x + 4, y - 12, .7)
-headline(d, [('עם E1', GOLD), ('הרצף נחתך', WHITE)], 150, 84, hl=1)
+places(d, v); headline(d, [('עם E1', GOLD), ('הרצף נחתך', WHITE)], 150, 84, hl=1)
 lower(d, 'לכן קוראים לזה "בולם":\nזה בולם מדינה פלסטינית'); OUT.append(('05', finish2(im)))
 # 6 vivid: houses
 v = View(31.80, 35.28, 1.6); im = mapbase(v, .35); d = ImageDraw.Draw(im)
@@ -58,8 +80,8 @@ for r in range(4):
 T(d, (W - 80, 1440), '⁦3,401⁩', F(SEC, 160), fill=GOLD, anchor='rm'); T(d, (W - 80, 1570), 'יחידות דיור ב־E1', F(SEC, 56), anchor='rm')
 chipbar(d, 1690, [('אישור סופי · אוגוסט ⁦2025⁩', TEAL, WHITE)]); OUT.append(('06', finish2(im)))
 os.makedirs(HERE + '/sample4', exist_ok=True)
-old = {'03': '03-zoom-e1', '05': '05-blocked', '06': '06-smotrich'}
-fw, fh = 360, 640; sheet = Image.new('RGB', (3 * (2 * fw + 30) + 40, fh + 110), (8, 10, 12)); sd = ImageDraw.Draw(sheet)
+old = {'03': '03-zoom-e1', '04': '04-corridor', '05': '05-blocked', '06': '06-smotrich'}
+fw, fh = 360, 640; sheet = Image.new('RGB', (4 * (2 * fw + 30) + 40, fh + 110), (8, 10, 12)); sd = ImageDraw.Draw(sheet)
 for i, (n, im) in enumerate(OUT):
     im.save(HERE + f'/sample4/{n}.jpg', quality=90); x = sheet.width - (i + 1) * (2 * fw + 30) - 10
     sheet.paste(Image.open(HERE + f'/sketch3/{old[n]}.jpg').resize((fw, fh)), (x + fw + 10, 50)); sheet.paste(im.resize((fw, fh)), (x, 50))
