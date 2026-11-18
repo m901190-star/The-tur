@@ -35,10 +35,10 @@ def hud(src, out, mission, sub=None, done=False):
     im.alpha_composite(lay); im.convert('RGB').save(out, quality=92)
 if __name__ == '__main__':
     G = HERE + '/gen/'
-    S = [('scene1.png', 'כלכלה חזקה במלחמה בשבע חזיתות', None, False),
-         ('scene2-razor.png', 'למעלה מ־\u2066100\u2069 יישובים', 'מרכיבי ביטחון', False),
-         ('scene3.png', 'למעלה מ־\u2066100\u2069 יישובים', 'הניחו את הקרוואן', False),
-         ('scene4-v2.png', 'למעלה מ־\u2066140\u2069 חוות', None, False)]
+    S = [('c-scene1.png', 'כלכלה חזקה במלחמה בשבע חזיתות', None, False),
+         ('c-scene2.png', 'למעלה מ־\u2066100\u2069 יישובים', 'מרכיבי ביטחון', False),
+         ('c-scene3.png', 'למעלה מ־\u2066100\u2069 יישובים', 'הניחו את הקרוואן', False),
+         ('c-scene4.png', 'למעלה מ־\u2066140\u2069 חוות', None, False)]
     outs = []
     for i, (f, m, sub, done) in enumerate(S, 1):
         if os.path.exists(G + f): o = HERE + f'/sketch3-{i}.jpg'; hud(G + f, o, m, sub, done); outs.append(o)
