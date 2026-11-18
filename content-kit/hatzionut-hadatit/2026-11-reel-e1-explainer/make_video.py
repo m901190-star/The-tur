@@ -116,7 +116,7 @@ def s4(t, D):
     if t < t_red: headline_a(im, [('שתי אפשרויות', WHITE)], 170, 96, eo((t - t_opt) / .4) * (1 - eo((t - t_red + .3) / .3)), hl=0)
     headline_a(im, [('בלי E1', RED), ('רצף פלסטיני', WHITE)], 150, 84, eo((t - t_red) / .4))
     if t_opt < t < t_red:
-        a = eo((t - t_opt - .6) / .3); im.alpha_composite(alpha_layer(lambda l, d: (chipbar(d, 1560, [('ירושלים ↔ מעלה אדומים', BLUE, WHITE)]), chipbar(d, 1660, [('רמאללה ↔ בית לחם', RED, WHITE)])), a * (1 - eo((t - t_red + .3) / .3))))
+        a = eo((t - t_opt - .6) / .3); im.alpha_composite(alpha_layer(lambda l, d: (chipbar(d, 1560, [('ירושלים – מעלה אדומים', BLUE, WHITE)]), chipbar(d, 1660, [('רמאללה – בית לחם', RED, WHITE)])), a * (1 - eo((t - t_red + .3) / .3))))
     lower_a(im, 'רצף מרמאללה עד בית לחם:\nבדיוק מה שמדינה פלסטינית צריכה', eo((t - t_red - 1.6) / .4))
     corner_tag(ImageDraw.Draw(im), 'הגבולות להמחשה'); return im, None
 def s5(t, D):
