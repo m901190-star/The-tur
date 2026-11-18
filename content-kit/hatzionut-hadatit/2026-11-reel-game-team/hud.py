@@ -10,10 +10,11 @@ def hud(src, out, mission, sub=None, done=False):
     lay = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
     # mission box top-right (RTL)
     fm = F(SEC, 30); fh = F('/tmp/claude-0/-home-user-The-tur/1a5819ee-0cc0-5045-b086-4a8a80216453/scratchpad/fonts/Rubik-700.ttf', 46); x1 = W - 40; y = 90
-    d.text((x1, y), 'משימה', font=fm, fill=LT + (255,), anchor='ra', direction='rtl')
-    tw = d.textlength(mission, font=fh, direction='rtl')
-    d.rectangle((x1 - tw - 30, y + 44, x1 + 10, y + 120), fill=(0, 0, 0, 120))
-    d.text((x1 - 10, y + 50), mission, font=fh, fill='white', anchor='ra', direction='rtl')
+    if mission:
+      d.text((x1, y), 'משימה', font=fm, fill=LT + (255,), anchor='ra', direction='rtl')
+      tw = d.textlength(mission, font=fh, direction='rtl')
+      d.rectangle((x1 - tw - 30, y + 44, x1 + 10, y + 120), fill=(0, 0, 0, 120))
+      d.text((x1 - 10, y + 50), mission, font=fh, fill='white', anchor='ra', direction='rtl')
     if sub: d.text((x1 - 10, y + 132), sub, font=F(SEC, 32), fill=(255, 255, 255, 255), stroke_width=3, stroke_fill=(0, 0, 0, 255), anchor='ra', direction='rtl')
     # minimap bottom-left
     cx, cy, r = 150, H - 230, 105
