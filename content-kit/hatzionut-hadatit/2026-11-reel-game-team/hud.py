@@ -7,9 +7,11 @@ W, H = 1080, 1920; LT = (105, 180, 189)
 def F(p, s): return ImageFont.truetype(p, s, layout_engine=ImageFont.Layout.RAQM)
 def hud(src, out, mission, sub=None, done=False):
     im = ImageOps.fit(Image.open(src).convert('RGB'), (W, H), Image.LANCZOS).convert('RGBA')
+    im.alpha_composite(overlay(mission, sub, done)); im.convert('RGB').save(out, quality=92)
+def overlay(mission, sub=None, done=False, slide=1.0):
     lay = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
     # mission box top-right (RTL)
-    fm = F(SEC, 30); fh = F('/tmp/claude-0/-home-user-The-tur/1a5819ee-0cc0-5045-b086-4a8a80216453/scratchpad/fonts/Rubik-700.ttf', 46); x1 = W - 40; y = 90
+    fm = F(SEC, 30); fh = F('/tmp/claude-0/-home-user-The-tur/1a5819ee-0cc0-5045-b086-4a8a80216453/scratchpad/fonts/Rubik-700.ttf', 46); x1 = W - 40 + int((1 - slide) * 900); y = 90
     if mission:
       d.text((x1, y), 'משימה', font=fm, fill=LT + (255,), anchor='ra', direction='rtl')
       tw = d.textlength(mission, font=fh, direction='rtl')
@@ -33,7 +35,7 @@ def hud(src, out, mission, sub=None, done=False):
         fd = F(KB, 110); t = 'משימה הושלמה ✓'
         d.rectangle((0, H / 2 - 90, W, H / 2 + 90), fill=(0, 0, 0, 140))
         d.text((W / 2, H / 2), 'משימה הושלמה', font=fd, fill=(255, 210, 60, 255), anchor='mm', direction='rtl', stroke_width=4, stroke_fill=(0, 0, 0, 255))
-    im.alpha_composite(lay); im.convert('RGB').save(out, quality=92)
+    return lay
 if __name__ == '__main__':
     G = HERE + '/gen/'
     S = [('c-scene1.png', 'כלכלה חזקה במלחמה בשבע חזיתות', None, False),
