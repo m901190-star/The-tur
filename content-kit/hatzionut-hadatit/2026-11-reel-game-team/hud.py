@@ -36,7 +36,7 @@ def hud(src, out, mission, sub=None, done=False):
 if __name__ == '__main__':
     G = HERE + '/gen/'
     S = [('c-scene1.png', 'כלכלה חזקה במלחמה בשבע חזיתות', None, False),
-         ('c-scene2.png', 'מרכיבי ביטחון', None, False),
+         ('c-scene2-cu.png', 'מרכיבי ביטחון', None, False),
          ('c-scene3.png', 'למעלה מ־\u2066100\u2069 יישובים', 'הניחו את הקרוואן', False),
          ('c-scene4.png', 'למעלה מ־\u2066140\u2069 חוות', None, False)]
     outs = []
