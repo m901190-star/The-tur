@@ -36,9 +36,9 @@ def hud(src, out, mission, sub=None, done=False):
 if __name__ == '__main__':
     G = HERE + '/gen/'
     S = [('scene1.png', 'כלכלה חזקה במלחמה בשבע חזיתות', None, False),
-         ('scene2.png', 'למעלה מ־\u2066100\u2069 יישובים', 'סעו לגבעה', False),
+         ('scene2-security.png', 'למעלה מ־\u2066100\u2069 יישובים', 'מרכיבי ביטחון', False),
          ('scene3.png', 'למעלה מ־\u2066100\u2069 יישובים', 'הניחו את הקרוואן', False),
-         ('scene4.png', 'למעלה מ־\u2066140\u2069 חוות', None, True)]
+         ('scene4.png', 'למעלה מ־\u2066140\u2069 חוות', None, False)]
     outs = []
     for i, (f, m, sub, done) in enumerate(S, 1):
         if os.path.exists(G + f): o = HERE + f'/sketch3-{i}.jpg'; hud(G + f, o, m, sub, done); outs.append(o)
