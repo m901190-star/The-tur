@@ -6,7 +6,7 @@ FPS, OW, OH = 30, 720, 1280
 def eo(x): x = max(0., min(1., x)); return 1 - (1 - x) ** 3
 def eio(x): x = max(0., min(1., x)); return x * x * (3 - 2 * x)
 def dur(f): return float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f], capture_output=True, text=True).stdout)
-VOF = [HERE + f'/vo3/{k:02d}.wav' for k in range(1, 12)]   # client's ElevenLabs voice 'קריין אוטובוס', vocalized, 'E-echad'
+VOF = [HERE + f'/vo4/{k:02d}.mp3' for k in range(1, 12)]   # vidIQ native Hebrew narrator Itamar, vocalized, E-echad
 VD = [dur(f) for f in VOF]; LEAD = .25; PAD = [.35, .45, .5, .6, .6, .5, .45, .45, .5, .55, 1.2]
 D = [VD[k] + LEAD + PAD[k] for k in range(11)]
 # fast finish: cached vignette + grain
