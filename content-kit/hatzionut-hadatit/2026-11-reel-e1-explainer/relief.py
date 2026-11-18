@@ -13,7 +13,7 @@ def shaded():
     slope = np.pi / 2 - np.arctan(np.hypot(dx, dy) * 1.6); asp = np.arctan2(-dx, dy)
     az, alt = math.radians(315), math.radians(40)
     hs = np.sin(alt) * np.sin(slope) + np.cos(alt) * np.cos(slope) * np.cos(az - asp); hs = np.clip(hs, 0, 1)
-    stops = [(-420, (10, 26, 30)), (-200, (16, 40, 44)), (0, (24, 58, 62)), (300, (38, 84, 88)), (600, (62, 120, 126)), (850, (104, 168, 174)), (1000, (150, 200, 204))]
+    stops = [(-420, (8, 30, 40)), (-200, (14, 50, 60)), (0, (24, 74, 80)), (300, (38, 104, 108)), (600, (60, 142, 146)), (800, (110, 190, 190)), (1000, (190, 226, 214))]
     e = np.clip(z, -420, 1000); col = np.zeros(z.shape + (3,), np.float32)
     for (a, ca), (b, cb) in zip(stops, stops[1:]):
         m = (e >= a) & (e <= b); t = ((e - a) / (b - a))[m][:, None]; col[m] = np.array(ca) * (1 - t) + np.array(cb) * t
