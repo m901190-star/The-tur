@@ -6,7 +6,7 @@ FPS, OW, OH = 30, 720, 1280
 def eo(x): x = max(0., min(1., x)); return 1 - (1 - x) ** 3
 def eio(x): x = max(0., min(1., x)); return x * x * (3 - 2 * x)
 def dur(f): return float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f], capture_output=True, text=True).stdout)
-VOF = [HERE + f'/vo/{k:02d}.mp3' for k in range(1, 12)]; VOF[9] = HERE + '/vo/10b.mp3'
+VOF = [HERE + f'/vo2/{k:02d}.mp3' for k in range(1, 12)]; VOF[6] = HERE + '/vo2/07c.mp3'   # Barrett, vocalized, 'E-echad'
 VD = [dur(f) for f in VOF]; LEAD = .25; PAD = [.35, .45, .5, .6, .6, .5, .45, .45, .5, .55, 1.2]
 D = [VD[k] + LEAD + PAD[k] for k in range(11)]
 # fast finish: cached vignette + grain
