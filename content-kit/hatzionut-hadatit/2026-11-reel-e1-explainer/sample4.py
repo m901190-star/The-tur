@@ -32,6 +32,22 @@ def abbas_badge(d, x, y, r=46):
 def pa_zone(im, v, lat, lon, rad_px):
     x, y = v.xy(lat, lon); lay = Image.new('RGBA', (W, H)); ld = ImageDraw.Draw(lay)
     ld.ellipse((x - rad_px, y - rad_px, x + rad_px, y + rad_px), fill=RED + (70,)); lay = lay.filter(ImageFilter.GaussianBlur(rad_px * .35)); im.alpha_composite(lay)
+import random, math as _m
+def blob(lat, lon, ry, rx, seed, n=28):
+    rnd = random.Random(seed); ph = [rnd.uniform(0, 6.28) for _ in range(3)]
+    return [(lat + ry * (1 + .14 * _m.sin(3 * t + ph[0]) + .08 * _m.sin(5 * t + ph[1])) * _m.sin(t), lon + rx * (1 + .14 * _m.cos(2 * t + ph[2]) + .08 * _m.sin(4 * t + ph[0])) * _m.cos(t)) for t in [k * 6.283 / n for k in range(n)]]
+AREAS = {'רמאללה': blob(31.905, 35.212, .022, .026, 1), 'בית לחם': blob(31.708, 35.205, .016, .028, 2),
+         'ירושלים': blob(31.792, 35.205, .058, .046, 3, 36),
+         'מעלה אדומים': blob(31.776, 35.302, .011, .024, 4)}
+def area(im, v, pts, col, a=95, w=5):
+    lay = Image.new('RGBA', (W, H)); ld = ImageDraw.Draw(lay); P = [v.xy(*p) for p in pts]
+    ld.polygon(P, fill=col + (a,)); im.alpha_composite(lay); d = ImageDraw.Draw(im); d.line(P + [P[0]], fill=col + (255,), width=w, joint='curve'); d.line(P + [P[0]], fill=(255, 255, 255, 140), width=2)
+def band(im, v, pts, col, w, a=150):
+    lay = Image.new('RGBA', (W, H)); ld = ImageDraw.Draw(lay); P = [v.xy(*p) for p in pts]
+    ld.line(P, fill=col + (a,), width=w, joint='curve')
+    for x, y in (P[0], P[-1]): ld.ellipse((x - w / 2, y - w / 2, x + w / 2, y + w / 2), fill=col + (a,))
+    lay = lay.filter(ImageFilter.GaussianBlur(4)); im.alpha_composite(lay)
+BLUE = (40, 110, 210)
 OUT = []
 # 3 vivid
 v = View(31.787, 35.262, 1.75); im = mapbase(v); d = ImageDraw.Draw(im)
@@ -48,27 +64,30 @@ OUT.append(('03', finish2(im)))
 # 4 vivid: corridor with PA
 def mapPA(v, cut):
     im = mapbase(v, .05)
-    for n in ('רמאללה', 'בית לחם'): pa_zone(im, v, *PL[n], 120)
-    if cut: path(im, v, CORR[:3], RED + (255,), 18); path(im, v, CORR[4:], RED + (255,), 18)
-    else: path(im, v, CORR, RED + (255,), 18)
+    for n in ('רמאללה', 'בית לחם'): area(im, v, AREAS[n], RED)
+    area(im, v, AREAS['ירושלים'], BLUE, 80); area(im, v, AREAS['מעלה אדומים'], BLUE, 80)
+    if cut:
+        band(im, v, CORR[:3], RED, 70); band(im, v, CORR[4:], RED, 70)
+        band(im, v, [(31.788, 35.235), (31.798, 35.27), (31.782, 35.295)], BLUE, 120, 215)
+    else: band(im, v, CORR, RED, 70)
     d = ImageDraw.Draw(im); return im, d
 v = View(31.80, 35.25, .78)
-im, d = mapPA(v, False); P = [v.xy(*p) for p in CORR]; (xa, ya), (xb, yb) = P[-2], P[-1]; import math; a = math.atan2(yb - ya, xb - xa); L = 54
-d.polygon([(xb + 12 * math.cos(a), yb + 12 * math.sin(a)), (xb - L * math.cos(a - .5), yb - L * math.sin(a - .5)), (xb - L * math.cos(a + .5), yb - L * math.sin(a + .5))], fill=RED)
+im, d = mapPA(v, False)
 def places(d, v):
     for n, c, s_ in [('רמאללה', RED, 'l'), ('בית לחם', RED, 'l'), ('ירושלים', GOLD, 'l'), ('מעלה אדומים', LT, 'b')]:
         x, y = pin(d, v, *PL[n], c, 13); label(d, v, *PL[n], n, s_, 46, dot=False)
         if c == RED: abbas_badge(d, x, y)
         else: flag(d, x + 4, y - 12, .8)
 places(d, v); headline(d, [('בלי E1', RED), ('רצף פלסטיני', WHITE)], 150, 84)
-lower(d, 'רצף מרמאללה עד בית לחם:\nבדיוק מה שמדינה פלסטינית צריכה'); OUT.append(('04', finish2(im)))
+lower(d, 'רצף מרמאללה עד בית לחם:\nבדיוק מה שמדינה פלסטינית צריכה'); corner_tag(d, 'הגבולות להמחשה'); OUT.append(('04', finish2(im)))
 # 5 vivid
 im, d = mapPA(v, True)
 lay = Image.new('RGBA', (W, H)); ld = ImageDraw.Draw(lay); ld.polygon([v.xy(*p) for p in E1], fill=GOLD + (200,)); lay = lay.filter(ImageFilter.GaussianBlur(40)); im.alpha_composite(lay); poly(im, v, E1, GOLD + (240,), WHITE, 6); d = ImageDraw.Draw(im)
 cx = sum(v.xy(*p)[0] for p in E1) / 5; cy = sum(v.xy(*p)[1] for p in E1) / 5
-d.rounded_rectangle((cx - 160, cy - 50, cx + 160, cy + 50), 50, fill=GOLD, outline=WHITE, width=5); T(d, (cx, cy), 'נחסם', F(KB, 66), fill=NIGHT, sh=False)
+cx, cy = cx + 250, cy - 110
+d.rounded_rectangle((cx - 140, cy - 48, cx + 140, cy + 48), 48, fill=GOLD, outline=WHITE, width=5); T(d, (cx, cy), 'נחסם', F(KB, 64), fill=NIGHT, sh=False)
 places(d, v); headline(d, [('עם E1', GOLD), ('הרצף נחתך', WHITE)], 150, 84, hl=1)
-lower(d, 'לכן קוראים לזה "בולם":\nזה בולם מדינה פלסטינית'); OUT.append(('05', finish2(im)))
+lower(d, 'רצף ישראלי מירושלים למעלה אדומים\nחוצה את הרצף הפלסטיני'); corner_tag(d, 'הגבולות להמחשה'); OUT.append(('05', finish2(im)))
 # 6 vivid: houses
 v = View(31.80, 35.28, 1.6); im = mapbase(v, .35); d = ImageDraw.Draw(im)
 s_ = Image.open(HERE + '/src/smotrich-cut.png').convert('RGBA'); s_ = s_.resize((int(s_.width * 1150 / s_.height), 1150), Image.LANCZOS)
