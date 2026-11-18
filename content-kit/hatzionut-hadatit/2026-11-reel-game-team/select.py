@@ -6,7 +6,7 @@ KB = HERE + '/../../fonts/HaimClassicv2FM-Bold.ttf'; RUB = '/tmp/claude-0/-home-
 SEC = '/tmp/claude-0/-home-user-The-tur/1a5819ee-0cc0-5045-b086-4a8a80216453/scratchpad/shalev/fonts/SecularOne.ttf'
 W, H = 1080, 1920; LT = (105, 180, 189); GOLD = (255, 205, 70)
 def F(p, s): return ImageFont.truetype(p, s, layout_engine=ImageFont.Layout.RAQM)
-im = ImageOps.fit(Image.open(HERE + '/gen/select.png').convert('RGB'), (W, H), Image.LANCZOS).convert('RGBA')
+im = ImageOps.fit(Image.open(HERE + '/gen/select-v2.png').convert('RGB'), (W, H), Image.LANCZOS).convert('RGBA')
 ov = Image.new('RGBA', (W, H)); od = ImageDraw.Draw(ov)
 for y in range(H): od.line((0, y, W, y), fill=(8, 10, 16, int(230 * max(0, (y - 1150) / 770) ** 1.1)))
 im.alpha_composite(ov); d = ImageDraw.Draw(im); R = W - 60
