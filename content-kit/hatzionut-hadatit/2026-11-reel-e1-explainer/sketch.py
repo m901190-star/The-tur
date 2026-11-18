@@ -25,7 +25,8 @@ def sub(d, t, y=1640):
         d.rounded_rectangle((W / 2 - tw / 2 - 24, yy - 34, W / 2 + tw / 2 + 24, yy + 34), 14, fill=(0, 0, 0))
         rtl(d, (W / 2, yy), l, f)
 # --- schematic geography (not to scale) ---
-P = {'ירושלים': (420, 900), 'מעלה אדומים': (720, 880), 'רמאללה': (440, 430), 'בית לחם': (430, 1310)}
+DX = -110
+P = {k: (x + DX, y) for k, (x, y) in {'ירושלים': (420, 900), 'מעלה אדומים': (740, 880), 'רמאללה': (440, 430), 'בית לחם': (430, 1310)}.items()}
 def city(d, name, r=26, col=WHITE, lab=True, side='r'):
     x, y = P[name]; d.ellipse((x - r, y - r, x + r, y + r), fill=col, outline=NIGHT, width=5)
     if lab:
@@ -35,9 +36,10 @@ def city(d, name, r=26, col=WHITE, lab=True, side='r'):
         else: rtl(d, (x, y - r - 40), name, f)
 def e1_zone(im, alpha=200, col=GOLD):
     lay = Image.new('RGBA', (W, H)); ld = ImageDraw.Draw(lay)
-    ld.polygon([(500, 820), (700, 790), (735, 870), (690, 960), (520, 975), (470, 900)], fill=col + (alpha,), outline=WHITE + (255,))
+    ld.polygon([(x + DX, y) for x, y in [(500, 820), (700, 790), (725, 870), (690, 960), (520, 975), (470, 900)]], fill=col + (alpha,), outline=WHITE + (255,))
     im.paste(Image.alpha_composite(im.convert('RGBA'), lay).convert('RGB'))
 def arrow(d, pts, col, w=18, head=True):
+    pts = [(x + DX, y) for x, y in pts]
     d.line(pts, fill=col, width=w, joint='curve')
     if head:
         (x0, y0), (x1, y1) = pts[-2], pts[-1]; a = math.atan2(y1 - y0, x1 - x0); L = 46
@@ -58,7 +60,7 @@ im = bg(); d = ImageDraw.Draw(im)
 d.line((P['ירושלים'], P['מעלה אדומים']), fill=(120, 140, 140), width=6)
 e1_zone(im); d = ImageDraw.Draw(im)
 for n, s in [('ירושלים', 'l'), ('מעלה אדומים', 'r')]: city(d, n, side=s)
-rtl(d, (600, 890), 'E1', F(SEC, 70), fill=NIGHT, anchor='mm')
+rtl(d, (600 + DX, 890), 'E1', F(SEC, 70), fill=NIGHT, anchor='mm')
 title(d, 'שטח פתוח בין\nירושלים למעלה אדומים', 230, 90)
 sub(d, 'בנייה ב־E1 מחברת את מעלה אדומים\nלירושלים ברצף אחד'); tag(d); frames.append(('02-map-where', im))
 # 3 map: the palestinian contiguity
@@ -74,7 +76,7 @@ arrow(d, [(470, 470), (650, 620), (640, 790)], RED, 22, head=False)
 arrow(d, [(640, 990), (560, 1150), (460, 1280)], RED, 22, head=False)
 e1_zone(im, 235); d = ImageDraw.Draw(im)
 for n, s in [('ירושלים', 'l'), ('מעלה אדומים', 'r'), ('רמאללה', 'l'), ('בית לחם', 'l')]: city(d, n, r=22, side=s)
-cx, cy = 600, 890; d.ellipse((cx - 120, cy - 120, cx + 120, cy + 120), outline=RED, width=16); d.line((cx - 85, cy - 85, cx + 85, cy + 85), fill=RED, width=16)
+cx, cy = 600 + DX, 890; d.ellipse((cx - 120, cy - 120, cx + 120, cy + 120), outline=RED, width=16); d.line((cx - 85, cy - 85, cx + 85, cy + 85), fill=RED, width=16)
 title(d, 'עם E1:', 200, 110, GOLD)
 rtl(d, (W / 2, 330), 'הרצף נחסם', F(KB, 74))
 sub(d, 'לכן קוראים לזה "בולם":\nזה בולם את המדינה הפלסטינית'); tag(d); frames.append(('04-map-blocked', im))
