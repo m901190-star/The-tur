@@ -8,7 +8,7 @@ FONT = os.path.join(KIT, 'fonts', 'HaimClassicv2FM-Bold.ttf')
 LOGO = os.path.join(KIT, 'clients', 'hatzionut-hadatit', 'logo.png')
 OUT = os.path.join(HERE, 'shots', 'shot8_closer.mp4')
 
-W, H, FPS, DUR = 720, 1280, 30, 3.0
+W, H, FPS, DUR = 720, 1280, 30, 3.5
 DEEP, TEAL, LT = (43, 81, 85), (80, 146, 153), (105, 180, 189)
 DARK = (14, 28, 30)
 
@@ -44,17 +44,27 @@ if tw > W - 80:
     font = ImageFont.truetype(FONT, int(92 * (W - 80) / tw))
     bb = td.textbbox((0, 0), txt, font=font, direction='rtl', language='he')
     tw = bb[2] - bb[0]
-ty = int(H * 0.36)
+ty = int(H * 0.33)
 td.text(((W - tw) / 2 - bb[0], ty), txt, font=font, fill=(255, 255, 255, 255), direction='rtl', language='he')
 # underline accent
 lw = 140
 td.rectangle([(W - lw) / 2, ty + (bb[3] - bb[1]) + 40, (W + lw) / 2, ty + (bb[3] - bb[1]) + 46], fill=LT + (255,))
 shadow = tl.filter(ImageFilter.GaussianBlur(10))
 
+# sign-off line
+font2 = ImageFont.truetype(FONT, 50)
+txt2 = 'בברכת חברים לתורה ולעבודה,'
+sl = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+sd = ImageDraw.Draw(sl)
+b2 = sd.textbbox((0, 0), txt2, font=font2, direction='rtl', language='he')
+sy = int(H * 0.52)
+sd.text(((W - (b2[2] - b2[0])) / 2 - b2[0], sy), txt2, font=font2, fill=(173, 213, 217, 255), direction='rtl', language='he')
+sshadow = sl.filter(ImageFilter.GaussianBlur(8))
+
 logo = Image.open(LOGO).convert('RGBA')
 lw_ = 420
 logo = logo.resize((lw_, int(logo.height * lw_ / logo.width)), Image.LANCZOS)
-ly = int(H * 0.56)
+ly = int(H * 0.60)
 
 def ease(t):
     t = max(0.0, min(1.0, t))
@@ -89,7 +99,15 @@ for f in range(n):
         tx = tl.copy(); tx.putalpha(tx.getchannel('A').point(lambda v: int(v * a1)))
         layer.alpha_composite(tx, (0, off))
         im = Image.alpha_composite(im, layer)
-    a2 = ease((t - 0.9) / 0.7)
+    a3 = ease((t - 0.8) / 0.6)
+    if a3 > 0:
+        layer = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+        sh = sshadow.copy(); sh.putalpha(sh.getchannel('A').point(lambda v: int(v * 0.8 * a3)))
+        layer.alpha_composite(sh, (0, 3))
+        tx = sl.copy(); tx.putalpha(tx.getchannel('A').point(lambda v: int(v * a3)))
+        layer.alpha_composite(tx, (0, int((1 - a3) * 16)))
+        im = Image.alpha_composite(im, layer)
+    a2 = ease((t - 1.3) / 0.6)
     if a2 > 0:
         lg = logo.copy(); lg.putalpha(lg.getchannel('A').point(lambda v: int(v * a2)))
         im.alpha_composite(lg, ((W - lw_) // 2, ly + int((1 - a2) * 20)))
