@@ -53,7 +53,7 @@ shadow = tl.filter(ImageFilter.GaussianBlur(10))
 
 # sign-off line
 font2 = ImageFont.truetype(FONT, 50)
-txt2 = 'בברכת חברים לתורה ולעבודה,'
+txt2 = 'בברכת חברים לתורה ועבודה,'
 sl = Image.new('RGBA', (W, H), (0, 0, 0, 0))
 sd = ImageDraw.Draw(sl)
 b2 = sd.textbbox((0, 0), txt2, font=font2, direction='rtl', language='he')
