@@ -1,0 +1,10 @@
+{
+ "name": "JSR · חדר מצב יש״ע",
+ "full_name": "Judea and Samaria Situation Room",
+ "parent": "מועצת יש״ע",
+ "what": "Real-time, verified reporting on what is actually happening in Judea and Samaria (pushes from Telegram, X and other channels).",
+ "logo": {"file": "logo.png", "on_dark": "logo_dark_bg.png"},
+ "palette": {"deep_blue": "#2F4D71", "muted_gold": "#A2986F", "olive_gray": "#A4A9A0", "light_sand": "#CDC9B4", "white": "#FDFDFD"},
+ "reference": "palette.png",
+ "style": "Neon spec-ad style (content-kit/references/spec-ad-neon-style.md) adapted to the palette: gold neon on a deep-blue/black studio background."
+}
