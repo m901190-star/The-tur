@@ -1,11 +1,11 @@
 """Smotrich visit to Bnei Akiva Shabbat — summary reel.
-Hook: v01 (his line + 'יברך כבודו'), then beat-cut montage on a Splice house loop (124 bpm), RZ logo end card."""
+Hook: v01 (his line + 'יברך כבודו'), then beat-cut montage on a Splice guitar loops + drum loop (115 bpm), RZ logo end card."""
 import os, subprocess, json
 HERE = os.path.dirname(os.path.abspath(__file__))
 KIT = os.path.abspath(os.path.join(HERE, '..', '..'))
 LOGO = os.path.join(KIT, 'clients', 'hatzionut-hadatit', 'logo.png')
 W, H, FPS = 1080, 1920, 30
-BEAT = 60 / 124
+BEAT = 60 / 115
 SEG = 4 * BEAT            # one bar
 HOOK = ('src/v01.mov', 0.0, 6.9)
 MONTAGE = [  # (source, start, bars)
@@ -75,11 +75,11 @@ total = float(subprocess.check_output(['ffprobe', '-v', 'error', '-show_entries'
 hook_end = HOOK[2]
 # music: downbeat lands on the first montage cut; starts 2 bars earlier, low under the hook
 m_start = hook_end - 2 * SEG
-music = os.path.join(HERE, 'music', 'house_124_Fm.wav')
+music = os.path.join(HERE, 'music', 'bed_115.wav')
 fc = (f"[1:a]aloop=loop=-1:size=2e9,atrim=0:{total - m_start + 0.1},asetpts=N/SR/TB,"
       f"volume='if(lt(t,{2*SEG:.3f}),0.18+0.82*t/{2*SEG:.3f},1)':eval=frame,"
       f"afade=t=out:st={total - m_start - 1.6:.3f}:d=1.6,adelay={int(m_start*1000)}|{int(m_start*1000)},aresample=48000[m];"
-      f"[0:a]aresample=48000[v];[v][m]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-14:TP=-1.5:LRA=9[a]")
+      f"[0:a]aresample=48000[v];[v][m]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-14:TP=-1.5:LRA=9,alimiter=limit=0.84:level=false[a]")
 final = os.path.join(HERE, 'smotrich-bnei-akiva-summary.mp4')
 run(['ffmpeg', '-v', 'error', '-y', '-i', f'{TMP}/video.mp4', '-stream_loop', '-1', '-i', music,
      '-filter_complex', fc, '-map', '0:v', '-map', '[a]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
