@@ -8,22 +8,22 @@ W, H, FPS = 1080, 1920, 30
 BEAT = 60 / 115
 SEG = 4 * BEAT            # one bar
 HOOK = ('src/v01.mov', 0.0, 6.9)
-MONTAGE = [  # (source, start, bars)
+MONTAGE = [  # (source, start, bars) — interactions only: walking, handshakes, hugs, selfies
     ('src/v02.mov', 0.0, 1),
-    ('src/v12.mov', 1.8, 1),
-    ('src/v06.mov', 16.6, 1),
-    ('src/v02.mov', 4.6, 1),
-    ('src/p07.jpg', 0, 1),
-    ('src/v04.mov', 10.0, 1),
-    ('src/v05.mov', 49.5, 1),
-    ('src/v12.mov', 8.8, 1),
-    ('src/v06.mov', 40.2, 1),
+    ('src/v06.mov', 15.6, 1),
+    ('src/v02.mov', 2.2, 1),
+    ('src/v06.mov', 31.4, 1),
+    ('src/v12.mov', 1.2, 1),
+    ('src/v02.mov', 4.4, 1),
+    ('src/v06.mov', 38.4, 1),
     ('src/p04.jpg', 0, 1),
-    ('src/v05.mov', 68.5, 1),
-    ('src/v07.mov', 9.0, 1),
+    ('src/v06.mov', 47.0, 1),
     ('src/p03.jpg', 0, 1),
-    ('src/v02.mov', 11.0, 1),
-    ('src/v05.mov', 83.0, 2),
+    ('src/v12.mov', 8.8, 1),
+    ('src/v06.mov', 63.6, 1),
+    ('src/p10.jpg', 0, 1),
+    ('src/v11.mov', 6.3, 1),
+    ('src/v06.mov', 14.0, 2),
 ]
 END = 2.2
 TMP = os.path.join(HERE, '_tmp'); os.makedirs(TMP, exist_ok=True)
