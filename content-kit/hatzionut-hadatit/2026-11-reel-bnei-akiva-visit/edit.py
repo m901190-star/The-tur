@@ -79,7 +79,7 @@ music = os.path.join(HERE, 'music', 'bed_115.wav')
 fc = (f"[1:a]aloop=loop=-1:size=2e9,atrim=0:{total - m_start + 0.1},asetpts=N/SR/TB,"
       f"volume='if(lt(t,{2*SEG:.3f}),0.18+0.82*t/{2*SEG:.3f},1)':eval=frame,"
       f"afade=t=out:st={total - m_start - 1.6:.3f}:d=1.6,adelay={int(m_start*1000)}|{int(m_start*1000)},aresample=48000[m];"
-      f"[0:a]aresample=48000[v];[v][m]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-14:TP=-1.5:LRA=9,alimiter=limit=0.84:level=false[a]")
+      f"[0:a]aresample=48000[v];[v][m]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-14:TP=-1.5:LRA=9[a]")
 final = os.path.join(HERE, 'smotrich-bnei-akiva-summary.mp4')
 run(['ffmpeg', '-v', 'error', '-y', '-i', f'{TMP}/video.mp4', '-stream_loop', '-1', '-i', music,
      '-filter_complex', fc, '-map', '0:v', '-map', '[a]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
