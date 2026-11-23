@@ -41,7 +41,9 @@ for i, l in enumerate(lines):
     d.text((R - 30, y + i * lh), l, font=f1, fill=(255, 255, 255), anchor='ra', direction='rtl')
 y2 = y + lh * len(lines) + 30; f2 = F(80); t = 'אלא לב הארץ והמדינה.'
 tw = d.textlength(t, font=f2, direction='rtl')
-d.rounded_rectangle((R - tw - 56, y2 + 10, R + 6, y2 + 106), 14, fill=LT)
-d.text((R - 24, y2), t, font=f2, fill=DEEP, anchor='ra', direction='rtl')
-print('bottom', y2 + 106)
+bb = d.textbbox((0, 0), t, font=f2, anchor='ls', direction='rtl')  # ink box relative to baseline
+ink_h = bb[3] - bb[1]; pad = 22; p0, p1 = y2 + 10, y2 + 10 + ink_h + 2 * pad
+d.rounded_rectangle((R - tw - 56, p0, R + 6, p1), 14, fill=LT)
+d.text((R - 24, p0 + pad - bb[1]), t, font=f2, fill=DEEP, anchor='rs', direction='rtl')
+print('bottom', p1)
 im.convert('RGB').save(HERE + '/post.jpg', quality=95)
