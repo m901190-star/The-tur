@@ -28,7 +28,7 @@ CAPS = [
     (24.45, 27.40, 'אבל רק לחלקנו יש מקום בתאגיד השידור הציבורי', False, None),
 ]
 OUT_T, IN_T, END_V = 27.87, 29.97, 32.44
-LOGO_D = 1.6
+LOGO_D = 0.0
 def F(s): return ImageFont.truetype(HAIM, s, layout_engine=ImageFont.Layout.RAQM)
 def FL(s): return ImageFont.truetype(LAT, s)
 def ease(t): t = max(0., min(1., t)); return 1 - (1 - t) ** 3
@@ -95,8 +95,7 @@ def overlay(im, t):
         h = HOOK.copy(); h.putalpha(h.getchannel('A').point(lambda v: int(v * a))); im.alpha_composite(h, (0, 0))
     for (s, e, txt, hl, em) in CAPS:
         if s <= t < e + .12:
-            c = caption_img(txt, hl); p = ease((t - s) / .18)
-            c2 = c.copy(); c2.putalpha(c2.getchannel('A').point(lambda v: int(v * p))); im.alpha_composite(c2, (0, 1230 + int((1 - p) * 30)))
+            pass  # captions removed: user adds his own transcription
             if em:
                 k = back((t - s) / .35); sz = max(1, int(170 * k)); g = emoji(em, 170).resize((sz, sz), Image.LANCZOS)
                 im.alpha_composite(g, (W // 2 - sz // 2, 1120 - sz // 2))
@@ -123,7 +122,7 @@ while True:
     im = overlay(fr.convert('RGBA'), t); last = im
     enc.stdin.write(im.convert('RGB').tobytes()); n += 1
 bg = Image.new('RGBA', (W, H), NIGHT + (255,))
-for k in range(int(LOGO_D * FPS)):
+for k in range(0):
     t = k / FPS; a = ease(t / .4); im = Image.blend(last, bg, a)
     g = logo.copy(); g.putalpha(g.getchannel('A').point(lambda v: int(v * ease((t - .25) / .4))))
     im.alpha_composite(g, ((W - logo.width) // 2, (H - logo.height) // 2)); enc.stdin.write(im.convert('RGB').tobytes())
@@ -140,7 +139,7 @@ def add(x, t, g): i = int(t * sr); m = min(len(x), N - i); out[i:i + m] += g * x
 voice = load(HERE + '/source.mov', 'highpass=f=80,afftdn=nf=-25,acompressor=threshold=-20dB:ratio=3:attack=5:release=120,loudnorm=I=-16:TP=-2')
 add(voice, 0, 1.0)
 mus = load(MUSIC); mus /= np.abs(mus).max(); mus = np.tile(mus, (N // len(mus) + 2, 1))[:N]
-env = np.interp(np.arange(N) / sr, [0, .3, END_V - .5, END_V, total - .4, total], [0, .085, .085, .22, .22, 0])
+env = np.interp(np.arange(N) / sr, [0, .3, END_V - .5, END_V, total - .3, total], [0, .085, .085, .085, .085, 0])
 out += mus * env[:, None]
 def sfx(n_): x = load(f'{SFX}/{n_}.wav'); return x / (np.abs(x).max() + 1e-9)
 add(sfx('whoosh'), 0, .25)
