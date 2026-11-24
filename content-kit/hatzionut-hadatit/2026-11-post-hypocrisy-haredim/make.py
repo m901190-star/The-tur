@@ -10,7 +10,7 @@ def portrait(path, cen, w):
     im = Image.open(path).convert('RGB')
     if im.width < 600: im = im.resize((im.width * 3, im.height * 3), Image.LANCZOS).filter(ImageFilter.UnsharpMask(2, 60, 2))
     im = ImageOps.fit(im, (w, PH), Image.LANCZOS, centering=cen)
-    im = ImageEnhance.Color(im).enhance(.85); return ImageEnhance.Brightness(im).enhance(.92)
+    im = ImageOps.grayscale(im).convert('RGB'); im = ImageEnhance.Contrast(im).enhance(1.15); return ImageEnhance.Brightness(im).enhance(.9)
 base = Image.new('RGB', (W, H), NIGHT)
 L = portrait(HERE + '/eisenkot.jpg', (.5, .35), 640)      # left
 R = portrait(HERE + '/goldknopf.jpg', (.5, .25), 640)     # right
