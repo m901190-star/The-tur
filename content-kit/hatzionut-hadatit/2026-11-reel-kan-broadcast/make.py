@@ -90,7 +90,7 @@ def zoom_for(t):
             return 1.0 if i % 2 == 0 else 1.10
     return 1.14 if t >= OUT_T else 1.0
 def overlay(im, t):
-    if t < 3.6:
+    if False:  # hook title removed per client
         a = 1 - ease((t - 3.2) / .4) if t > 3.2 else 1.0
         h = HOOK.copy(); h.putalpha(h.getchannel('A').point(lambda v: int(v * a))); im.alpha_composite(h, (0, 0))
     for (s, e, txt, hl, em) in CAPS:
@@ -142,7 +142,7 @@ mus = load(MUSIC); mus /= np.abs(mus).max(); mus = np.tile(mus, (N // len(mus) +
 env = np.interp(np.arange(N) / sr, [0, .3, END_V - .5, END_V, total - .3, total], [0, .085, .085, .085, .085, 0])
 out += mus * env[:, None]
 def sfx(n_): x = load(f'{SFX}/{n_}.wav'); return x / (np.abs(x).max() + 1e-9)
-add(sfx('whoosh'), 0, .25)
+
 for (s, e, txt, hl, em) in CAPS:
     if em: add(sfx('pop_soft'), s, .22)
 add(sfx('impact'), OUT_T, .3); add(sfx('ding'), IN_T, .28)
