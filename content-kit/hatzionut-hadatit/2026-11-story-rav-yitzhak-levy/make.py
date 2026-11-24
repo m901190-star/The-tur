@@ -31,7 +31,7 @@ y = py + ph + 55
 def ctr(t, f, y, fill):
     d.text((W / 2, y), t, font=f, fill=fill, anchor='ma', direction='rtl')
 ctr('הרב יצחק לוי ז״ל', F(104), y, (255, 255, 255))
-ctr('יו״ר המפד״ל ושר לשעבר', F(50), y + 135, SOFT)
+ctr('יו״ר המפד״ל ושר החינוך לשעבר', F(50), y + 135, SOFT)
 d.line((W / 2 - 70, y + 225, W / 2 + 70, y + 225), fill=SOFT, width=2)
 ctr('יהי זכרו ברוך', F(64), y + 255, (255, 255, 255))
 ImageDraw.Draw(im).rectangle((ex - 14, ey - 14, ex + EW + 13, ey + EH + 13), outline=SOFT, width=3)
