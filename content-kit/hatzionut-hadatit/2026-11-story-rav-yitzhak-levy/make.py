@@ -7,20 +7,12 @@ W, H = 1080, 1920; INK = (14, 16, 18); SOFT = (205, 208, 210)
 def F(s): return ImageFont.truetype(HAIM, s, layout_engine=ImageFont.Layout.RAQM)
 def bw(im, c=1.08, b=1.0): return ImageEnhance.Brightness(ImageEnhance.Contrast(ImageOps.grayscale(im).convert('RGB')).enhance(c)).enhance(b)
 im = Image.new('RGB', (W, H), INK)
-# bottom: Smotrich at the lectern and the crowd, same full width and height, stacked with soft feathered seams (nothing covered)
-BH = 470; Y1 = H - 2 * BH + 60
-eu = ImageOps.fit(bw(Image.open(HERE + '/eulogy.jpg').convert('RGB'), 1.05, .68), (W, BH), Image.LANCZOS, centering=(.5, .3))
-cr = ImageOps.fit(bw(Image.open(HERE + '/crowd.jpg').convert('RGB'), 1.05, .62), (W, BH), Image.LANCZOS, centering=(.45, .55))
-def vmask(h, top, bot):
-    m = Image.new('L', (1, h))
-    for y in range(h):
-        v = 1.0
-        if top: v = min(v, y / top)
-        if bot: v = min(v, (h - 1 - y) / bot)
-        m.putpixel((0, y), int(255 * max(0, v) ** 1.3))
-    return m.resize((W, h))
-im.paste(eu, (0, Y1), vmask(BH, 160, 60))
-im.paste(cr, (0, Y1 + BH - 60), vmask(BH, 60, 0))
+# bottom: the crowd only (client request), full width, fading up into black
+CH = 860
+cr = ImageOps.fit(bw(Image.open(HERE + '/crowd.jpg').convert('RGB'), 1.05, .62), (W, CH), Image.LANCZOS, centering=(.45, .6))
+m = Image.new('L', (1, CH))
+for y in range(CH): m.putpixel((0, y), int(255 * min(1, y / 380) ** 1.4))
+im.paste(cr, (0, H - CH), m.resize((W, CH)))
 # portrait, framed
 pr = Image.open(HERE + '/rav-levy.jpg').convert('RGB')
 pr = pr.resize((pr.width * 2, pr.height * 2), Image.LANCZOS).filter(ImageFilter.UnsharpMask(2, 50, 2))
