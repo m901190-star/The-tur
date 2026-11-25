@@ -54,7 +54,7 @@ broll('close', [('1923', 0.5, 2.6), ('1866', 0.0, 4.0)], bg_gain=.2)
 # ---------------- headlines ----------------
 def headline(lines, top=150, size=72, hl_size=None):
     """lines: [(text, 'w'|'hl')]. White text in a navy box, 'hl' lines in light-blue pills."""
-    im = Image.new('RGBA', (W, 900), (0, 0, 0, 0)); d = ImageDraw.Draw(im); y = top
+    im = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im); y = top
     for txt, kind in lines:
         f = F(hl_size if (kind == 'hl' and hl_size) else size)
         bb = d.textbbox((0, 0), txt, font=f, anchor='ls', direction='rtl'); tw = bb[2] - bb[0]; ih = bb[3] - bb[1]
@@ -65,13 +65,13 @@ def headline(lines, top=150, size=72, hl_size=None):
         y += ih + 2 * pad + 14
     return im
 HL = {
-    'hook': headline([('נשות החוות', 'w'), ('בקו החזית', 'hl')], size=84),
-    'stat90': headline([('מתוכם 90 אירועי', 'w'), ('תקיפת רועים', 'hl')], top=600, size=96),
-    'front': headline([('נשות החוות נמצאות', 'w'), ('בחזית ההתיישבות', 'w'), ('ונדרשות לשאת באחריות', 'hl'), ('לביטחונן ולביטחון משפחתן', 'hl')], top=520, size=78),
-    'project': headline([('פרויקט ״אשת חייל״', 'hl'), ('ימי אימון מקצועיים וייחודיים', 'w'), ('לנשות החוות שמחזיקות', 'w'), ('ברישיון בתוקף', 'w')], top=520, size=74, hl_size=104),
-    'why': headline([('למה זה', 'w'), ('כל כך חשוב?', 'hl')], size=84),
-    'weapon': headline([('להחזיק נשק זה לא מספיק', 'w'), ('צריך לדעת להשתמש בו', 'hl')], size=74),
-    'close': headline([('זו האחריות שלנו כלפי המשפחות', 'w'), ('שנמצאות בחזית ועושות יום יום', 'w'), ('עבודה אדירה', 'hl'), ('למען ביטחון מדינת ישראל', 'hl')], top=470, size=72),
+    'hook': headline([('נשות החוות', 'w'), ('בקו החזית', 'hl')], size=118),
+    'stat90': headline([('מתוכם 90 אירועי', 'w'), ('תקיפת רועים', 'hl')], top=640, size=110),
+    'front': headline([('נשות החוות נמצאות', 'w'), ('בחזית ההתיישבות', 'w'), ('ונדרשות לשאת באחריות', 'hl'), ('לביטחונן ולביטחון משפחתן', 'hl')], top=470, size=88),
+    'project': headline([('פרויקט ״אשת חייל״', 'hl'), ('ימי אימון מקצועיים וייחודיים', 'w'), ('לנשות החוות שמחזיקות', 'w'), ('ברישיון בתוקף', 'w')], top=470, size=84, hl_size=120),
+    'why': headline([('למה זה', 'w'), ('כל כך חשוב?', 'hl')], size=118),
+    'weapon': headline([('להחזיק נשק', 'w'), ('זה לא מספיק', 'w'), ('צריך לדעת', 'hl'), ('להשתמש בו', 'hl')], size=104),
+    'close': headline([('זו האחריות שלנו כלפי המשפחות', 'w'), ('שנמצאות בחזית ועושות יום יום', 'w'), ('עבודה אדירה', 'hl'), ('למען ביטחון מדינת ישראל', 'hl')], top=420, size=84),
 }
 def stat635(t):
     im = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
@@ -79,7 +79,7 @@ def stat635(t):
     bb = d.textbbox((0, 0), s, font=f, anchor='ls'); tw = bb[2] - bb[0]
     d.rounded_rectangle((W / 2 - 300, 560, W / 2 + 300, 900), 24, fill=NAVY + (235,))
     d.text((W / 2, 870), s, font=f, fill='white', anchor='ms')
-    sub = headline([('פיגועי טרור', 'hl'), ('בחודשיים האחרונים', 'w')], top=930, size=86)
+    sub = headline([('פיגועי טרור', 'hl'), ('בחודשיים האחרונים', 'w')], top=930, size=96)
     im.alpha_composite(sub.crop((0, 0, W, 900)), (0, 0)) if False else im.alpha_composite(sub, (0, 0))
     return im
 def dim(im, a):  # darken footage behind full-screen cards
