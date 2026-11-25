@@ -118,8 +118,8 @@ def frames(src, t0, dur):
         b = p.stdout.read(W * H * 3)
         if len(b) < W * H * 3: break
         last = Image.frombytes('RGB', (W, H), b); yield last; n += 1
+    p.stdout.close(); p.kill(); p.wait()
     while n < int(round(dur * FPS)) and last is not None: yield last; n += 1
-    p.wait()
 enc = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
                         '-c:v', 'libx264', '-crf', '18', '-preset', 'medium', '-pix_fmt', 'yuv420p', HERE + '/_video.mp4'], stdin=subprocess.PIPE)
 AUD = []; T = 0.0; MARKS = []
