@@ -21,7 +21,9 @@ SPEECH = [[0.314, 3.782], [3.891, 7.44], [7.694, 8.905], [9.384, 10.138], [10.15
           [41.378, 42.398], [42.58, 44.837], [44.901, 52.798], [53.173, 62.045]]
 PAD = .14
 def iv_pieces(a, b):
-    """interview speech inside [a,b], pauses tightened"""
+    """continuous take — no jump cuts inside her speech (client note)"""
+    return [[a, b]]
+def _old_iv_pieces(a, b):
     out = []
     for s, e in SPEECH:
         if s >= a - .01 and e <= b + .01:
@@ -42,13 +44,13 @@ def interview(name, a, b, cutaways=()):
     SECTIONS.append(dict(name=name, pieces=pcs))
 def broll(name, clips, bg_gain=.35):
     SECTIONS.append(dict(name=name, pieces=[(B(n), st, d, B(n), st, bg_gain) for (n, st, d) in clips]))
-interview('hook', 0.0, 15.9)
+interview('hook', 0.15, 15.95)
 broll('stat635', [('1866', .3, 3.6)])
 broll('stat90', [('1862', .1, 2.0), ('1864', 1.0, 1.9)])
 broll('front', [('1806', 2.0, 4.2)])
 broll('project', [('1890', 0.0, 2.4), ('1790', 0.0, 2.6)])
-interview('why', 16.4, 44.9, cutaways=[(23.6, 27.4, B('1789'), 1.0), (37.0, 40.9, B('1798'), 1.5)])
-interview('weapon', 44.85, 62.1, cutaways=[(47.5, 51.0, B('1816'), 0.5), (57.0, 60.5, B('1864'), 3.0)])
+interview('why', 16.4, 23.25)
+interview('weapon', 44.8, 62.2, cutaways=[(47.5, 51.0, B('1816'), 0.5), (57.0, 60.5, B('1864'), 3.0)])
 broll('close', [('1923', 0.5, 2.6), ('1866', 0.0, 4.0)], bg_gain=.2)
 
 # ---------------- headlines: in a navy stripe ABOVE the footage, never over faces ----------------
