@@ -52,10 +52,10 @@ interview('weapon', 44.85, 62.1, cutaways=[(47.5, 51.0, B('1816'), 0.5), (57.0, 
 broll('close', [('1923', 0.5, 2.6), ('1866', 0.0, 4.0)], bg_gain=.2)
 
 # ---------------- headlines: in a navy stripe ABOVE the footage, never over faces ----------------
-BAND = 640; VH = H - BAND
+BAND = 0; VH = H; BOTTOM = 1610  # lower-third stripe: text block bottom edge
 def headline(lines, size=72, hl_size=None, gap=14):
     """returns a tight RGBA block: white lines as text, 'hl' lines in light-blue pills"""
-    im = Image.new('RGBA', (W, BAND * 2), (0, 0, 0, 0)); d = ImageDraw.Draw(im); y = 0
+    im = Image.new('RGBA', (W, 1400), (0, 0, 0, 0)); d = ImageDraw.Draw(im); y = 0
     for txt, kind in lines:
         f = F(hl_size if (kind == 'hl' and hl_size) else size)
         bb = d.textbbox((0, 0), txt, font=f, anchor='ls', direction='rtl'); tw = bb[2] - bb[0]; ih = bb[3] - bb[1]
@@ -67,11 +67,11 @@ def headline(lines, size=72, hl_size=None, gap=14):
         y += ih + 2 * pad + gap
     return im.crop((0, 0, W, y - gap))
 HL = {
-    'hook': headline([('נשות החוות', 'w'), ('בקו החזית', 'hl')], size=130),
-    'stat90': headline([('מתוכם 90 אירועי', 'w'), ('תקיפת רועים', 'hl')], size=120),
+    'hook': headline([('נשות החוות', 'w'), ('בקו החזית', 'hl')], size=110),
+    'stat90': headline([('מתוכם 90 אירועי', 'w'), ('תקיפת רועים', 'hl')], size=104),
     'front': headline([('נשות החוות נמצאות', 'w'), ('בחזית ההתיישבות', 'w'), ('ונדרשות לשאת באחריות', 'hl'), ('לביטחונן ולביטחון משפחתן', 'hl')], size=96, gap=6),
     'project': headline([('פרויקט ״אשת חייל״', 'hl'), ('ימי אימון מקצועיים וייחודיים', 'w'), ('לנשות החוות שמחזיקות', 'w'), ('ברישיון בתוקף', 'w')], size=82, hl_size=118, gap=6),
-    'why': headline([('למה זה', 'w'), ('כל כך חשוב?', 'hl')], size=130),
+    'why': headline([('למה זה', 'w'), ('כל כך חשוב?', 'hl')], size=110),
     'weapon': headline([('להחזיק נשק זה לא מספיק', 'w'), ('צריך לדעת', 'hl'), ('להשתמש בו', 'hl')], size=96),
     'close': headline([('זו האחריות שלנו כלפי המשפחות', 'w'), ('שנמצאות בחזית ועושות יום יום', 'w'), ('עבודה אדירה', 'hl'), ('למען ביטחון מדינת ישראל', 'hl')], size=82, gap=6),
 }
@@ -79,22 +79,22 @@ SUB635 = headline([('פיגועי טרור', 'hl'), ('בחודשיים האחר�
 def stat635(t):
     n = int(round(635 * ease(t / 1.1))); f = F(230); im = Image.new('RGBA', (W, 230 + 20 + SUB635.height), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
     d.text((W / 2, 205), f'{n}', font=f, fill='white', anchor='ms'); im.alpha_composite(SUB635, (0, 250)); return im
-STRIPE = Image.new('RGBA', (W, BAND)); sd_ = ImageDraw.Draw(STRIPE)
-for y in range(BAND): sd_.line((0, y, W, y), fill=tuple(int(NAVY[i] * (1 - .25 * y / BAND) + 8 * (y / BAND)) for i in range(3)) + (255,))
-sd_.rectangle((0, BAND - 8, W, BAND), fill=LB + (255,))
 logo = Image.open(LOGO).convert('RGBA'); logo = logo.resize((170, int(170 * logo.height / logo.width)), Image.LANCZOS)
 def overlay(name, fr, t, sd):
-    canvas = Image.new('RGBA', (W, H)); canvas.paste(fr, (0, BAND)); canvas.alpha_composite(STRIPE, (0, 0))
+    canvas = fr.convert('RGBA')
     blk = stat635(t) if name == 'stat635' else HL[name]
     fade = ease(t / .3)
     if name not in ('hook', 'why', 'weapon', 'close'): fade *= 1 - ease((t - (sd - .25)) / .25)
-    blk = blk.copy(); blk.putalpha(blk.getchannel('A').point(lambda v: int(v * fade)))
-    y = (BAND - 8 - blk.height) // 2 + int((1 - ease(t / .3)) * 16)
-    canvas.alpha_composite(blk, (0, max(20, y)))
+    y1 = BOTTOM; y0 = y1 - blk.height
+    band = Image.new('RGBA', (W, blk.height + 70), NAVY + (215,)); bd = ImageDraw.Draw(band)
+    bd.rectangle((0, 0, W, 7), fill=LB + (255,))
+    band.alpha_composite(blk, (0, 38))
+    band.putalpha(band.getchannel('A').point(lambda v: int(v * fade)))
+    canvas.alpha_composite(band, (int((1 - ease(t / .35)) * 120), y0 - 38))
     if name == 'close':
         e = ease((t - 1.0) / .6)
         if e > 0:
-            g = logo.copy(); g.putalpha(g.getchannel('A').point(lambda v: int(v * e))); canvas.alpha_composite(g, ((W - logo.width) // 2, H - logo.height - 120))
+            g = logo.copy(); g.putalpha(g.getchannel('A').point(lambda v: int(v * e))); canvas.alpha_composite(g, ((W - logo.width) // 2, 150))
     return canvas
 
 # ---------------- render ----------------
@@ -151,9 +151,6 @@ pts += [(T - 1.2, .42), (T, 0)]
 env = np.interp(np.arange(N) / sr, [p[0] for p in pts], [p[1] for p in pts])
 out += mus * env[:, None]
 def sfx(n): x = load(f'{SFX}/{n}.wav'); return x / (np.abs(x).max() + 1e-9)
-for name, t0, d in MARKS:
-    if name in ('stat635', 'stat90', 'front', 'project', 'close'): add(sfx('swoosh_soft'), max(0, t0 - .15), .25)
-    if name == 'stat635': add(sfx('impact'), t0 + 1.1, .25)
 out[:int(T * sr)].tofile(HERE + '/_a.raw')
 final = HERE + '/yesha-eshet-hayil-reel.mp4'
 subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', HERE + '/_video.mp4', '-f', 'f32le', '-ar', str(sr), '-ac', '2', '-i', HERE + '/_a.raw',
