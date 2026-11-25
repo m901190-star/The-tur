@@ -51,73 +51,65 @@ interview('why', 16.4, 44.9, cutaways=[(23.6, 27.4, B('1789'), 1.0), (37.0, 40.9
 interview('weapon', 44.85, 62.1, cutaways=[(47.5, 51.0, B('1816'), 0.5), (57.0, 60.5, B('1864'), 3.0)])
 broll('close', [('1923', 0.5, 2.6), ('1866', 0.0, 4.0)], bg_gain=.2)
 
-# ---------------- headlines ----------------
-def headline(lines, top=150, size=72, hl_size=None):
-    """lines: [(text, 'w'|'hl')]. White text in a navy box, 'hl' lines in light-blue pills."""
-    im = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im); y = top
+# ---------------- headlines: in a navy stripe ABOVE the footage, never over faces ----------------
+BAND = 640; VH = H - BAND
+def headline(lines, size=72, hl_size=None, gap=14):
+    """returns a tight RGBA block: white lines as text, 'hl' lines in light-blue pills"""
+    im = Image.new('RGBA', (W, BAND * 2), (0, 0, 0, 0)); d = ImageDraw.Draw(im); y = 0
     for txt, kind in lines:
         f = F(hl_size if (kind == 'hl' and hl_size) else size)
         bb = d.textbbox((0, 0), txt, font=f, anchor='ls', direction='rtl'); tw = bb[2] - bb[0]; ih = bb[3] - bb[1]
-        while tw > W - 150: f = F(f.size - 4); bb = d.textbbox((0, 0), txt, font=f, anchor='ls', direction='rtl'); tw = bb[2] - bb[0]; ih = bb[3] - bb[1]
-        pad = 22; x1 = W / 2 + tw / 2 + 30; x0 = W / 2 - tw / 2 - 30
-        d.rounded_rectangle((x0, y, x1, y + ih + 2 * pad), 16, fill=(LB if kind == 'hl' else NAVY) + (240,))
+        while tw > W - 120: f = F(f.size - 4); bb = d.textbbox((0, 0), txt, font=f, anchor='ls', direction='rtl'); tw = bb[2] - bb[0]; ih = bb[3] - bb[1]
+        pad = 18
+        if kind == 'hl':
+            d.rounded_rectangle((W / 2 - tw / 2 - 30, y, W / 2 + tw / 2 + 30, y + ih + 2 * pad), 16, fill=LB + (255,))
         d.text((W / 2 + tw / 2, y + pad - bb[1]), txt, font=f, fill='white', anchor='rs', direction='rtl')
-        y += ih + 2 * pad + 14
-    return im
+        y += ih + 2 * pad + gap
+    return im.crop((0, 0, W, y - gap))
 HL = {
-    'hook': headline([('נשות החוות', 'w'), ('בקו החזית', 'hl')], size=118),
-    'stat90': headline([('מתוכם 90 אירועי', 'w'), ('תקיפת רועים', 'hl')], top=640, size=110),
-    'front': headline([('נשות החוות נמצאות', 'w'), ('בחזית ההתיישבות', 'w'), ('ונדרשות לשאת באחריות', 'hl'), ('לביטחונן ולביטחון משפחתן', 'hl')], top=470, size=88),
-    'project': headline([('פרויקט ״אשת חייל״', 'hl'), ('ימי אימון מקצועיים וייחודיים', 'w'), ('לנשות החוות שמחזיקות', 'w'), ('ברישיון בתוקף', 'w')], top=470, size=84, hl_size=120),
-    'why': headline([('למה זה', 'w'), ('כל כך חשוב?', 'hl')], size=118),
-    'weapon': headline([('להחזיק נשק', 'w'), ('זה לא מספיק', 'w'), ('צריך לדעת', 'hl'), ('להשתמש בו', 'hl')], size=104),
-    'close': headline([('זו האחריות שלנו כלפי המשפחות', 'w'), ('שנמצאות בחזית ועושות יום יום', 'w'), ('עבודה אדירה', 'hl'), ('למען ביטחון מדינת ישראל', 'hl')], top=420, size=84),
+    'hook': headline([('נשות החוות', 'w'), ('בקו החזית', 'hl')], size=130),
+    'stat90': headline([('מתוכם 90 אירועי', 'w'), ('תקיפת רועים', 'hl')], size=120),
+    'front': headline([('נשות החוות נמצאות', 'w'), ('בחזית ההתיישבות', 'w'), ('ונדרשות לשאת באחריות', 'hl'), ('לביטחונן ולביטחון משפחתן', 'hl')], size=96, gap=6),
+    'project': headline([('פרויקט ״אשת חייל״', 'hl'), ('ימי אימון מקצועיים וייחודיים', 'w'), ('לנשות החוות שמחזיקות', 'w'), ('ברישיון בתוקף', 'w')], size=82, hl_size=118, gap=6),
+    'why': headline([('למה זה', 'w'), ('כל כך חשוב?', 'hl')], size=130),
+    'weapon': headline([('להחזיק נשק זה לא מספיק', 'w'), ('צריך לדעת', 'hl'), ('להשתמש בו', 'hl')], size=96),
+    'close': headline([('זו האחריות שלנו כלפי המשפחות', 'w'), ('שנמצאות בחזית ועושות יום יום', 'w'), ('עבודה אדירה', 'hl'), ('למען ביטחון מדינת ישראל', 'hl')], size=82, gap=6),
 }
+SUB635 = headline([('פיגועי טרור', 'hl'), ('בחודשיים האחרונים', 'w')], size=84, gap=6)
 def stat635(t):
-    im = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
-    n = int(round(635 * ease(t / 1.1))); f = F(300); s = f'{n}'
-    bb = d.textbbox((0, 0), s, font=f, anchor='ls'); tw = bb[2] - bb[0]
-    d.rounded_rectangle((W / 2 - 300, 560, W / 2 + 300, 900), 24, fill=NAVY + (235,))
-    d.text((W / 2, 870), s, font=f, fill='white', anchor='ms')
-    sub = headline([('פיגועי טרור', 'hl'), ('בחודשיים האחרונים', 'w')], top=930, size=96)
-    im.alpha_composite(sub.crop((0, 0, W, 900)), (0, 0)) if False else im.alpha_composite(sub, (0, 0))
-    return im
-def dim(im, a):  # darken footage behind full-screen cards
-    return Image.blend(im, Image.new('RGBA', im.size, (8, 20, 34, 255)), a)
-logo = Image.open(LOGO).convert('RGBA'); logo = logo.resize((300, int(300 * logo.height / logo.width)), Image.LANCZOS)
-
+    n = int(round(635 * ease(t / 1.1))); f = F(230); im = Image.new('RGBA', (W, 230 + 20 + SUB635.height), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    d.text((W / 2, 205), f'{n}', font=f, fill='white', anchor='ms'); im.alpha_composite(SUB635, (0, 250)); return im
+STRIPE = Image.new('RGBA', (W, BAND)); sd_ = ImageDraw.Draw(STRIPE)
+for y in range(BAND): sd_.line((0, y, W, y), fill=tuple(int(NAVY[i] * (1 - .25 * y / BAND) + 8 * (y / BAND)) for i in range(3)) + (255,))
+sd_.rectangle((0, BAND - 8, W, BAND), fill=LB + (255,))
+logo = Image.open(LOGO).convert('RGBA'); logo = logo.resize((170, int(170 * logo.height / logo.width)), Image.LANCZOS)
 def overlay(name, fr, t, sd):
-    fade = ease(t / .3) * (1 - ease((t - (sd - .25)) / .25))
-    if name in ('stat635', 'stat90', 'front', 'project', 'close'):
-        fr = dim(fr, .45)
-    if name == 'stat635':
-        lay = stat635(t)
-    elif name == 'close':
-        lay = HL['close'].copy(); full = Image.new('RGBA', (W, H), (0, 0, 0, 0)); full.alpha_composite(lay, (0, 0))
+    canvas = Image.new('RGBA', (W, H)); canvas.paste(fr, (0, BAND)); canvas.alpha_composite(STRIPE, (0, 0))
+    blk = stat635(t) if name == 'stat635' else HL[name]
+    fade = ease(t / .3)
+    if name not in ('hook', 'why', 'weapon', 'close'): fade *= 1 - ease((t - (sd - .25)) / .25)
+    blk = blk.copy(); blk.putalpha(blk.getchannel('A').point(lambda v: int(v * fade)))
+    y = (BAND - 8 - blk.height) // 2 + int((1 - ease(t / .3)) * 16)
+    canvas.alpha_composite(blk, (0, max(20, y)))
+    if name == 'close':
         e = ease((t - 1.0) / .6)
         if e > 0:
-            g = logo.copy(); g.putalpha(g.getchannel('A').point(lambda v: int(v * e))); full.alpha_composite(g, ((W - logo.width) // 2, 1250))
-        lay = full; fade = ease(t / .3)
-    else:
-        lay = Image.new('RGBA', (W, H), (0, 0, 0, 0)); lay.alpha_composite(HL[name], (0, 0))
-        if name in ('hook', 'why', 'weapon'): fade = ease(t / .3)
-    lay = lay.copy(); lay.putalpha(lay.getchannel('A').point(lambda v: int(v * fade)))
-    fr.alpha_composite(lay, (0, int((1 - ease(t / .3)) * 20)))
-    return fr
+            g = logo.copy(); g.putalpha(g.getchannel('A').point(lambda v: int(v * e))); canvas.alpha_composite(g, ((W - logo.width) // 2, H - logo.height - 120))
+    return canvas
 
 # ---------------- render ----------------
 def frames(src, t0, dur):
-    vf = f'scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={FPS},eq=contrast=1.05:saturation=1.08'
-    if src.endswith('1923.MOV'):  # landscape: blurred fill
-        vf = (f'split[a][b];[a]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},boxblur=30[bg];'
-              f'[b]scale={W}:-2[fg];[bg][fg]overlay=0:(H-h)/2,fps={FPS},eq=contrast=1.05:saturation=1.08')
+    yoff = '0' if src == IV else '(ih-oh)/2'
+    vf = f'scale={W}:{VH}:force_original_aspect_ratio=increase,crop={W}:{VH}:(iw-ow)/2:{yoff},fps={FPS},eq=contrast=1.05:saturation=1.08'
+    if src.endswith('1923.MOV'):
+        vf = f'scale={W}:{VH}:force_original_aspect_ratio=increase,crop={W}:{VH},fps={FPS},eq=contrast=1.05:saturation=1.08'
     p = subprocess.Popen(['ffmpeg', '-v', 'error', '-ss', f'{t0:.3f}', '-t', f'{dur:.3f}', '-i', src, '-filter_complex', vf,
                           '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], stdout=subprocess.PIPE)
     n = 0; last = None
     while n < int(round(dur * FPS)):
-        b = p.stdout.read(W * H * 3)
-        if len(b) < W * H * 3: break
-        last = Image.frombytes('RGB', (W, H), b); yield last; n += 1
+        b = p.stdout.read(W * VH * 3)
+        if len(b) < W * VH * 3: break
+        last = Image.frombytes('RGB', (W, VH), b); yield last; n += 1
     p.stdout.close(); p.kill(); p.wait()
     while n < int(round(dur * FPS)) and last is not None: yield last; n += 1
 enc = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
