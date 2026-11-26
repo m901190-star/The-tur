@@ -18,25 +18,31 @@ SHOTS = [
     (S_('2080'), 0.4, 1.1, None, 0, 'amb'),       # sign: "חדר טיפול שיקום"
     (V2, 4.97, 3.44, S_('2066'), 0.167, 'talk'),          # red shirt (blurred) with Smotrich
     (V2, 8.41, 3.40, S_('2075'), 3.50, 'talk'),
+    (V2, 26.41, 3.55, S_('2064'), 0.50, 'talk'),          # red shirt goodbye — kept with his other shots (one continuous scene) (blurred)
     (V2, 11.81, 1.70, None, 0, 'amb'),           # fighter on the bed (blurred)
     (V2, 13.51, 1.86, S_('2103'), 0.233, 'talk'),
     (V2, 15.37, 1.27, None, 0, 'amb'),
     (V2, 23.21, 3.20, None, 0, 'amb'),            # walking by the pool
-    (V2, 26.41, 3.60, S_('2064'), 0.50, 'talk'),          # red shirt goodbye (blurred)
     (S_('2062'), 1.0, 1.3, None, 0, 'close'),             # rehab b-roll + "החלמה מהירה"
     (S_('2077'), 0.0, 0.9, None, 0, 'close'),
     (S_('2076'), 0.5, 1.2, None, 0, 'close'),
-    (S_('2113'), 0.5, 2.6, None, 0, 'close'),
+    (S_('2113'), 0.15, 2.6, None, 0, 'close')   # clip is 2.77 s: no held frame at the end,
 ]
 VF_SRC = f'scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={FPS},eq=contrast=1.05:saturation=1.08'
 VF_V2 = f'fps={FPS}'
 def rd(src, t0, dur, vf):
-    p = subprocess.Popen(['ffmpeg', '-v', 'error', '-ss', f'{t0:.3f}', '-t', f'{dur:.3f}', '-i', src, '-vf', vf, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], stdout=subprocess.PIPE)
-    n = 0; N = int(round(dur * FPS)); last = None
+    if src == V2:   # frame-exact: decode from the start and trim by frame number
+        f0 = int(round(t0 * FPS)); f1 = f0 + int(round(dur * FPS))
+        cmd = ['ffmpeg', '-v', 'error', '-i', src, '-vf', f'trim=start_frame={f0}:end_frame={f1},setpts=PTS-STARTPTS', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-']
+    else:
+        cmd = ['ffmpeg', '-v', 'error', '-ss', f'{t0:.3f}', '-t', f'{dur + .2:.3f}', '-i', src, '-vf', vf, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-']
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    n = 0; N = int(round(dur * FPS)); last = None; prev = None
     while n < N:
         b = p.stdout.read(W * H * 3)
         if len(b) < W * H * 3: break
-        last = Image.frombytes('RGB', (W, H), b); yield last; n += 1
+        if last is not None and b == prev: continue            # skip duplicated frames (seek / fps rounding)
+        prev = b; last = Image.frombytes('RGB', (W, H), b); yield last; n += 1
     p.stdout.close(); p.kill(); p.wait()
     while n < N and last is not None: yield last; n += 1
 # group consecutive stripe shots so the stripe runs across cuts
