@@ -5,7 +5,7 @@ from PIL import Image
 HERE = os.path.dirname(os.path.abspath(__file__))
 src = open(HERE + '/make.py').read().split('\n')
 exec('\n'.join(src[:src.index(next(l for l in src if l.startswith('enc = ')))]))          # helpers: headline/HL/overlay/frames (stops before the make.py render)
-CUT = HERE + '/src/user_cut/cut.mp4'
+CUT = HERE + '/src/user_cut/cut_v2.mp4'  # blurred and trimmed by blur_trim.py
 CUT_D = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', CUT], capture_output=True, text=True).stdout)
 OPEN_D = 4.6
 TAIL = [('2062', 1.0, 1.3), ('2077', 0.0, 0.9), ('2076', 0.5, 1.2), ('2113', 0.5, 2.4)]
