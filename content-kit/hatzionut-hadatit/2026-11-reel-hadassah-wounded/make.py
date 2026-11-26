@@ -1,7 +1,8 @@
 """RZ reel: Smotrich at Hadassah Mt Scopus rehab — day of honour for the wounded — women's range training for farm women.
 Hook (Avishag) -> data cards over range b-roll -> why it matters -> 'knowing how to use it' -> emotional close + Yesha logo.
 Every section carries a big headline on top (client: so it can't be taken out of context). Lower third left free for the user's captions."""
-import os, glob, subprocess, numpy as np
+import os, sys, glob, subprocess, numpy as np
+CLEAN = '--clean' in sys.argv  # no on-screen text
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 HERE = os.path.dirname(os.path.abspath(__file__)); KIT = os.path.abspath(HERE + '/../..')
 HAIM = KIT + '/fonts/HaimClassicv2FM-Bold.ttf'
@@ -79,7 +80,7 @@ logo = Image.open(LOGO).convert('RGBA'); logo = logo.resize((170, int(170 * logo
 def overlay(name, fr, t, sd):
     canvas = fr.convert('RGBA')
     blk = stat635(t) if name == 'stat635' else HL[name]
-    if blk is None or (name == 'hero1' and t > 4.0): return canvas
+    if CLEAN or blk is None or (name == 'hero1' and t > 4.0): return canvas
     fade = ease(t / .3)
     if name == 'open': fade *= 1 - ease((t - (sd - .25)) / .25)
     if name == 'hero1': fade *= 1 - ease((t - 3.7) / .3)
@@ -150,7 +151,7 @@ env = np.interp(np.arange(N) / sr, [p[0] for p in pts], [p[1] for p in pts])
 out += mus * env[:, None]
 def sfx(n): x = load(f'{SFX}/{n}.wav'); return x / (np.abs(x).max() + 1e-9)
 out[:int(T * sr)].tofile(HERE + '/_a.raw')
-final = HERE + '/smotrich-hadassah-wounded-reel.mp4'
+final = HERE + ('/smotrich-hadassah-wounded-reel-clean.mp4' if CLEAN else '/smotrich-hadassah-wounded-reel.mp4')
 subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', HERE + '/_video.mp4', '-f', 'f32le', '-ar', str(sr), '-ac', '2', '-i', HERE + '/_a.raw',
                 '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-af', 'loudnorm=I=-14:TP=-1.5:LRA=11', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
                 '-movflags', '+faststart', '-shortest', final], check=True)
