@@ -45,11 +45,14 @@ def interview(name, a, b, cutaways=()):
     SECTIONS.append(dict(name=name, pieces=pcs))
 def broll(name, clips, bg_gain=.35):
     SECTIONS.append(dict(name=name, pieces=[(B(n), st, d, B(n), st, bg_gain) for (n, st, d) in clips]))
-broll('open', [('2079', 0.2, 2.5), ('2080', 0.0, 1.7)], bg_gain=.25)
-interview('hero1', 0.0, 9.65)
-broll('tour', [('2066', 0.0, 3.6), ('2075', 3.5, 3.4), ('2092', 0.0, 3.2), ('2103', 0.0, 2.1), ('2119', 0.0, 3.8)], bg_gain=.25)
-interview('hero2', 25.4, 33.3)
-broll('close', [('2112', 0.0, 3.2), ('2064', 0.5, 3.6)], bg_gain=.15)
+def talk(name, clips):
+    """people speaking: their own audio, normalized like the interview voice"""
+    SECTIONS.append(dict(name=name, pieces=[(B(n), st, d, B(n), st, 1.0) for (n, st, d) in clips]))
+interview('hero1', 1.85, 8.15)                                   # "הוא גיבור ישראל, הוא מנע פיגוע…"
+talk('redshirt', [('2065', 11.3, 6.3), ('2066', 0.0, 12.0)])     # fighter in red: the battle story
+talk('leg', [('2092', 2.1, 6.4), ('2101', 0.0, 8.5)])            # wounded fighter (leg): the evacuation
+broll('beat', [('2103', 0.0, 2.1)], bg_gain=.2)
+interview('hero2', 25.4, 33.3)                                   # "רוני, כל הכבוד… כיף שאתה מחייך כל הזמן"
 
 # ---------------- headlines: in a navy stripe ABOVE the footage, never over faces ----------------
 BAND = 0; VH = H; BOTTOM = 1610  # lower-third stripe: text block bottom edge
@@ -67,6 +70,7 @@ def headline(lines, size=72, hl_size=None, gap=14):
         y += ih + 2 * pad + gap
     return im.crop((0, 0, W, y - gap))
 HL = {
+    'redshirt': None, 'leg': None, 'beat': None,
     'open': headline([('יום ההוקרה לפצועי צה״ל', 'hl'), ('וכוחות הביטחון', 'w')], size=92),
     'hero1': headline([('מחלקת השיקום', 'w'), ('הדסה הר הצופים', 'hl')], size=84),
     'tour': None, 'hero2': None,
@@ -139,19 +143,20 @@ def add(x, t, g):
     out[i:i + m] += g * x
 for (as_, at, d, g, tt) in AUD:
     if as_ == IV: add(voice[int(at * sr):int((at + d) * sr)], tt, 1.0)
+    elif g >= 1.0: add(load(as_, at, d, af='highpass=f=100,afftdn=nf=-22,acompressor=threshold=-22dB:ratio=3,loudnorm=I=-16:TP=-2'), tt, 1.0)
     else:
         x = load(as_, at, d); x /= (np.abs(x).max() + 1e-9); add(x * .5, tt, g)
 mus = load(MUSIC); mus /= np.abs(mus).max(); mus = np.tile(mus, (N // len(mus) + 2, 1))[:N]
 pts = [(0, .0)]
 for name, t0, d in MARKS:
-    lvl = .07 if name in ('hero1', 'hero2') else .38
+    lvl = .06 if name in ('hero1', 'hero2', 'redshirt', 'leg') else .38
     pts += [(t0 + .01, lvl), (t0 + d - .01, lvl)]
 pts += [(T - 1.2, .42), (T, 0)]
 env = np.interp(np.arange(N) / sr, [p[0] for p in pts], [p[1] for p in pts])
 out += mus * env[:, None]
 def sfx(n): x = load(f'{SFX}/{n}.wav'); return x / (np.abs(x).max() + 1e-9)
 out[:int(T * sr)].tofile(HERE + '/_a.raw')
-final = HERE + ('/smotrich-hadassah-wounded-reel-clean.mp4' if CLEAN else '/smotrich-hadassah-wounded-reel.mp4')
+final = HERE + ('/smotrich-hadassah-v2-clean.mp4' if CLEAN else '/smotrich-hadassah-v2.mp4')
 subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', HERE + '/_video.mp4', '-f', 'f32le', '-ar', str(sr), '-ac', '2', '-i', HERE + '/_a.raw',
                 '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-af', 'loudnorm=I=-14:TP=-1.5:LRA=11', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
                 '-movflags', '+faststart', '-shortest', final], check=True)
