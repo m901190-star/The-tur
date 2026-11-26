@@ -1,7 +1,7 @@
 """Yesha reel 'אשת חייל' — women's range training for farm women.
 Hook (Avishag) -> data cards over range b-roll -> why it matters -> 'knowing how to use it' -> emotional close + Yesha logo.
 Every section carries a big headline on top (client: so it can't be taken out of context). Lower third left free for the user's captions."""
-import os, glob, subprocess, numpy as np
+import os, sys, glob, subprocess, numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 HERE = os.path.dirname(os.path.abspath(__file__)); KIT = os.path.abspath(HERE + '/../..')
 HAIM = KIT + '/fonts/HaimClassicv2FM-Bold.ttf'
@@ -151,10 +151,11 @@ for name, t0, d in MARKS:
     pts += [(t0 + .01, lvl), (t0 + d - .01, lvl)]
 pts += [(T - 1.2, .42), (T, 0)]
 env = np.interp(np.arange(N) / sr, [p[0] for p in pts], [p[1] for p in pts])
-out += mus * env[:, None]
+NOMUSIC = '--no-music' in sys.argv   # client adds 'רוח המחר' in Instagram
+if not NOMUSIC: out += mus * env[:, None]
 def sfx(n): x = load(f'{SFX}/{n}.wav'); return x / (np.abs(x).max() + 1e-9)
 out[:int(T * sr)].tofile(HERE + '/_a.raw')
-final = HERE + '/yesha-eshet-hayil-reel.mp4'
+final = HERE + ('/yesha-eshet-hayil-reel-no-music.mp4' if NOMUSIC else '/yesha-eshet-hayil-reel.mp4')
 subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', HERE + '/_video.mp4', '-f', 'f32le', '-ar', str(sr), '-ac', '2', '-i', HERE + '/_a.raw',
                 '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-af', 'loudnorm=I=-14:TP=-1.5:LRA=11', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
                 '-movflags', '+faststart', '-shortest', final], check=True)
