@@ -1,4 +1,5 @@
-"""Hadassah rehab reel, round 3 (client notes): Roni removed entirely (Ammunition Hill, not Oct-7), new gentle strings bed
+"""Hadassah rehab reel, round 4: only Smotrich-with-fighters talk is heard (staff / cameraman chatter muted), hopeful guitar bed.
+Round 3 (client notes): Roni removed entirely (Ammunition Hill, not Oct-7), new gentle strings bed
 (old track was too loud / distorted), more atmosphere: the Gandel Rehabilitation Center entrance + the rehab-room sign.
 Fighters' shots come from Moshe's cut with faces blurred (src/user_cut/cut_v2.mp4, made by blur_trim.py);
 their sound comes from the original clips (frame-matched in-points), untouched apart from a static gain."""
@@ -8,19 +9,19 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 _src = open(HERE + '/make.py').read().split('\n')
 exec('\n'.join(_src[:_src.index(next(l for l in _src if l.startswith('enc = ')))]))   # headline / HL / overlay / ease
 V2 = HERE + '/src/user_cut/cut_v2.mp4'
-MUSIC2 = HERE + '/music/strings_lush_B.wav'
+MUSIC2 = HERE + '/music/guitar_neptune_F.wav'   # hopeful acoustic (client: strings felt like Memorial Day)
 def S_(n): return f'{HERE}/src/IMG_{n}.MOV'
 # (video_src, v_t0, dur, audio_src, a_t0, kind)   kind: 'amb' (b-roll ambience) | 'talk' (people talking) | stripe names
 SHOTS = [
-    (S_('2129'), 0.0, 3.2, S_('2129'), 0.0, 'open'),     # entrance: "The Gandel Rehabilitation Center" -> building
-    (V2, 0.07, 2.43, S_('2079'), 0.20, 'open'),           # Smotrich walks the corridor
-    (S_('2080'), 0.4, 1.1, S_('2080'), 0.4, 'amb'),       # sign: "חדר טיפול שיקום"
+    (S_('2129'), 0.0, 3.2, None, 0, 'open'),     # entrance: "The Gandel Rehabilitation Center" -> building
+    (V2, 0.07, 2.43, None, 0, 'open'),           # Smotrich walks the corridor
+    (S_('2080'), 0.4, 1.1, None, 0, 'amb'),       # sign: "חדר טיפול שיקום"
     (V2, 4.97, 3.44, S_('2066'), 0.167, 'talk'),          # red shirt (blurred) with Smotrich
     (V2, 8.41, 3.40, S_('2075'), 3.50, 'talk'),
-    (V2, 11.81, 1.70, S_('2092'), 0.0, 'talk'),           # fighter on the bed (blurred)
+    (V2, 11.81, 1.70, None, 0, 'amb'),           # fighter on the bed (blurred)
     (V2, 13.51, 1.86, S_('2103'), 0.233, 'talk'),
-    (V2, 15.37, 1.27, S_('2119'), 0.0, 'talk'),
-    (V2, 23.21, 3.20, S_('2112'), 0.0, 'amb'),            # walking by the pool
+    (V2, 15.37, 1.27, None, 0, 'amb'),
+    (V2, 23.21, 3.20, None, 0, 'amb'),            # walking by the pool
     (V2, 26.41, 3.60, S_('2064'), 0.50, 'talk'),          # red shirt goodbye (blurred)
     (S_('2062'), 1.0, 1.3, None, 0, 'close'),             # rehab b-roll + "החלמה מהירה"
     (S_('2077'), 0.0, 0.9, None, 0, 'close'),
@@ -78,7 +79,7 @@ for (vs, vt, d, as_, at, kind) in SHOTS:
     if kind == 'talk': talk_mask[int(T * sr):int((T + d) * sr)] = 1
     T += d
 # strings bed: loop with 1.5 s crossfades, ducked under the talk scenes
-mu = ld(MUSIC2); xf = int(1.5 * sr); bed = mu.copy()
+mu = ld(MUSIC2); xf = int(.06 * sr); bed = mu.copy()   # seamless loop, tiny crossfade
 while len(bed) < N + sr:
     rr = np.linspace(0, 1, xf)[:, None]
     bed = np.concatenate([bed[:-xf], bed[-xf:] * (1 - rr) + mu[:xf] * rr, mu[xf:]])
