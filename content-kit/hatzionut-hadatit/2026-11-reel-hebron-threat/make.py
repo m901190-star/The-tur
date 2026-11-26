@@ -17,7 +17,7 @@ def eio(t): t = max(0., min(1., t)); return t * t * (3 - 2 * t)
 HOOK = [(7.7, 1.3), (10.0, 2.3), (13.0, 2.6)]          # arrest: flashlight entry -> cuffed on the floor -> taken down the stairs
 HOOK_D = sum(d for _, d in HOOK)
 NEWS_IN, NEWS_A, NEWS_B = 0.15, 6.30, 11.74            # "תושב חברון בן 20, חשוד שאיים לרצוח את השרים סטרוק, סמוטריץ' ונבחרים נוספים"
-SM_A, SM_B = 4.0, 40.98                                  # from "ראיתי שעצרו מחבל…" (the off-camera question is dropped)
+SM_A, SM_B = 0.25, 40.98                                 # includes the off-camera question "ראית שעצרו מחבל…"
 C1 = (7.2, 11.3)    # Haredim10 clipping: "וקיבל כסף מהפת״ח"       (src time in smotrich.mov)
 C2 = (11.3, 14.0)   # i24 clipping: "יצר קשר עם גורמים ברש״פ לצורך קבלת הכשרה צבאית"
 PUNCH = [(14.0, 1.10), (26.6, 1.14)]                    # punch-ins on "לא ירתיעו…" and "מדינת טרור בלב ליבה…"
@@ -183,17 +183,19 @@ for (a, d) in HOOK:                                       # bodycam room tone, l
     x = load(AR, a, d); x /= np.abs(x).max() + 1e-9
     f = np.ones(len(x)); r = int(.04 * sr); f[:r] = np.linspace(0, 1, r); f[-r:] = np.linspace(1, 0, r); add(x * f[:, None], T, .10); T += d
 f = np.ones(len(news)); r = int(.06 * sr); f[:r] = np.linspace(0, 1, r); f[-int(.12 * sr):] = np.linspace(1, 0, int(.12 * sr))
-add(news * f[:, None], NEWS_IN, 1.0)
-v = load(SM, SM_A, SM_B - SM_A, 'highpass=f=80,afftdn=nf=-25,acompressor=threshold=-20dB:ratio=3:attack=5:release=120,loudnorm=I=-16:TP=-1.5')
+add(news * f[:, None], NEWS_IN, 1.35)
+v = load(SM, SM_A, SM_B - SM_A)                          # his original sound, untouched (client: no processing)
+v *= 10 ** ((-16 - 20 * np.log10(np.sqrt((v ** 2).mean()) + 1e-9)) / 20)  # static gain only
 f = np.ones(len(v)); f[-int(.4 * sr):] = np.linspace(1, 0, int(.4 * sr)); add(v * f[:, None], HOOK_D, 1.0)
 m = load(MUSIC); m /= np.abs(m).max() + 1e-9; m = np.tile(m, (int(np.ceil(N / len(m))) + 1, 1))[:N]
 tt = np.arange(N) / sr
 lvl = np.interp(tt, [0, .4, HOOK_D - .3, HOOK_D + .4, TOTAL - 1.5, TOTAL], [0, .30, .30, .085, .085, 0])
 out += m * lvl[:, None]
+pk = np.abs(out).max(); out *= min(10 ** (2 / 20), 0.89 / pk)   # static make-up gain, no limiter/compression
 out.tofile(HERE + '/_a.raw')
 final = HERE + '/smotrich-hebron-threat-reel.mp4'
 subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', HERE + '/_video.mp4', '-f', 'f32le', '-ar', str(sr), '-ac', '2', '-i', HERE + '/_a.raw',
-                '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-af', 'loudnorm=I=-14:TP=-1.5:LRA=11', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
+                '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
                 '-movflags', '+faststart', '-shortest', final], check=True)
 os.remove(HERE + '/_a.raw'); os.remove(HERE + '/_video.mp4')
 print('done', round(TOTAL, 2), 'hook', HOOK_D, 'news ends', round(NEWS_IN + len(news) / sr, 2))
