@@ -15,7 +15,7 @@ def fit(txt, size, maxw):
 from PIL import ImageEnhance
 src = Image.open(HERE + '/source.jpg').convert('RGB'); sc = 740 / src.height; src = src.resize((int(src.width * sc), 740), Image.LANCZOS)
 src = ImageEnhance.Brightness(ImageEnhance.Color(src).enhance(.9)).enhance(.82)
-im = Image.new('RGBA', (W, H), (16, 36, 40, 255)); X = 400   # pushes him to the right third
+im = Image.new('RGBA', (W, H), (16, 36, 40, 255)); X = 430   # pushes him to the right third
 im.paste(src, (X, 0))
 fade = Image.new('RGBA', (W, H), (0, 0, 0, 0)); fd = ImageDraw.Draw(fade)
 for x in range(W):
