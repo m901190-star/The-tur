@@ -48,11 +48,14 @@ def broll(name, clips, bg_gain=.35):
 def talk(name, clips):
     """people speaking: their own audio, normalized like the interview voice"""
     SECTIONS.append(dict(name=name, pieces=[(B(n), st, d, B(n), st, 1.0) for (n, st, d) in clips]))
+broll('open', [('2079', 0.2, 2.3), ('2062', 1.0, 1.8), ('2111', 1.0, 2.2)], bg_gain=.15)   # walk, machines, pool + title
 interview('hero1', 1.85, 8.15)                                   # "הוא גיבור ישראל, הוא מנע פיגוע…"
 talk('redshirt', [('2065', 11.3, 6.3), ('2066', 0.0, 12.0)])     # fighter in red: the battle story
+broll('rehab', [('2073', 1.0, 1.8), ('2077', 0.0, 0.95), ('2076', 0.5, 1.8), ('2084', 0.5, 1.6), ('2113', 0.5, 1.8)], bg_gain=.12)
 talk('leg', [('2092', 2.1, 6.4), ('2101', 0.0, 8.5)])            # wounded fighter (leg): the evacuation
 broll('beat', [('2103', 0.0, 2.1)], bg_gain=.2)
 interview('hero2', 25.4, 33.3)                                   # "רוני, כל הכבוד… כיף שאתה מחייך כל הזמן"
+broll('close', [('2118', 0.5, 2.6), ('2121', 0.3, 2.8)], bg_gain=.12)
 
 # ---------------- headlines: in a navy stripe ABOVE the footage, never over faces ----------------
 BAND = 0; VH = H; BOTTOM = 1610  # lower-third stripe: text block bottom edge
@@ -70,11 +73,11 @@ def headline(lines, size=72, hl_size=None, gap=14):
         y += ih + 2 * pad + gap
     return im.crop((0, 0, W, y - gap))
 HL = {
-    'redshirt': None, 'leg': None, 'beat': None,
+    'redshirt': None, 'leg': None, 'beat': None, 'rehab': None,
     'open': headline([('יום ההוקרה לפצועי צה״ל', 'hl'), ('וכוחות הביטחון', 'w')], size=92),
-    'hero1': headline([('מחלקת השיקום', 'w'), ('הדסה הר הצופים', 'hl')], size=84),
+    'hero1': None,
     'tour': None, 'hero2': None,
-    'close': headline([('״אני שולח מכאן חיבוק גדול', 'w'), ('לאחינו הלוחמים הגיבורים', 'w'), ('שנפצעו ולמשפחותיהם״', 'hl'), ('בצלאל סמוטריץ׳', 'w')], size=80, gap=6),
+    'close': headline([('מאחלים החלמה מהירה', 'hl'), ('לכל פצועי צה״ל וכוחות הביטחון', 'w')], size=92),
 }
 SUB635 = headline([('פיגועי טרור', 'hl'), ('בחודשיים האחרונים', 'w')], size=84, gap=6)
 def stat635(t):
@@ -86,7 +89,7 @@ def overlay(name, fr, t, sd):
     blk = stat635(t) if name == 'stat635' else HL[name]
     if CLEAN or blk is None or (name == 'hero1' and t > 4.0): return canvas
     fade = ease(t / .3)
-    if name == 'open': fade *= 1 - ease((t - (sd - .25)) / .25)
+    if name in ('open', 'close'): fade *= 1 - ease((t - (sd - .25)) / .25)
     if name == 'hero1': fade *= 1 - ease((t - 3.7) / .3)
     y1 = BOTTOM; y0 = y1 - blk.height
     band = Image.new('RGBA', (W, blk.height + 70), NAVY + (215,)); bd = ImageDraw.Draw(band)
