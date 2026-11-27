@@ -50,11 +50,11 @@ card = torn(clip, 5).rotate(-2.2, resample=Image.BICUBIC, expand=True)
 
 im = concrete().convert('RGBA'); d = ImageDraw.Draw(im); R = W - 70
 # kicker + giant ironic word
-d.text((R, 95), 'מי שיתרשם מההכרזה', font=F(76), fill='white', anchor='ra', direction='rtl')
+d.text((R, 118), 'מי שיתרשם מההכרזה', font=F(76), fill='white', anchor='ra', direction='rtl')
 fz = F(205); t = 'ה״דרמטית״'
 while d.textlength(t, font=fz, direction='rtl') > W - 150: fz = F(fz.size - 5)
-d.text((R + 6, 190 + 8), t, font=fz, fill=(0, 0, 0, 160), anchor='ra', direction='rtl')
-d.text((R, 190), t, font=fz, fill=RED, anchor='ra', direction='rtl')
+d.text((R + 6, 172 + 8), t, font=fz, fill=(0, 0, 0, 160), anchor='ra', direction='rtl')
+d.text((R, 172), t, font=fz, fill=RED, anchor='ra', direction='rtl')
 im.alpha_composite(card, ((W - card.width) // 2, 410))
 # bottom punch
 fb = F(84); t = 'פשוט לא מכיר את עבאס'
@@ -62,6 +62,6 @@ while d.textlength(t, font=fb, direction='rtl') > W - 220: fb = F(fb.size - 3)
 bb = d.textbbox((0, 0), t, font=fb, anchor='ls', direction='rtl'); tw, ih = bb[2] - bb[0], bb[3] - bb[1]
 y = 1005; d.rectangle((R - tw - 52, y, R + 6, y + ih + 50), fill=LT)
 d.text((R - 24, y + 25 - bb[1]), t, font=fb, fill=NIGHT, anchor='rs', direction='rtl')
-d.text((R, y + ih + 80), 'ואת השיטה של האחים המוסלמים', font=F(52), fill='white', anchor='ra', direction='rtl')
+d.text((R, y + ih + 60), 'ואת השיטה של האחים המוסלמים', font=F(52), fill='white', anchor='ra', direction='rtl')
 d.text((70, H - 48), '←', font=F(60), fill=RED, anchor='lm')
 im.convert('RGB').save(HERE + '/slide1.jpg', quality=95); print('ok')

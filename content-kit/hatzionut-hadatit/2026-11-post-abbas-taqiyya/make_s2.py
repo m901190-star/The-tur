@@ -20,11 +20,11 @@ def concrete():
 
 im = concrete().convert('RGBA'); d = ImageDraw.Draw(im); R = W - 70
 # header
-d.text((R, 80), 'הכירו את', font=F(70), fill='white', anchor='ra', direction='rtl')
+d.text((R, 100), 'הכירו את', font=F(70), fill='white', anchor='ra', direction='rtl')
 fh = F(150); t = 'שיטת ה״תקייה״'
 while d.textlength(t, font=fh, direction='rtl') > W - 150: fh = F(fh.size - 4)
-d.text((R + 6, 160 + 8), t, font=fh, fill=(0, 0, 0, 160), anchor='ra', direction='rtl')
-d.text((R, 160), t, font=fh, fill=LT, anchor='ra', direction='rtl')
+d.text((R + 6, 150 + 8), t, font=fh, fill=(0, 0, 0, 160), anchor='ra', direction='rtl')
+d.text((R, 150), t, font=fh, fill=LT, anchor='ra', direction='rtl')
 
 # ---- bubble geometry ----
 BX0, BY0, BX1, BY1 = 110, 420, 970, 880
@@ -80,6 +80,6 @@ for line in segs:
     x = R
     for txt, col in line:
         d.text((x, y), txt, font=fl, fill=col, anchor='ra', direction='rtl'); x -= d.textlength(txt + ' ', font=fl, direction='rtl')
-    y += 72
+    y += 60
 d.text((70, H - 48), '←', font=F(60), fill=RED, anchor='lm')
 im.convert('RGB').save(HERE + '/slide2.jpg', quality=95); print('ok')

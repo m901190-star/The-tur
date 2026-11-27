@@ -21,12 +21,12 @@ fade = np.clip((np.arange(H) - (PH - 300)) / 300, 0, 1) ** 1.1
 im = Image.composite(Image.new('RGB', (W, H), NIGHT), im, Image.fromarray((fade[:, None] * 255).repeat(W, 1).astype(np.uint8)))
 d = ImageDraw.Draw(im); R = W - 70
 # headline
-y = 790
+y = 805
 f1 = F(88); t1 = 'עבאס רוצה להיכנס לממשלה'
 while d.textlength(t1, font=f1, direction='rtl') > W - 150: f1 = F(f1.size - 3)
 d.text((R + 4, y + 5), t1, font=f1, fill=(0, 0, 0), anchor='ra', direction='rtl')
 d.text((R, y), t1, font=f1, fill='white', anchor='ra', direction='rtl')
-y += 120
+y += 98
 f2 = F(88); a2, b2 = 'כדי', 'לחסל את ישראל מבפנים'
 wa = d.textlength(a2 + ' ', font=f2, direction='rtl')
 while wa + d.textlength(b2, font=f2, direction='rtl') > W - 150: f2 = F(f2.size - 3); wa = d.textlength(a2 + ' ', font=f2, direction='rtl')
