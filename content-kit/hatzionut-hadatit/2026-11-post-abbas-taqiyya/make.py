@@ -1,74 +1,32 @@
-"""Smotrich IG post: Mansour Abbas's 'dramatic' declaration = taqiyya. Dictionary-entry layout, B&W portrait (unaltered face),
-only exact phrases from Smotrich's text. 1080x1350."""
-import os
-import numpy as np
+"""Smotrich IG post (4:5): Mansour Abbas. House style — photo on top, headline in Haim (white line + teal pill).
+Headline is an exact phrase from Smotrich's text. Portrait in B&W (face unaltered)."""
+import os, sys, numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageFilter, ImageEnhance
-HERE = os.path.dirname(os.path.abspath(__file__)); KIT = os.path.abspath(HERE + '/../..')
-HAIM = KIT + '/fonts/HaimClassicv2FM-Bold.ttf'
-W, H = 1080, 1350
-DEEP, TEAL, LT, PALE, NIGHT = (43, 81, 85), (80, 146, 153), (105, 180, 189), (173, 213, 217), (14, 26, 28)
+HERE = os.path.dirname(os.path.abspath(__file__))
+HAIM = os.path.abspath(os.path.join(HERE, '..', '..', 'fonts', 'HaimClassicv2FM-Bold.ttf'))
+W, H = 1080, 1350; DEEP, TEAL, LT = (43, 81, 85), (80, 146, 153), (105, 180, 189)
+L1 = sys.argv[1] if len(sys.argv) > 1 else 'עבאס רוצה להיכנס לממשלה'
+L2 = sys.argv[2] if len(sys.argv) > 2 else 'כדי לחסל את ישראל מבפנים'
 def F(s): return ImageFont.truetype(HAIM, s, layout_engine=ImageFont.Layout.RAQM)
-def tw(d, t, f): return d.textlength(t, font=f, direction='rtl')
-def wrap(d, text, f, maxw):
-    out, cur = [], ''
-    for w in text.split():
-        t = (cur + ' ' + w).strip()
-        if tw(d, t, f) <= maxw: cur = t
-        else: out.append(cur); cur = w
-    return out + [cur]
-
-im = Image.new('RGB', (W, H), NIGHT)
-# subtle vertical gradient
-g = np.linspace(0, 1, H)[:, None, None]
-im = Image.fromarray((np.array(NIGHT) * (1 - g * .4) + np.array(DEEP) * (g * .4)).astype(np.uint8).repeat(W, 1))
-d = ImageDraw.Draw(im)
-
-# ---- portrait: B&W, film grain, left column ----
-ph = Image.open(HERE + '/src/abbas.jpg').convert('L')
-PW, PH = 500, 640
-ph = ImageOps.fit(ph, (PW, PH), Image.LANCZOS, centering=(.5, .3))
-ph = ImageEnhance.Contrast(ph).enhance(1.18).filter(ImageFilter.UnsharpMask(2, 60, 2))
-rng = np.random.default_rng(4); a = np.asarray(ph).astype(np.float32) + rng.normal(0, 9, (PH, PW))
+src = Image.open(HERE + '/src/abbas.jpg').convert('L')
+PH = 1040
+ph = src.resize((W, int(W * src.height / src.width)), Image.LANCZOS).crop((0, 0, W, PH))
+ph = ImageEnhance.Contrast(ph).enhance(1.15).filter(ImageFilter.UnsharpMask(3, 70, 2))
+a = np.asarray(ph).astype(np.float32) + np.random.default_rng(3).normal(0, 7, (PH, W))
 ph = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).convert('RGB')
-# fade the portrait's right edge into the background
-xs = np.clip((PW - np.arange(PW)) / 160, 0, 1)[None, :]; ys = np.clip((PH - np.arange(PH)) / 140, 0, 1)[:, None]
-m = Image.fromarray((255 * np.minimum(xs, ys) ** 1.3).astype(np.uint8))
-PX, PY = 0, 380
-im.paste(ph, (PX, PY), m)
-d = ImageDraw.Draw(im)
-
-# ---- top quote ----
-R = W - 64; y = 70
-f1 = F(54)
-for line in ['מי שיתרשם מההכרזה ה״דרמטית״', 'של מנסור עבאס על חמאס – ארגון טרור,']:
-    d.text((R, y), line, font=f1, fill='white', anchor='ra', direction='rtl'); y += 68
-fh = F(60); t = 'פשוט לא מכיר את עבאס'
-bb = d.textbbox((0, 0), t, font=fh, anchor='ls', direction='rtl'); w_ = bb[2] - bb[0]; h_ = bb[3] - bb[1]
-d.rectangle((R - w_ - 36, y + 8, R + 4, y + 8 + h_ + 34), fill=LT)
-d.text((R - 16, y + 8 + 17 - bb[1]), t, font=fh, fill=NIGHT, anchor='rs', direction='rtl')
-
-# ---- dictionary entry (right column) ----
-CR = W - 64; CL = 520; y = 420
-fw = F(190)
-d.text((CR, y), 'תקייה', font=fw, fill='white', anchor='ra', direction='rtl')
-y += 215
-fs = F(34)
-d.text((CR, y), 'ש״ע  |  מונח באסלאם', font=F(36), fill=PALE, anchor='ra', direction='rtl')
-y += 58
-d.line((CL, y, CR, y), fill=LT, width=4); y += 30
-fd = F(44)
-defin = 'הסתרה ונכונות לשקר ולומר כל דבר שהצד השני רוצה לשמוע'
-for i, line in enumerate(wrap(d, defin, fd, CR - CL)):
-    d.text((CR, y), line, font=fd, fill='white', anchor='ra', direction='rtl'); y += 60
-y += 10
-for line in ['כדי לקבל את עמדות', 'הכח הרצויות.']:
-    d.text((CR, y), line, font=F(38), fill=PALE, anchor='ra', direction='rtl'); y += 52
-
-# ---- bottom stripe ----
-SY = 1105
-d.rectangle((0, SY, W, H), fill=TEAL); d.rectangle((0, SY, W, SY + 8), fill=LT)
-ft = F(84); t = 'אסור ליפול למלכודת הזו'
-d.text((W // 2, SY + 40), t, font=ft, fill='white', anchor='ma', direction='rtl')
-fb = F(40)
-d.text((W // 2, SY + 150), 'ולהקים ממשלת אסון שתישען על אויבי ישראל.', font=fb, fill=NIGHT, anchor='ma', direction='rtl')
-out = HERE + '/post.jpg'; im.save(out, quality=95); print(out)
+im = Image.new('RGB', (W, H), DEEP); im.paste(ph, (0, 0))
+lo = Image.new('L', (1, H))
+for yy in range(H): lo.putpixel((0, yy), int(255 * max(0, min(1, (yy - (PH - 260)) / 240)) ** 1.2))
+im = Image.composite(Image.new('RGB', (W, H), DEEP), im, lo.resize((W, H)))
+d = ImageDraw.Draw(im); R = W - 70; y = PH - 30
+f1 = F(96)
+while d.textlength(L1, font=f1, direction='rtl') > W - 160: f1 = F(f1.size - 4)
+d.rectangle((R - 6, y + 14, R, y + 100), fill=LT)
+d.text((R - 28, y), L1, font=f1, fill='white', anchor='ra', direction='rtl')
+f2 = F(88)
+while d.textlength(L2, font=f2, direction='rtl') > W - 200: f2 = F(f2.size - 4)
+y2 = y + 135; bb = d.textbbox((0, 0), L2, font=f2, anchor='ls', direction='rtl')
+tw = bb[2] - bb[0]; ih = bb[3] - bb[1]; pad = 22
+d.rounded_rectangle((R - tw - 56, y2, R + 6, y2 + ih + 2 * pad), 14, fill=LT)
+d.text((R - 24, y2 + pad - bb[1]), L2, font=f2, fill=DEEP, anchor='rs', direction='rtl')
+im.save(HERE + '/post.jpg', quality=95); print('bottom', y2 + ih + 2 * pad)
