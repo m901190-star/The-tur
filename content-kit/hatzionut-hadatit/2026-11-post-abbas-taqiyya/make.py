@@ -7,12 +7,15 @@ HAIM = os.path.abspath(os.path.join(HERE, '..', '..', 'fonts', 'HaimClassicv2FM-
 W, H = 1080, 1350; DEEP, TEAL, LT = (43, 81, 85), (80, 146, 153), (105, 180, 189)
 L1 = sys.argv[1] if len(sys.argv) > 1 else 'עבאס רוצה להיכנס לממשלה'
 L2 = sys.argv[2] if len(sys.argv) > 2 else 'כדי לחסל את ישראל מבפנים'
+OUT = sys.argv[3] if len(sys.argv) > 3 else 'post.jpg'
+COLOR = '--color' in sys.argv
+SWIPE = '--swipe' in sys.argv
 def F(s): return ImageFont.truetype(HAIM, s, layout_engine=ImageFont.Layout.RAQM)
-src = Image.open(HERE + '/src/abbas.jpg').convert('L')
+src = Image.open(HERE + '/src/abbas.jpg').convert('RGB' if COLOR else 'L')
 PH = 1040
 ph = src.resize((W, int(W * src.height / src.width)), Image.LANCZOS).crop((0, 0, W, PH))
 ph = ImageEnhance.Contrast(ph).enhance(1.15).filter(ImageFilter.UnsharpMask(3, 70, 2))
-a = np.asarray(ph).astype(np.float32) + np.random.default_rng(3).normal(0, 7, (PH, W))
+a = np.asarray(ph).astype(np.float32); a = a + np.random.default_rng(3).normal(0, 7, a.shape)
 ph = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).convert('RGB')
 im = Image.new('RGB', (W, H), DEEP); im.paste(ph, (0, 0))
 lo = Image.new('L', (1, H))
@@ -29,4 +32,7 @@ y2 = y + 135; bb = d.textbbox((0, 0), L2, font=f2, anchor='ls', direction='rtl')
 tw = bb[2] - bb[0]; ih = bb[3] - bb[1]; pad = 22
 d.rounded_rectangle((R - tw - 56, y2, R + 6, y2 + ih + 2 * pad), 14, fill=LT)
 d.text((R - 24, y2 + pad - bb[1]), L2, font=f2, fill=DEEP, anchor='rs', direction='rtl')
-im.save(HERE + '/post.jpg', quality=95); print('bottom', y2 + ih + 2 * pad)
+if SWIPE:
+    fs = F(40); t = 'החליקו לשקופית הבאה ←'
+    d.text((W // 2, H - 42), t, font=fs, fill=(173, 213, 217), anchor='mm', direction='rtl')
+im.save(HERE + '/' + OUT, quality=95); print('bottom', y2 + ih + 2 * pad)
