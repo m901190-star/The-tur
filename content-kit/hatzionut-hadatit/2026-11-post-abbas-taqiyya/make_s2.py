@@ -6,6 +6,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 HAIM = os.path.abspath(os.path.join(HERE, '..', '..', 'fonts', 'HaimClassicv2FM-Bold.ttf'))
 W, H = 1080, 1350
 DEEP, TEAL, LT, PALE, NIGHT = (43, 81, 85), (80, 146, 153), (105, 180, 189), (173, 213, 217), (14, 26, 28)
+RED = (204, 34, 46)
 YEL = (255, 222, 0)
 def F(s): return ImageFont.truetype(HAIM, s, layout_engine=ImageFont.Layout.RAQM)
 rng = np.random.default_rng(11)
@@ -35,10 +36,10 @@ def bubble_mask():
 bm = bubble_mask()
 # underlayer: what is really underneath (Smotrich's words), visible where the sticker has peeled
 under = Image.new('RGBA', (W, H), (0, 0, 0, 0)); ud = ImageDraw.Draw(under)
-ud.rounded_rectangle((BX0, BY0, BX1, BY1), 46, fill=TEAL + (255,))
+ud.rounded_rectangle((BX0, BY0, BX1, BY1), 46, fill=RED + (255,))
 fu = F(96)
 while ud.textlength('לשקר', font=fu, direction='rtl') > 215: fu = F(fu.size - 2)
-ud.text((350, 800), 'לשקר', font=fu, fill=YEL, anchor='ra', direction='rtl')
+ud.text((350, 800), 'לשקר', font=fu, fill='white', anchor='ra', direction='rtl')
 under.putalpha(Image.fromarray(np.minimum(np.asarray(under.getchannel('A')), np.asarray(bm))))
 # sticker: white bubble with the headline wording
 stk = Image.new('RGBA', (W, H), (0, 0, 0, 0)); sd = ImageDraw.Draw(stk)
@@ -73,7 +74,12 @@ shadow = Image.new('RGBA', (W, H), (0, 0, 0, 0)); shadow.putalpha(fsh); im.alpha
 im.alpha_composite(flap_im)
 # rest of his sentence under the bubble
 d = ImageDraw.Draw(im); y = BY1 + 140
-for line, col in [('הסתרה ונכונות לשקר ולומר כל דבר', 'white'), ('שהצד השני רוצה לשמוע', 'white'), ('כדי לקבל את עמדות הכח הרצויות.', PALE)]:
-    d.text((R, y), line, font=F(54), fill=col, anchor='ra', direction='rtl'); y += 72
-d.text((70, H - 48), '←', font=F(60), fill=PALE, anchor='lm')
+fl = F(54)
+segs = [[('הסתרה ונכונות לשקר', (236, 70, 78)), ('ולומר כל דבר', 'white')], [('שהצד השני רוצה לשמוע', 'white')], [('כדי לקבל את עמדות הכח הרצויות.', PALE)]]
+for line in segs:
+    x = R
+    for txt, col in line:
+        d.text((x, y), txt, font=fl, fill=col, anchor='ra', direction='rtl'); x -= d.textlength(txt + ' ', font=fl, direction='rtl')
+    y += 72
+d.text((70, H - 48), '←', font=F(60), fill=RED, anchor='lm')
 im.convert('RGB').save(HERE + '/slide2.jpg', quality=95); print('ok')

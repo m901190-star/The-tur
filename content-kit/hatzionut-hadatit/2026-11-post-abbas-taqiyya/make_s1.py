@@ -6,6 +6,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 HAIM = os.path.abspath(os.path.join(HERE, '..', '..', 'fonts', 'HaimClassicv2FM-Bold.ttf'))
 W, H = 1080, 1350
 DEEP, TEAL, LT, PALE, NIGHT = (43, 81, 85), (80, 146, 153), (105, 180, 189), (173, 213, 217), (14, 26, 28)
+RED = (204, 34, 46)
 YEL = np.array((255, 222, 0), np.float32) / 255
 def F(s): return ImageFont.truetype(HAIM, s, layout_engine=ImageFont.Layout.RAQM)
 rng = np.random.default_rng(11)
@@ -43,7 +44,7 @@ for k, (dx, dy, wdt) in enumerate([(0, 0, 9), (6, -4, 6)]):
     for t in np.linspace(0, 2 * np.pi * 1.08, 90):
         rx, ry = 238 + 7 * np.sin(3 * t), 50 + 4 * np.cos(2 * t)
         pts.append((710 + dx + rx * np.cos(t), 490 + dy + ry * np.sin(t)))
-    cd.line(pts, fill=(214, 40, 40), width=wdt, joint='curve')
+    cd.line(pts, fill=RED, width=wdt, joint='curve')
 CW = 980; clip = clip.resize((CW, int(clip.height * CW / clip.width)), Image.LANCZOS)
 card = torn(clip, 5).rotate(-2.2, resample=Image.BICUBIC, expand=True)
 
@@ -53,7 +54,7 @@ d.text((R, 95), 'מי שיתרשם מההכרזה', font=F(76), fill='white', an
 fz = F(205); t = 'ה״דרמטית״'
 while d.textlength(t, font=fz, direction='rtl') > W - 150: fz = F(fz.size - 5)
 d.text((R + 6, 190 + 8), t, font=fz, fill=(0, 0, 0, 160), anchor='ra', direction='rtl')
-d.text((R, 190), t, font=fz, fill=LT, anchor='ra', direction='rtl')
+d.text((R, 190), t, font=fz, fill=RED, anchor='ra', direction='rtl')
 im.alpha_composite(card, ((W - card.width) // 2, 410))
 # bottom punch
 fb = F(84); t = 'פשוט לא מכיר את עבאס'
@@ -62,5 +63,5 @@ bb = d.textbbox((0, 0), t, font=fb, anchor='ls', direction='rtl'); tw, ih = bb[2
 y = 1005; d.rectangle((R - tw - 52, y, R + 6, y + ih + 50), fill=LT)
 d.text((R - 24, y + 25 - bb[1]), t, font=fb, fill=NIGHT, anchor='rs', direction='rtl')
 d.text((R, y + ih + 80), 'ואת השיטה של האחים המוסלמים', font=F(52), fill='white', anchor='ra', direction='rtl')
-d.text((70, H - 48), '←', font=F(60), fill=PALE, anchor='lm')
+d.text((70, H - 48), '←', font=F(60), fill=RED, anchor='lm')
 im.convert('RGB').save(HERE + '/slide1.jpg', quality=95); print('ok')

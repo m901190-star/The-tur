@@ -6,6 +6,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 HAIM = os.path.abspath(os.path.join(HERE, '..', '..', 'fonts', 'HaimClassicv2FM-Bold.ttf'))
 W, H = 1080, 1350
 DEEP, TEAL, LT, PALE, NIGHT = (43, 81, 85), (80, 146, 153), (105, 180, 189), (173, 213, 217), (14, 26, 28)
+RED = (204, 34, 46)
 YEL = (255, 222, 0)
 def F(s): return ImageFont.truetype(HAIM, s, layout_engine=ImageFont.Layout.RAQM)
 src = Image.open(HERE + '/src/abbas.jpg').convert('L')
@@ -32,11 +33,11 @@ while wa + d.textlength(b2, font=f2, direction='rtl') > W - 150: f2 = F(f2.size 
 d.text((R, y), a2, font=f2, fill='white', anchor='ra', direction='rtl')
 wb = d.textlength(b2, font=f2, direction='rtl'); xr = R - wa
 bb = d.textbbox((xr, y), b2, font=f2, anchor='ra', direction='rtl')
-d.polygon([(xr + 14, bb[1] - 14), (xr - wb - 18, bb[1] - 8), (xr - wb - 12, bb[3] + 16), (xr + 18, bb[3] + 10)], fill=YEL)   # hand-laid marker
-d.text((xr, y), b2, font=f2, fill=NIGHT, anchor='ra', direction='rtl')
+d.polygon([(xr + 14, bb[1] - 14), (xr - wb - 18, bb[1] - 8), (xr - wb - 12, bb[3] + 16), (xr + 18, bb[3] + 10)], fill=RED)   # hand-laid marker
+d.text((xr, y), b2, font=f2, fill='white', anchor='ra', direction='rtl')
 # closing stripe
 SY = 1080
-d.rectangle((0, SY, W, H), fill=TEAL); d.rectangle((0, SY, W, SY + 8), fill=LT)
+d.rectangle((0, SY, W, H), fill=TEAL); d.rectangle((0, SY, W, SY + 10), fill=RED)
 ft = F(92); t = 'אסור ליפול למלכודת הזו'
 while d.textlength(t, font=ft, direction='rtl') > W - 120: ft = F(ft.size - 3)
 d.text((W // 2, SY + 48), t, font=ft, fill='white', anchor='ma', direction='rtl')
