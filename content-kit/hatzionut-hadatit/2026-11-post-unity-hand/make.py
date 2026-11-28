@@ -27,7 +27,7 @@ d.text((R - 22, y), k1, font=fk, fill='white', anchor='ra', direction='rtl')
 d.text((R - 22, y + 58), k2, font=fk, fill=PALE, anchor='ra', direction='rtl')
 y += 150
 # THIS
-a, b = 'מוכן להיות', 'עָרֵב'   # niqqud so it can't be read as 'Arabs'
+a, b = 'אני מוכן להיות', 'עָרֵב'   # niqqud so it can't be read as 'Arabs'
 fh = F(130)
 while d.textlength(a + ' ' + b, font=fh, direction='rtl') > W - 130: fh = F(fh.size - 2)
 d.text((R + 5, y + 6), a, font=fh, fill=(0, 0, 0), anchor='ra', direction='rtl')
