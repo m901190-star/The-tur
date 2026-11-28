@@ -1,5 +1,4 @@
-"""Smotrich IG post (4:5): unity call. Podium photo, then 'not this -> this': the minority government (red, struck through)
-vs. 'להושיט יד חזרה לאחים / ולהקים ממשלת אחדות לאומית רחבה'. Exact phrases from his text only."""
+"""Smotrich IG post (4:5): unity call (client: the message is unity — no minority-government line). Exact phrases only."""
 import os, numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageFilter, ImageEnhance
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -16,24 +15,17 @@ ph = Image.open(HERE + '/src/smotrich_podium.jpg').convert('RGB')
 ph = ImageOps.fit(ph, (W, 1040), Image.LANCZOS, centering=(.5, .12))
 ph = ImageEnhance.Contrast(ph).enhance(1.06)
 im = Image.new('RGB', (W, H), NIGHT); im.paste(ph, (0, 0))
-fade = np.clip((np.arange(H) - 600) / 300, 0, 1) ** 1.0
+fade = np.clip((np.arange(H) - 650) / 300, 0, 1) ** 1.0
 im = Image.composite(Image.new('RGB', (W, H), NIGHT), im, Image.fromarray((fade[:, None] * 255).repeat(W, 1).astype(np.uint8)))
 d = ImageDraw.Draw(im); R = W - 64
-y = 862
-# kicker
-k = 'אני קורא לגדי איזנקוט ולכל חברי הכנסת הציוניים בשמאל'
-fk = fit(d, k, 40, W - 150)
-d.rectangle((R - 5, y + 6, R, y + 50), fill=LT)
-d.text((R - 20, y), k, font=fk, fill='white', anchor='ra', direction='rtl')
-y += 76
-# NOT this: struck-through in red
-n = 'ממשלת מיעוט שנשענת על אויבי ישראל'
-fn = fit(d, n, 52, W - 160)
-bb = d.textbbox((R, y), n, font=fn, anchor='ra', direction='rtl')
-d.text((R, y), n, font=fn, fill=REDT, anchor='ra', direction='rtl')
-my = (bb[1] + bb[3]) // 2 + 2
-d.line((bb[0] - 10, my + 6, bb[2] + 10, my - 6), fill='white', width=5)
-y += 92
+y = 905
+# kicker: his opening sentence
+k1, k2 = 'הושטת היד של רה״מ נתניהו לאחדות', 'היא אמיתית וכנה.'
+fk = fit(d, k1, 48, W - 150)
+d.rectangle((R - 6, y + 8, R, y + 112), fill=LT)
+d.text((R - 22, y), k1, font=fk, fill='white', anchor='ra', direction='rtl')
+d.text((R - 22, y + 58), k2, font=fk, fill=PALE, anchor='ra', direction='rtl')
+y += 150
 # THIS
 a, b = 'להושיט יד חזרה', 'לאחים'
 fh = F(104)
