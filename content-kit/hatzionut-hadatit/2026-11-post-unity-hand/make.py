@@ -18,7 +18,7 @@ im = Image.new('RGB', (W, H), NIGHT); im.paste(ph, (0, 0))
 fade = np.clip((np.arange(H) - 650) / 300, 0, 1) ** 1.0
 im = Image.composite(Image.new('RGB', (W, H), NIGHT), im, Image.fromarray((fade[:, None] * 255).repeat(W, 1).astype(np.uint8)))
 d = ImageDraw.Draw(im); R = W - 64
-y = 870
+y = 850
 # kicker: his opening sentence
 k1, k2 = 'הושטת היד של רה״מ נתניהו לאחדות', 'היא אמיתית וכנה.'
 fk = fit(d, k1, 48, W - 150)
@@ -27,7 +27,7 @@ d.text((R - 22, y), k1, font=fk, fill='white', anchor='ra', direction='rtl')
 d.text((R - 22, y + 58), k2, font=fk, fill=PALE, anchor='ra', direction='rtl')
 y += 150
 # THIS
-a, b = 'מוכן להיות', 'ערב'
+a, b = 'מוכן להיות', 'עָרֵב'   # niqqud so it can't be read as 'Arabs'
 fh = F(130)
 while d.textlength(a + ' ' + b, font=fh, direction='rtl') > W - 130: fh = F(fh.size - 2)
 d.text((R + 5, y + 6), a, font=fh, fill=(0, 0, 0), anchor='ra', direction='rtl')
@@ -35,7 +35,7 @@ d.text((R, y), a, font=fh, fill='white', anchor='ra', direction='rtl')
 xa = R - d.textlength(a + ' ', font=fh, direction='rtl')
 d.text((xa + 5, y + 6), b, font=fh, fill=(0, 0, 0), anchor='ra', direction='rtl')
 d.text((xa, y), b, font=fh, fill=LT, anchor='ra', direction='rtl')
-y += 160
+y += 185
 p = 'לכל סיכום אליו הוא יגיע עם איזנקוט ושותפיו'
 fp = fit(d, p, 70, W - 190)
 bb = d.textbbox((0, 0), p, font=fp, anchor='ls', direction='rtl'); tw, ih = bb[2] - bb[0], bb[3] - bb[1]
