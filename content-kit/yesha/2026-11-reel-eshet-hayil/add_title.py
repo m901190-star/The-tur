@@ -17,7 +17,7 @@ def build_tag():
     f1, f2 = F(60), F(34)
     n, r = 'אבישג', 'בעלת חווה ביהודה ושומרון'
     w1, w2 = d0.textlength(n, font=f1, direction='rtl'), d0.textlength(r, font=f2, direction='rtl')
-    logo = Image.open(LOGO).convert('RGBA') if os.path.exists(LOGO) else None
+    logo = None   # client: the union logo belongs in the co-branding, not in the name title
     LS = 210 if logo else 0   # box width (logo is wide)
     bw = int(max(w1, w2) + 54); h1, h2 = 82, 52
     tag = Image.new('RGBA', (bw + LS + (16 if logo else 0), h1 + h2), (0, 0, 0, 0)); d = ImageDraw.Draw(tag)
@@ -33,6 +33,17 @@ def build_tag():
         lg = logo.copy(); lg.thumbnail((LS - 20, BH - 16), Image.LANCZOS)
         box.alpha_composite(lg, ((LS - lg.width) // 2, (BH - lg.height) // 2)); tag.alpha_composite(box, (0, 0))
     return tag
+def build_cobrand():
+    PWD, PHT = 780, 210
+    card = Image.new('RGBA', (PWD, PHT), (0, 0, 0, 0)); d = ImageDraw.Draw(card)
+    d.rounded_rectangle((0, 0, PWD - 1, PHT - 1), 26, fill=(255, 255, 255, 240))
+    d.line((PWD // 2, 34, PWD // 2, PHT - 34), fill=NAVY + (255,), width=3)
+    for path, cx in [(KIT + '/clients/yesha/logo.png', PWD * 3 // 4), (LOGO, PWD // 4)]:     # RTL: Yesha right, union left
+        lg = Image.open(path).convert('RGBA'); bb = lg.getbbox(); lg = lg.crop(bb); lg.thumbnail((PWD // 2 - 70, PHT - 44), Image.LANCZOS)
+        card.alpha_composite(lg, (cx - lg.width // 2, (PHT - lg.height) // 2))
+    return card
+COB = build_cobrand(); CX, CY = (W - COB.width) // 2, 110
+C_IN = 44.99                                  # closing shot (Yesha logo already there) -> end
 TAG = build_tag(); TX, TY = W - 40 - TAG.width, 960     # right side, above the caption stripe, below the face
 
 p = subprocess.Popen(['ffmpeg', '-v', 'error', '-i', SRC, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], stdout=subprocess.PIPE)
@@ -49,6 +60,12 @@ while True:
         e = ease((t - T_IN) / .45) * (1 - ease((t - T_OUT) / .35))
         tg = TAG.copy(); tg.putalpha(tg.getchannel('A').point(lambda v: int(v * e)))
         im.alpha_composite(tg, (TX + int((1 - e) * 160), TY))
+        b = im.convert('RGB').tobytes()
+    if t >= C_IN:
+        im = Image.frombytes('RGB', (W, H), b).convert('RGBA')
+        e = ease((t - C_IN) / .4)
+        cb = COB.copy(); cb.putalpha(cb.getchannel('A').point(lambda v: int(v * e)))
+        im.alpha_composite(cb, (CX, CY + int((1 - e) * -30)))
         b = im.convert('RGB').tobytes()
     enc.stdin.write(b); i += 1
 enc.stdin.close(); enc.wait(); print('done', i, 'logo' if os.path.exists(LOGO) else 'NO LOGO YET')
