@@ -18,7 +18,7 @@ def build_tag():
     n, r = 'אבישג', 'בעלת חווה ביהודה ושומרון'
     w1, w2 = d0.textlength(n, font=f1, direction='rtl'), d0.textlength(r, font=f2, direction='rtl')
     logo = Image.open(LOGO).convert('RGBA') if os.path.exists(LOGO) else None
-    LS = 112 if logo else 0
+    LS = 210 if logo else 0   # box width (logo is wide)
     bw = int(max(w1, w2) + 54); h1, h2 = 82, 52
     tag = Image.new('RGBA', (bw + LS + (16 if logo else 0), h1 + h2), (0, 0, 0, 0)); d = ImageDraw.Draw(tag)
     x0 = tag.width - bw
@@ -28,9 +28,10 @@ def build_tag():
     d.rectangle((x0, h1, x0 + int(w2 + 44), h1 + h2), fill=LB + (255,))
     d.text((x0 + int(w2 + 44) - 22, h1 + h2 // 2 + 2), r, font=f2, fill='white', anchor='rm', direction='rtl')
     if logo:   # logo on a white rounded square to the left of the tag
-        box = Image.new('RGBA', (LS, LS), (0, 0, 0, 0)); ImageDraw.Draw(box).rounded_rectangle((0, 0, LS - 1, LS - 1), 18, fill=(255, 255, 255, 245))
-        lg = logo.copy(); lg.thumbnail((LS - 24, LS - 24), Image.LANCZOS)
-        box.alpha_composite(lg, ((LS - lg.width) // 2, (LS - lg.height) // 2)); tag.alpha_composite(box, (0, (h1 + h2 - LS) // 2))
+        BH = h1 + h2
+        box = Image.new('RGBA', (LS, BH), (0, 0, 0, 0)); ImageDraw.Draw(box).rounded_rectangle((0, 0, LS - 1, BH - 1), 14, fill=(255, 255, 255, 248))
+        lg = logo.copy(); lg.thumbnail((LS - 20, BH - 16), Image.LANCZOS)
+        box.alpha_composite(lg, ((LS - lg.width) // 2, (BH - lg.height) // 2)); tag.alpha_composite(box, (0, 0))
     return tag
 TAG = build_tag(); TX, TY = W - 40 - TAG.width, 960     # right side, above the caption stripe, below the face
 
