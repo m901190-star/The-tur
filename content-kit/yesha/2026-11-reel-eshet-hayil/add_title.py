@@ -33,17 +33,34 @@ def build_tag():
         lg = logo.copy(); lg.thumbnail((LS - 20, BH - 16), Image.LANCZOS)
         box.alpha_composite(lg, ((LS - lg.width) // 2, (BH - lg.height) // 2)); tag.alpha_composite(box, (0, 0))
     return tag
+import cv2
+from PIL import ImageFilter
 def build_cobrand():
-    PWD, PHT = 780, 210
-    card = Image.new('RGBA', (PWD, PHT), (0, 0, 0, 0)); d = ImageDraw.Draw(card)
-    d.rounded_rectangle((0, 0, PWD - 1, PHT - 1), 26, fill=(255, 255, 255, 240))
-    d.line((PWD // 2, 34, PWD // 2, PHT - 34), fill=NAVY + (255,), width=3)
-    for path, cx in [(KIT + '/clients/yesha/logo.png', PWD * 3 // 4), (LOGO, PWD // 4)]:     # RTL: Yesha right, union left
-        lg = Image.open(path).convert('RGBA'); bb = lg.getbbox(); lg = lg.crop(bb); lg.thumbnail((PWD // 2 - 70, PHT - 44), Image.LANCZOS)
-        card.alpha_composite(lg, (cx - lg.width // 2, (PHT - lg.height) // 2))
-    return card
-COB = build_cobrand(); CX, CY = (W - COB.width) // 2, 110
-C_IN = 44.99                                  # closing shot (Yesha logo already there) -> end
+    """white, transparent co-branding: [Farms Union] | [Yesha] — both white like the Yesha logo already in the cut"""
+    LH = 112
+    ye = Image.open(KIT + '/clients/yesha/logo_white.png').convert('RGBA'); ye = ye.crop(ye.getbbox())
+    un = Image.open(HERE + '/src/igud_hachavot_white.png').convert('RGBA'); un = un.crop(un.getbbox())
+    ye = ye.resize((int(ye.width * LH / ye.height), LH), Image.LANCZOS)
+    un = un.resize((int(un.width * (LH + 6) / un.height), LH + 6), Image.LANCZOS)
+    gap = 44; Wc = un.width + gap * 2 + 3 + ye.width; Hc = LH + 6
+    c = Image.new('RGBA', (Wc + 40, Hc + 40), (0, 0, 0, 0))
+    c.alpha_composite(un, (20, 20)); c.alpha_composite(ye, (20 + un.width + gap * 2 + 3, 20 + 3))   # RTL: Yesha right, union left
+    ImageDraw.Draw(c).rectangle((20 + un.width + gap, 20 + 14, 20 + un.width + gap + 2, 20 + Hc - 14), fill=(255, 255, 255, 220))
+    sh = c.getchannel('A').filter(ImageFilter.GaussianBlur(7)).point(lambda v: int(v * .45))
+    out = Image.new('RGBA', c.size, (0, 0, 0, 0)); out.paste((0, 0, 0, 255), (0, 0), sh)
+    out = Image.composite(c, out, c.getchannel('A')) if False else out
+    out.alpha_composite(c); return out
+def remove_baked_logo(im):
+    """the cut has the white Yesha logo baked in at ~(468-615, 160-270): inpaint it so the pair can be centred"""
+    a = np.asarray(im.convert('RGB')).copy(); x0, y0, x1, y1 = 430, 130, 660, 300
+    reg = a[y0:y1, x0:x1].astype(np.int16); mx, mn = reg.max(2), reg.min(2)
+    m = ((mx > 215) & (mx - mn < 40)).astype(np.uint8) * 255
+    m = cv2.dilate(m, np.ones((7, 7), np.uint8))
+    mask = np.zeros(a.shape[:2], np.uint8); mask[y0:y1, x0:x1] = m
+    a = cv2.inpaint(a, mask, 9, cv2.INPAINT_TELEA)
+    return Image.fromarray(a)
+COB = build_cobrand(); CX, CY = (W - COB.width) // 2, 140
+C_IN = 44.99                                  # closing shot (where the Yesha logo appears) -> end
 TAG = build_tag(); TX, TY = W - 40 - TAG.width, 960     # right side, above the caption stripe, below the face
 
 p = subprocess.Popen(['ffmpeg', '-v', 'error', '-i', SRC, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], stdout=subprocess.PIPE)
@@ -62,10 +79,8 @@ while True:
         im.alpha_composite(tg, (TX + int((1 - e) * 160), TY))
         b = im.convert('RGB').tobytes()
     if t >= C_IN:
-        im = Image.frombytes('RGB', (W, H), b).convert('RGBA')
-        e = ease((t - C_IN) / .4)
-        cb = COB.copy(); cb.putalpha(cb.getchannel('A').point(lambda v: int(v * e)))
-        im.alpha_composite(cb, (CX, CY + int((1 - e) * -30)))
+        im = remove_baked_logo(Image.frombytes('RGB', (W, H), b)).convert('RGBA')
+        im.alpha_composite(COB, (CX, CY))
         b = im.convert('RGB').tobytes()
     enc.stdin.write(b); i += 1
 enc.stdin.close(); enc.wait(); print('done', i, 'logo' if os.path.exists(LOGO) else 'NO LOGO YET')
